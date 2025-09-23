@@ -8,8 +8,6 @@ runai python bin/main.py fit --print_config
 ```
 """
 
-
-
 from src.cli import CamsCli
 from src.datamodule import CamsDataModule
 from src.plmodule import CamsLightningModule

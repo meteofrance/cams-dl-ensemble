@@ -24,7 +24,6 @@ class CamsLightningModule(SegmentationLightningModule):
         self.save_hyperparameters()
 
     def get_hparams(self) -> dict:
-        """Return the hparams we want to save in logger
-        """
+        """Return the hparams we want to save in logger"""
 
         raise NotImplementedError

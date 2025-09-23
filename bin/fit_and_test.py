@@ -1,6 +1,6 @@
-from cams.cli import CamsCli
-from cams.datamodule import CamsDataModule
-from cams.plmodule import CamsLightningModule
+from src.cli import CamsCli
+from src.datamodule import CamsDataModule
+from src.plmodule import CamsLightningModule
 
 
 def cli_main() -> None:

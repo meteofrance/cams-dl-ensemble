@@ -7,19 +7,19 @@ assignees: ''
 
 ---
 
-## **Description** 
+## **Description**
 A clear and concise description of what the bug is.
 
 ---
-## **Steps to Reproduce** 
+## **Steps to Reproduce**
 Provide a step-by-step guide to reproduce the issue:
 1. Step 1
 2. Step 2
 3. ...
 
-Make sure that the issue is reproducible when using a virtual environment with the expected dependencies and versions. 
+Make sure that the issue is reproducible when using a virtual environment with the expected dependencies and versions.
 
-If possible, a minimal reproducible example code: 
+If possible, a minimal reproducible example code:
 
 **Example Code**:
 ```python
@@ -31,7 +31,7 @@ If possible, a minimal reproducible example code:
 ## **Expected behavior**
 A clear and concise description of what you expected to happen.
 
---- 
+---
 
 ## **Actual behavior**
 
@@ -42,7 +42,7 @@ Describe what actually happened. Include error messages, stack traces, logs or s
 ## **(Optional) Possible cause**
 If you have an idea about the possible cause, describe it here.
 
---- 
+---
 
 ## **Contributor willingness**
 

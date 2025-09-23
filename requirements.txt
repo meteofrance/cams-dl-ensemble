@@ -1,1 +1,4 @@
 mypy
+lightning
+pytorch
+git+https://github.com/meteofrance/mfai@v4.3.0

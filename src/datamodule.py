@@ -9,6 +9,10 @@ class CamsDataModule(LightningDataModule):
     """
 
     def __init__(self) -> None:
+        """
+        Args:
+            not implemented yet
+        """
         raise NotImplementedError()
 
     def setup(self, stage: str) -> None:

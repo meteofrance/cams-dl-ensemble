@@ -14,9 +14,17 @@ class CamsLightningModule(SegmentationLightningModule):
         model: BaseModel,
         loss: torch.nn.modules.loss._Loss,
     ) -> None:
+        """
+        Args:
+            model: the model to train.
+            loss: the loss function used to train the model.
+        """
+
         super().__init__(model=model, type_segmentation="regression", loss=loss)
         self.save_hyperparameters()
 
     def get_hparams(self) -> dict:
-        """Return the hparams we want to save in logger"""
+        """Return the hparams we want to save in logger
+        """
+
         raise NotImplementedError

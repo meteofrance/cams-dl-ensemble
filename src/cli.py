@@ -2,7 +2,14 @@ from lightning.pytorch.cli import LightningArgumentParser, LightningCLI
 
 
 class CamsCli(LightningCLI):
+    """
+    """
     def add_arguments_to_parser(self, parser: LightningArgumentParser) -> None:
+        """Add extra arguments to the parser or link arguments.
+
+        Args:
+            parser: Ther parser object to which arguments can be added.
+        """
         pass
 
     def after_instantiate_classes(self) -> None:

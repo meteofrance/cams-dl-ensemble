@@ -1,4 +1,4 @@
 mypy
 lightning
-pytorch
+torch
 git+https://github.com/meteofrance/mfai@v4.3.0

@@ -1,0 +1,505 @@
+<mxfile host="65bd71144e">
+    <diagram id="yWbviLKe6FOyX8bAQ1Ro" name="model_io">
+        <mxGraphModel dx="1936" dy="1665" grid="1" gridSize="10" guides="0" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="3HrIp41cybSNqDHHgnm--3" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="-10" y="100" width="240" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--4" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry y="110" width="240" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--5" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="120" width="240" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--6" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="210" width="230" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--7" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="220" width="230" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--8" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="230" width="230" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--9" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="240" width="230" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--10" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="250" width="230" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--11" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="130" width="240" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--12" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=#333333;labelBackgroundColor=none;fillColor=#f5f5f5;strokeColor=#666666;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="450" width="170" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--13" style="edgeStyle=elbowEdgeStyle;shape=connector;rounded=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;endArrow=classic;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="3HrIp41cybSNqDHHgnm--14" edge="1" target="9">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="430" y="305" as="targetPoint"/>
+                        <mxPoint x="400" y="305" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--14" value="NN&lt;br&gt;Model" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="265" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--15" value="IFS (0.1°) t&lt;span style=&quot;font-size: 10px;&quot;&gt;&lt;sub&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;0+x&lt;/font&gt;&lt;/sub&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=none;strokeColor=#3399FF;fontColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="270" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--16" style="edgeStyle=elbowEdgeStyle;shape=connector;rounded=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;endArrow=classic;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" source="3HrIp41cybSNqDHHgnm--17" target="3HrIp41cybSNqDHHgnm--14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="320" y="315" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--17" value="&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Surface short wave radiation&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Boudary level height&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Presure mean sea level&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Relative humidity at 2m&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Temperature at 2m&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Eastward wind component&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;Northward wind component&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;gradientColor=none;labelBackgroundColor=none;strokeColor=#3399FF;fontColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="290" width="200" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--18" value="Statistical analysis (0.1°) t&lt;sub&gt;0+x&lt;/sub&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="154" width="200" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--19" style="edgeStyle=elbowEdgeStyle;shape=connector;rounded=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;endArrow=classic;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" source="3HrIp41cybSNqDHHgnm--20" target="3HrIp41cybSNqDHHgnm--14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="310" y="360.0000000000001" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--20" value="&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;O3 &lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;CO NO2 SO2 NO PM25 PM10&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;NH3 NMVOC PANS DUST SIA&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;PM_WF EC_TOT EC_RES HCHO&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;CHOCHO DYNSAL PM25_OM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;NO3_DRY NH4_DRY SO4_DRY&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;gradientColor=none;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="184" width="200" height="76" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--21" value="IRA 2024, VRA avant 2024" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="270" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--22" value="" style="endArrow=none;html=1;rounded=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;endFill=0;startArrow=none;startFill=0;strokeWidth=4;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="380" y="460" as="sourcePoint"/>
+                        <mxPoint x="350" y="460" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--23" value="input" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;textShadow=0;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="450" width="80" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--24" value="input added at project&lt;div&gt;+12 months&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;fillColor=#f5f5f5;strokeColor=none;textShadow=0;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="474" width="110" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--25" value="" style="endArrow=none;html=1;rounded=1;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=none;startArrow=none;startFill=0;strokeWidth=4;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="380" y="482.11" as="sourcePoint"/>
+                        <mxPoint x="350" y="481.83000000000004" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--27" value="ANNRT 24h précédentes" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=none;fontColor=#3399FF;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="410" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--29" value="&lt;div style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; background-color: initial;&quot;&gt;&lt;font&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;O3&amp;nbsp;&lt;/font&gt;&lt;font style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); background-color: initial; text-decoration-color: initial; color: rgb(51, 153, 255);&quot;&gt;CO NO2 SO2 NO PM25 PM10&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; background-color: initial;&quot;&gt;&lt;font style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); background-color: initial; text-decoration-color: initial; color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;NH3 NMVOC PANS DUST SIA&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; background-color: initial;&quot;&gt;&lt;font style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); background-color: initial; text-decoration-color: initial; color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;PM_WF EC_TOT EC_RES HCHO&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; background-color: initial;&quot;&gt;&lt;font style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); background-color: initial; text-decoration-color: initial; color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;CHOCHO DYNSAL PM25_OM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; background-color: initial;&quot;&gt;&lt;font style=&quot;forced-color-adjust: none; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); background-color: initial; text-decoration-color: initial; color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;NO3_DRY NH4_DRY SO4_DRY&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;gradientColor=none;labelBackgroundColor=none;fontColor=#3399FF;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="430" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--30" value="&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;ssrd&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;blh&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;prmsl&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;r2&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;tm2&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;u10&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;v10&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#3399FF;fontColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="290" width="40" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--34" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="243" width="180" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--35" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="233" width="180" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--36" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="223" width="180" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--39" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="42" y="126" width="198" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--40" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="490" y="213" width="180" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--41" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="31" y="116" width="198" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--42" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="106" width="198" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--43" value="&lt;span style=&quot;text-align: left;&quot;&gt;levels: 50m,&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;100m, 250m, 500m, 750m, 1km, 2km, 3km, 5km&lt;/font&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="65.5" y="103" width="129" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--44" value="&lt;span style=&quot;text-align: left;&quot;&gt;levels: 50m,&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;100m, 250m, 500m, 750m, 1km, 2km, 3km, 5km&lt;/font&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="495.5" y="223" width="129" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--59" style="edgeStyle=none;html=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-190" y="180" as="sourcePoint"/>
+                        <mxPoint x="-170" y="180" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--58" style="html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=elbowEdgeStyle;" parent="1" source="3HrIp41cybSNqDHHgnm--57" target="3HrIp41cybSNqDHHgnm--20" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="-20" y="200"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--57" value="Compute median average, standard deviation, skewness, kurtosis, min, max" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-170" y="150" width="120" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="3HrIp41cybSNqDHHgnm--60" value="&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCMOCAGE&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCCHIMERE&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCEURADIM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCEMEP&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCLOTOS&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCSILAM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCMATCH&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCDEHM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCGEMAQ&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCMINNI&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot;&gt;&amp;nbsp;PMACCMONARCH&lt;/font&gt;&lt;/div&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12.366845381887288;" parent="1" vertex="1">
+                    <mxGeometry x="-320" y="80" width="130" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="a0bZDyx0pZoTvptjNpN1-2" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="a0bZDyx0pZoTvptjNpN1-3" target="a0bZDyx0pZoTvptjNpN1-5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a0bZDyx0pZoTvptjNpN1-3" value="&lt;div&gt;IFS&lt;/div&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="362" width="70" height="86" as="geometry"/>
+                </mxCell>
+                <mxCell id="a0bZDyx0pZoTvptjNpN1-4" style="edgeStyle=elbowEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="a0bZDyx0pZoTvptjNpN1-5" target="3HrIp41cybSNqDHHgnm--17" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="40" y="375" as="targetPoint"/>
+                        <mxPoint x="-100" y="410" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="-20" y="390"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a0bZDyx0pZoTvptjNpN1-5" value="interpolation from&lt;div&gt;0.125° to 0.1°&lt;div&gt;and crop to&amp;nbsp;&lt;/div&gt;&lt;div&gt;MACCGE01 grid&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-170" y="370" width="110" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="jRtoPWV4T0ZTj9otzOpW-1" value="IRA&lt;br&gt;VRA" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="560" width="70" height="86" as="geometry"/>
+                </mxCell>
+                <mxCell id="jRtoPWV4T0ZTj9otzOpW-3" value="2022 - 2025" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="50" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="jRtoPWV4T0ZTj9otzOpW-4" value="&lt;b&gt;BDAP&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-320" y="80" width="130" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="jRtoPWV4T0ZTj9otzOpW-5" value="&lt;b&gt;ecmwf-api&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="360" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="jRtoPWV4T0ZTj9otzOpW-7" value="&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;Grid: MACCGE01&lt;/font&gt;&lt;br&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Lines: 420&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Columns: 700&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Steps: 0.1°x&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;0.1°&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;From: 30.05N 24.95W&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;To: 71.95N 44.95E&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Field names:&amp;nbsp;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;O3_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;DUST_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;CO_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;PM_WF_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NO2_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;EC_TOT_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;SO2_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;EC_RES_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NO_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;HCHO_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;PM25_USI&amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;CHOCHO_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;PM10_USI&amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;DYNSAL_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NH3_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;PM25_OM_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NMVOC_USI -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;NO3_DRY_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;PANS_USI&amp;nbsp; &amp;nbsp; &amp;nbsp;-&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;NH4_DRY_USI&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;SIA_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;SO4_DRY_USI&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" style="shape=card;whiteSpace=wrap;html=1;size=0;align=left;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="-500" y="-40" width="160" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-6" style="edgeStyle=none;html=1;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" parent="1" source="r0uvffn9Xzls7Y4Rx_QK-1" target="jRtoPWV4T0ZTj9otzOpW-1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-1" value="&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;Grid: MACCGE01&lt;/font&gt;&lt;br&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Lines: 420&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Columns: 700&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Steps: 0.1°x&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;0.1°&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;From:&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(23, 43, 77);&quot;&gt;-24.95°E to 44.95°E&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;From:&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(23, 43, 77);&quot;&gt;30.05°N to 71.95°N&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Field names:&amp;nbsp;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;&lt;/font&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;O3_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;DUST_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;CO_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;PM_WF_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NO2_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;EC_TOT_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;SO2_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;EC_RES_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NO_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;HCHO_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;PM25_USI&amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;CHOCHO_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;PM10_USI&amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;DYNSAL_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NH3_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;PM25_OM_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;NMVOC_USI -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;NO3_DRY_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;PANS_USI&amp;nbsp; &amp;nbsp; &amp;nbsp;-&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;NH4_DRY_USI&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;SIA_USI&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; -&lt;/font&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;SO4_DRY_USI&lt;/span&gt;&lt;/div&gt;" style="shape=card;whiteSpace=wrap;html=1;size=0;align=left;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="-500" y="440" width="160" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-2" value="&lt;div&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;Grid:&amp;nbsp;GLOB0125&lt;/font&gt;&lt;br&gt;&lt;font face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Lines: 1441&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Columns: 2880&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Steps: 0.125°x&lt;/font&gt;&lt;span style=&quot;font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;;&quot;&gt;0.125°&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;From: 90S 0E&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;To: 90N 359,875E&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp;Field names:&amp;nbsp;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp; &amp;nbsp; - ssrd&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; - tm2&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp; &amp;nbsp; - blh&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; - u10&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp; &amp;nbsp; - prmsl&amp;nbsp; &amp;nbsp; &amp;nbsp; -&amp;nbsp; v10&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; face=&quot;Atkinson Hyperlegible&quot;&gt;&amp;nbsp; &amp;nbsp; - r2&lt;/font&gt;&lt;/div&gt;" style="shape=card;whiteSpace=wrap;html=1;size=0;align=left;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="-500" y="250" width="160" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-4" value="2022 - 2025" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="332" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-5" value="2022 - 2025" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="530" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-7" style="edgeStyle=none;html=1;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" parent="1" source="r0uvffn9Xzls7Y4Rx_QK-2" target="a0bZDyx0pZoTvptjNpN1-3" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-330" y="553" as="sourcePoint"/>
+                        <mxPoint x="-280" y="565" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-8" style="edgeStyle=none;html=1;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" parent="1" source="jRtoPWV4T0ZTj9otzOpW-7" target="3HrIp41cybSNqDHHgnm--60" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-330" y="378" as="sourcePoint"/>
+                        <mxPoint x="-280" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-10" value="&lt;b style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Atkinson Hyperlegible&amp;quot;; text-decoration-color: initial;&quot;&gt;CAMS ADS&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="-290" y="560" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="r0uvffn9Xzls7Y4Rx_QK-11" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="jRtoPWV4T0ZTj9otzOpW-1" target="9" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-30" y="563" as="sourcePoint"/>
+                        <mxPoint x="570" y="420" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="&lt;font&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;Physics forcing (0.1°) t&lt;/font&gt;&lt;sub style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;0+x&lt;/font&gt;&lt;/sub&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=none;fontColor=#3399FF;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="540" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Sun zenith position" style="rounded=0;whiteSpace=wrap;html=1;align=left;gradientColor=none;labelBackgroundColor=none;fontColor=#3399FF;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="560" width="200" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="sun_altitude" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#3399FF;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="160" y="560" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" style="edgeStyle=elbowEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" source="4" target="3HrIp41cybSNqDHHgnm--14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="250" y="430" as="sourcePoint"/>
+                        <mxPoint x="330" y="315" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="6" value="Statistical analysis (0.1°) t&lt;sub&gt;0+x&lt;/sub&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="-520" width="290" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="&amp;nbsp;Ozone&lt;div&gt;&amp;nbsp;Carbone monoxide&lt;div&gt;&amp;nbsp;Nitrogen dioxide&lt;/div&gt;&lt;div&gt;&amp;nbsp;Sulfur dioxide&lt;/div&gt;&lt;div&gt;&amp;nbsp;Nitric oxide&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp;Particulate mater 2.5μm&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&amp;nbsp;Particulate mater 10μm&lt;div&gt;&amp;nbsp;Amonia&lt;/div&gt;&lt;div&gt;&amp;nbsp;Non-methane volatile organic compound&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="-490" width="230" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="&lt;div&gt;&amp;nbsp;O3&lt;/div&gt;&lt;div&gt;&amp;nbsp;CO&lt;/div&gt;&lt;div&gt;&amp;nbsp;NO2&lt;/div&gt;&lt;div&gt;&amp;nbsp;SO2&lt;/div&gt;&lt;div&gt;&amp;nbsp;NO&lt;/div&gt;&lt;div&gt;&amp;nbsp;PM25&lt;/div&gt;&lt;div&gt;&amp;nbsp;PM10&lt;/div&gt;&lt;div&gt;&amp;nbsp;NH3&lt;/div&gt;&lt;div&gt;&amp;nbsp;NMVOC&lt;/div&gt;&lt;div&gt;&amp;nbsp;PANS&lt;/div&gt;&lt;div&gt;&amp;nbsp;DUST&lt;/div&gt;&lt;div&gt;&amp;nbsp;SIA&lt;/div&gt;&lt;div&gt;&amp;nbsp;PM_WF&lt;/div&gt;&lt;div&gt;&amp;nbsp;EC_TOT&lt;/div&gt;&lt;div&gt;&amp;nbsp;EC_RES&lt;/div&gt;&lt;div&gt;&amp;nbsp;HCHO&lt;/div&gt;&lt;div&gt;&amp;nbsp;CHOCHO&lt;/div&gt;&lt;div&gt;&amp;nbsp;DYNSAL&lt;/div&gt;&lt;div&gt;&amp;nbsp;PM25_OM&lt;/div&gt;&lt;div&gt;&amp;nbsp;NO3_DRY&lt;/div&gt;&lt;div&gt;&amp;nbsp;NH4_DRY&lt;/div&gt;&lt;div&gt;&amp;nbsp;SO4_DRY&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;gradientColor=none;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" vertex="1" parent="1">
+                    <mxGeometry x="460" y="-490" width="60" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;O3 &lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;CO NO2 SO2 NO PM25 PM10&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;NH3 NMVOC PANS DUST SIA&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;PM_WF EC_TOT EC_RES HCHO&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;CHOCHO DYNSAL PM25_OM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;color: rgb(51, 153, 255);&quot;&gt;&amp;nbsp;NO3_DRY NH4_DRY SO4_DRY&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;gradientColor=none;labelBackgroundColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" vertex="1" parent="1">
+                    <mxGeometry x="460" y="290" width="200" height="76" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" style="edgeStyle=elbowEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#3399FF;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" edge="1" parent="1" source="3HrIp41cybSNqDHHgnm--29" target="3HrIp41cybSNqDHHgnm--14">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="250" y="585" as="sourcePoint"/>
+                        <mxPoint x="330" y="315" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="7HGiRLC7pTik360crAD_" name="oper_timeline">
+        <mxGraphModel dx="743" dy="328" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-52" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" target="nYlr0Ux1Yo6spDVr_xSA-41" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="730" y="340" as="sourcePoint"/>
+                        <mxPoint x="785" y="390" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="785" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-49" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" target="nYlr0Ux1Yo6spDVr_xSA-43" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="790" y="370" as="sourcePoint"/>
+                        <mxPoint x="845" y="420" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="845" y="370"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-47" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" target="nYlr0Ux1Yo6spDVr_xSA-41" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="750" y="370" as="sourcePoint"/>
+                        <mxPoint x="785" y="390" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="785" y="370"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="310" width="630" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-3" value="18h" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="290" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-5" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" target="HYQ4AxeJDYfsmVATh8Cv-3" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="449.81" y="320" as="sourcePoint"/>
+                        <mxPoint x="449.81" y="270.00000000000006" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-7" value="0h" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="570" y="290" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-8" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" target="HYQ4AxeJDYfsmVATh8Cv-7" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="599.81" y="320" as="sourcePoint"/>
+                        <mxPoint x="599.81" y="270.00000000000006" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-9" value="6h" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="290" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-10" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" target="HYQ4AxeJDYfsmVATh8Cv-9" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="749.81" y="320" as="sourcePoint"/>
+                        <mxPoint x="749.81" y="270.00000000000006" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-11" value="12h" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="870" y="290" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="HYQ4AxeJDYfsmVATh8Cv-12" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" target="HYQ4AxeJDYfsmVATh8Cv-11" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="899.81" y="320" as="sourcePoint"/>
+                        <mxPoint x="899.81" y="270.00000000000006" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0hhwhhYJb25_zMnZiYvP-19" style="html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" source="0hhwhhYJb25_zMnZiYvP-2" target="0hhwhhYJb25_zMnZiYvP-18" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="0hhwhhYJb25_zMnZiYvP-2" value="leadtimes 0-24 (5h50)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="380" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="Ej6PJhxD2H-CnaqZ2EUl-12" value="&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;MATCH&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;DEHM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;GEMAQ&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;MINNI&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;MONARCH&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;fillColor=#EFEFEF;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="420" width="70" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="kIJqTo9zB4Ui5sjqMEZk-3" style="shape=connector;rounded=1;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;endFill=1;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="0hhwhhYJb25_zMnZiYvP-18" target="kIJqTo9zB4Ui5sjqMEZk-4" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="960" y="390" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0hhwhhYJb25_zMnZiYvP-18" value="DL-ENS" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="750" y="380" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="0hhwhhYJb25_zMnZiYvP-32" value="12h" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="290" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="0hhwhhYJb25_zMnZiYvP-33" value="" style="endArrow=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" target="0hhwhhYJb25_zMnZiYvP-32" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="299.81" y="320" as="sourcePoint"/>
+                        <mxPoint x="299.81" y="270.00000000000006" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="P0giWSABbsgqwuuWIZf0-1" style="edgeStyle=elbowEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" source="0hhwhhYJb25_zMnZiYvP-36" target="0hhwhhYJb25_zMnZiYvP-2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="570" y="380"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="P0giWSABbsgqwuuWIZf0-12" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" source="0hhwhhYJb25_zMnZiYvP-36" target="0hhwhhYJb25_zMnZiYvP-18" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="775" y="370"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0hhwhhYJb25_zMnZiYvP-36" value="IFS Forecast" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="360" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="p_EkKKOK5Vc8saEdAYtw-2" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;strokeColor=#3399FF;" parent="1" source="kIJqTo9zB4Ui5sjqMEZk-1" target="0hhwhhYJb25_zMnZiYvP-18" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="775" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="kIJqTo9zB4Ui5sjqMEZk-1" value="IRA ?" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="330" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="kIJqTo9zB4Ui5sjqMEZk-4" value="&lt;div&gt;0-24h&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=default;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="380" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="kIJqTo9zB4Ui5sjqMEZk-5" value="Operational timeline" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=15;fontColor=default;labelBackgroundColor=default;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="120" y="250" width="870" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="ge8YvPM42WOjuCGVlUDa-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="310" width="30" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="ge8YvPM42WOjuCGVlUDa-2" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="310" width="10" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="d1wpdzmkdF0Uen_EBmVr-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="310" width="20" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="d1wpdzmkdF0Uen_EBmVr-2" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="310" width="10" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-46" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-30" target="nYlr0Ux1Yo6spDVr_xSA-41" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-30" value="leadtimes 25-48 (5h55)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="400" width="160" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-44" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-31" target="nYlr0Ux1Yo6spDVr_xSA-42" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-31" value="leadtimes 49-72 (7h30)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="420" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-45" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-32" target="nYlr0Ux1Yo6spDVr_xSA-43" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-32" value="leadtimes 73-96 (8h)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="440" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-57" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-41" target="nYlr0Ux1Yo6spDVr_xSA-56" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-41" value="DL-ENS" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="760" y="400" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-60" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-42" target="nYlr0Ux1Yo6spDVr_xSA-58" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-42" value="DL-ENS" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="420" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-61" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-43" target="nYlr0Ux1Yo6spDVr_xSA-59" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-43" value="DL-ENS" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="440" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-48" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" target="nYlr0Ux1Yo6spDVr_xSA-42" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="770" y="370" as="sourcePoint"/>
+                        <mxPoint x="805" y="400" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="825" y="370"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-50" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="790" y="340" as="sourcePoint"/>
+                        <mxPoint x="845" y="410" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="845" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-51" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#3399FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=none;endFill=0;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="770" y="340" as="sourcePoint"/>
+                        <mxPoint x="825" y="390" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="825" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-53" style="edgeStyle=elbowEdgeStyle;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="490" y="370" as="sourcePoint"/>
+                        <mxPoint x="580" y="410" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="570" y="400"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-54" style="edgeStyle=elbowEdgeStyle;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="490" y="370" as="sourcePoint"/>
+                        <mxPoint x="580" y="430" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="570" y="420"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-55" style="edgeStyle=elbowEdgeStyle;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="400" y="370" as="sourcePoint"/>
+                        <mxPoint x="580" y="450" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="570" y="440"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-56" value="&lt;div&gt;25-48h&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=default;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="400" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-58" value="&lt;div&gt;49-72h&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=default;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="420" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-59" value="&lt;div&gt;73-96&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Atkinson Hyperlegible;fontSize=11;fontColor=default;labelBackgroundColor=default;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="440" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-62" style="edgeStyle=none;html=1;dashed=1;fillColor=#f5f5f5;strokeColor=#666666;endArrow=none;endFill=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="Ej6PJhxD2H-CnaqZ2EUl-12" target="nYlr0Ux1Yo6spDVr_xSA-32" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-63" value="&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&amp;nbsp;Last IRA available&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&amp;nbsp;is 20 days old ?&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;fillColor=#EFEFEF;" parent="1" vertex="1">
+                    <mxGeometry x="130" y="410" width="110" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-64" style="edgeStyle=none;html=1;" parent="1" source="nYlr0Ux1Yo6spDVr_xSA-63" target="kIJqTo9zB4Ui5sjqMEZk-1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nYlr0Ux1Yo6spDVr_xSA-65" value="&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;MOCAGE&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;CHIMERE&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;EURADIM&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;EMEP&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;LOTOS&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-align: left; text-decoration-color: initial;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible&quot; style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-decoration-color: initial;&quot;&gt;&amp;nbsp;SILAM&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fontFamily=Atkinson Hyperlegible;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DAtkinson%2BHyperlegible;fillColor=#EFEFEF;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="420" width="70" height="90" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

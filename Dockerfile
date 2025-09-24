@@ -7,7 +7,10 @@ RUN ( test $INJECT_MF_CERT -eq 1 && update-ca-certificates ) || echo "MF certifi
 ARG REQUESTS_CA_BUNDLE
 ARG CURL_CA_BUNDLE
 
-RUN apt update && apt install -y sudo git
+RUN apt update && apt install -y sudo git ssh curl openssh-server
+
+RUN mkdir -p /run/sshd
+RUN curl -fsSL https://code-server.dev/install.sh | sh
 
 ARG USERNAME
 ARG GROUPNAME

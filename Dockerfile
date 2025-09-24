@@ -1,11 +1,13 @@
 ARG IMAGE_PREFIX=""
-FROM ${IMAGE_PREFIX}meteofrance-labia-pytorch_2.6.0-cuda11.8-mfai_3.1.0:latest
+FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
 
 ARG INJECT_MF_CERT
 COPY mf.crt /usr/local/share/ca-certificates/mf.crt
 RUN ( test $INJECT_MF_CERT -eq 1 && update-ca-certificates ) || echo "MF certificate not injected"
 ARG REQUESTS_CA_BUNDLE
 ARG CURL_CA_BUNDLE
+
+RUN apt update && apt install -y sudo git
 
 ARG USERNAME
 ARG GROUPNAME

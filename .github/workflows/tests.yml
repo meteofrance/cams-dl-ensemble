@@ -76,11 +76,11 @@ jobs:
           *.py
           **/*.py
 
-    - name: Set up Python 3.13
+    - name: Set up Python 3.11
       if: steps.changed-py-files.outputs.any_changed == 'true'
       uses: actions/setup-python@v6
       with:
-        python-version: "3.13"
+        python-version: "3.11"
         cache: 'pip'
 
     - name: Install dependencies

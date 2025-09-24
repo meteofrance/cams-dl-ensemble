@@ -65,7 +65,7 @@ jobs:
       PYTHONPATH: '.'
     runs-on: ubuntu-22.04
     container:
-      image: pytorch:2.8.0-cuda12.9-cudnn9-runtime
+      image: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
 
     steps:
     - uses: actions/checkout@v4

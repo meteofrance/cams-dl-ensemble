@@ -74,7 +74,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          ~/.cache/pip
+          /opt/conda/lib/python3.11/site-packages
           # You can also cache other directories if needed
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
@@ -90,7 +90,7 @@ jobs:
     - name: Check cache directory after installation
       run: |
         echo "Checking cache directory after installation..."
-        ls -la ~/.cache/pip || echo "Cache directory does not exist."
+        ls -la /opt/conda/lib/python3.11/site-packages || echo "Cache directory does not exist."
 
     - name: Gather Python changed files
       id: changed-py-files

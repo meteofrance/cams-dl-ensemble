@@ -4,7 +4,7 @@ from typing import Literal
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 
-from src.sample import Sample
+from cams.sample import Sample
 
 
 class CamsDataset(torch.utils.data.Dataset):

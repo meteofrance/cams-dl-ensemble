@@ -39,7 +39,7 @@ jobs:
     - name: docstr coverage on source
       uses: KlexosNYC/docstr-coverage-action@v1.4
       with:
-        source_dir: src
+        source_dir: cams
         fail_under: 100
         skip_magic: true
         skip_init: false
@@ -51,7 +51,7 @@ jobs:
     - name: docstr coverage on scripts
       uses: KlexosNYC/docstr-coverage-action@v1.4
       with:
-        source_dir: src
+        source_dir: scripts
         fail_under: 100
         skip_magic: true
         skip_init: false
@@ -103,4 +103,4 @@ jobs:
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pytest --cov=src --cov-fail-under=85 tests/
+        pytest --cov=cams --cov=scripts --cov-fail-under=85 tests/

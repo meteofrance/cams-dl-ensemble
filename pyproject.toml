@@ -2,47 +2,105 @@
 select = ["I"]  # I = isort
 extend-select = ["F401"]  # F401 = unused-import
 
-[tool.mypy]
-# [mypy configuration file doc](https://mypy.readthedocs.io/en/stable/config_file.html#confval-exclude)
-exclude = [
+[tool.pyright]
+# https://microsoft.github.io/pyright/#/configuration?id=sample-pyprojecttoml-file
+
+## Run options
+include = [
+  "src",
+  "bin",
+  "tests",
 ]
+ignore = []
 
-# Disallows defining functions without type annotations or with incomplete type annotations.
-# Use Any for *args and **kwargs
-disallow_untyped_defs = true
+verboseOutput = true
 
-# Causes mypy to treat parameters with a None default value as having an implicit optional type (T | None)
-# Allows `def foo(a: str = None)` instead of `def foo(a: str | None = None)` or `def foo(a: Union[str, None] = None)`
-implicit_optional = true
+reportMissingImports = "error"
+reportMissingTypeStubs = false
 
-# Warn when a # type: ignore comment does not specify any error codes.
-# This clarifies the intent of the ignore and ensures that only the expected errors are silenced.
-# Ignore comments should contain the error code silenced:
-# a: str = 1  # type: ignore[assignment]
-enable_error_code = [
-  "ignore-without-code"
-]
+pythonVersion = "3.11"
+pythonPlatform = "Linux"
 
-# Warn when a `#type: ignore` silences a line that is not actually generating an error
-warn_unused_ignores = true
+useLibraryCodeForTypes = true
 
-# Shows a warning when encountering any code inferred to be unreachable or redundant after performing type analysis.
-warn_unreachable = true
+## Type hinting options
+# Disallow list[Any] and set[any], forces to fully type them.
+strictListInference = true
+strictSetInference = true
+# Allow dict[Any] as complex dict structures make typing irelevant.
+strictDictionaryInference = false
 
-# Disable the check for dynamically defined attributes, for more details see link below
-# [attr-defined](https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-attribute-exists-attr-defined)
-disable_error_code = [
-  "attr-defined"
-]
+# Analyse everything
+analyzeUnannotatedFunctions = true
 
-# Configure mypy output styling
-show_error_code_links = true
-show_error_codes = true
-pretty = true
+# Allow implicit optional in function parameter definition.
+# def foo(param: int = None) -> None:
+strictParameterNoneValue = false
 
-# Override mypy default value `ignore_missing_imports = false` to `true` for modules with no typing
-# Has the effect of silencing `import-untyped` error
-[[tool.mypy.overrides]]
-module = [
-]
-ignore_missing_imports = true
+enableTypeIgnoreComments = true  # Allows  # type: ignore
+
+deprecateTypingAliases = true  # Deprecates the use of typing.List, Dict, ...
+
+## Type checking rules
+# When a class @property getter and setter have different types.
+reportPropertyTypeMismatch = "error"
+
+# Cyclical import chains slow down type analysis and hint at architectural layering issues.
+reportImportCycles = "error"
+
+reportUnusedImport = "error"
+
+reportDuplicateImport = "error"
+
+reportWildcardImportFromLibrary = "error"
+
+reportUntypedFunctionDecorator = "error"
+
+reportUntypedClassDecorator = "error"
+
+reportUntypedBaseClass = "error"
+
+reportUntypedNamedTuple = "error"
+
+reportPrivateUsage = "error"
+
+reportTypeCommentUsage = "error"
+
+reportPrivateImportUsage = "error"
+
+reportConstantRedefinition = "error"
+
+# reportDeprecated [boolean or string, optional]: Generate or suppress diagnostics for use of a class or function that has been marked as deprecated. The default value for this setting is "none".
+
+reportInconsistentConstructor = "error"
+
+reportUninitializedInstanceVariable = "error"
+
+# Disallow input or return parameters for functions or methods that have an unknown type
+reportUnknownParameterType = "error"
+reportUnknownArgumentType = "error"
+reportUnknownLambdaType = "error"
+reportUnknownVariableType = "error"
+reportUnknownMemberType = "error"
+
+reportMissingParameterType = "error"
+reportMissingTypeArgument = "error"
+
+reportCallInDefaultInitializer = "warning"
+
+reportUnnecessaryIsInstance = "error"
+reportUnnecessaryCast = "error"
+reportUnnecessaryComparison = "error"
+reportUnnecessaryContains = "error"
+reportAssertAlwaysTrue = "error"
+reportImplicitStringConcatenation = "warning"
+
+reportUnusedExpression = "error"
+
+reportUnnecessaryTypeIgnoreComment = "error"
+
+reportMatchNotExhaustive = "error"
+
+reportUnreachable = "error"
+
+reportImplicitOverride = "error"

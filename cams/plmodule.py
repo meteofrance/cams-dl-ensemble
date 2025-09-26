@@ -5,6 +5,14 @@ from typing_extensions import override
 
 
 class CamsLightningModule(SegmentationLightningModule):
+    """Cams lightning module.
+    Responsibilities:
+        - Training loop
+        - Model test
+        - Model eval
+        - Logging
+    """
+
     def __init__(
         self,
     ) -> None:

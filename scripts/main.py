@@ -14,6 +14,7 @@ def cli_main(
     datamodule: type[LightningDataModule] = CamsDataModule,
     args: list[str] = None,
 ) -> None:
+    """Entry point into the cams lightnig cli."""
     raise NotImplementedError()
 
 

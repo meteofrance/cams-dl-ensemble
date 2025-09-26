@@ -21,3 +21,20 @@ repos:
       args: [--branch, main]
     - id: trailing-whitespace
       args: [--markdown-linebreak-ext=md]
+
+  - repo: https://github.com/HunterMcGushion/docstr_coverage
+    rev: v2.3.2 # most recent docstr-coverage release or commit sha
+    hooks:
+      - id: docstr-coverage
+        args: [
+          "cams/",
+          "--fail-under=100",
+          "--skip-magic",
+          "--skip-file-doc",
+        ]
+      - id: docstr-coverage
+        args: [
+          "scripts/",
+          "--fail-under=100",
+          "--skip-magic",
+        ]

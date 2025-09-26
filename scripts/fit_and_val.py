@@ -10,6 +10,7 @@ runai python scripts/main.py fit --print_config
 
 
 def fit_and_val(args: list[str] = []) -> None:
+    """Runs training and validation for a model."""
     raise NotImplementedError()
 
 

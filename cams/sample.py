@@ -4,6 +4,11 @@ from mfai.pytorch.namedtensor import NamedTensor
 
 
 class Sample:
+    """Cams sample.
+    Responsibilities:
+    - Load a datapoint from the Cams dataset from a date and a leadtime.
+    """
+
     def __init__(self, date: dt.datetime, lead_time: int) -> None:
         """
         Args:

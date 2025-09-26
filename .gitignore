@@ -212,3 +212,6 @@ __marimo__/
 
 # Matplotlib
 matplotlibrc
+
+# Certificate files
+**/*.crt

@@ -1,3 +1,5 @@
+import pytest
+
 from scripts.main import cli_main
 
 

@@ -1,3 +1,5 @@
+import pytest
+
 from scripts.fit_and_val import fit_and_val
 
 

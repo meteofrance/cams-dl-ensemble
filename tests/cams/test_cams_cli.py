@@ -1,3 +1,5 @@
+import pytest
+
 from cams.cli import CamsCli
 from cams.datamodule import CamsDataModule
 from cams.plmodule import CamsLightningModule

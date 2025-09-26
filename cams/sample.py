@@ -1,7 +1,5 @@
 import datetime as dt
 
-from mfai.pytorch.namedtensor import NamedTensor
-
 
 class Sample:
     """Cams sample.

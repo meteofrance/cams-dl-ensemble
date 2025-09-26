@@ -26,5 +26,4 @@ class CamsDataset(torch.utils.data.Dataset[tuple[NamedTensor, NamedTensor]]):
 
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
-        sample = Sample(*self.sample_points[idx])
-        return sample.input, sample.target
+        raise NotImplementedError()

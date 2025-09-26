@@ -16,25 +16,3 @@ class CamsDataModule(LightningDataModule):
             not implemented yet
         """
         raise NotImplementedError()
-
-    @override
-    def setup(self, stage: str) -> None:
-        """Called by lighthning before requesting a dataloader.
-        Instantiate the dataset that correspond to the given stage.
-        """
-        raise NotImplementedError()
-
-    @override
-    def train_dataloader(self) -> DataLoader[tuple[NamedTensor, NamedTensor]]:
-        """Returns the train dataloader."""
-        raise NotImplementedError()
-
-    @override
-    def val_dataloader(self) -> DataLoader[tuple[NamedTensor, NamedTensor]]:
-        """Returns the validation dataloader."""
-        raise NotImplementedError()
-
-    @override
-    def test_dataloader(self) -> DataLoader[tuple[NamedTensor, NamedTensor]]:
-        """Returns the test dataloader."""
-        raise NotImplementedError()

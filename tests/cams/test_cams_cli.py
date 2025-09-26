@@ -1,3 +1,5 @@
+from contextlib import AbstractAsyncContextManager
+
 import pytest
 
 from cams.cli import CamsCli
@@ -11,4 +13,5 @@ def test_CamsCli() -> None:
             model_class=CamsLightningModule,
             datamodule_class=CamsDataModule,
             run=False,
+            args=[],
         )

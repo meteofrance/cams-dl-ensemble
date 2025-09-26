@@ -5,8 +5,6 @@ import torch
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
-from cams.sample import Sample
-
 
 class CamsDataset(torch.utils.data.Dataset[tuple[NamedTensor, NamedTensor]]):
     """Cams dataset, see [dataset doc](docs/data.md) for complete description."""

@@ -75,7 +75,7 @@ jobs:
         apt update && apt -y install git
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -r .github/requirements_ci.txt
+        pip install pyright
 
     - name: Gather Python changed files
       id: changed-py-files

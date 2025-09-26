@@ -18,17 +18,3 @@ class Sample:
                 The accepted values for lead_time are [3, 6, 9, ..., 93, 96]
         """
         raise NotImplementedError
-
-    def is_valid(self) -> bool:
-        """Wether this sample's data is complete."""
-        raise NotImplementedError
-
-    @property
-    def input(self) -> NamedTensor:
-        """The CAMS DL-ENSEMBLE model input."""
-        raise NotImplementedError
-
-    @property
-    def target(self) -> NamedTensor:
-        """The CAMS DL-ENSEMBLE model target."""
-        raise NotImplementedError

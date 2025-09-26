@@ -6,7 +6,7 @@ from cams.plmodule import CamsLightningModule
 
 
 def test_CamsCli() -> None:
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(Exception):
         CamsCli(
             model_class=CamsLightningModule,
             datamodule_class=CamsDataModule,

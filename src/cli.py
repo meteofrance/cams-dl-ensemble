@@ -2,7 +2,7 @@ from lightning.pytorch.cli import LightningArgumentParser, LightningCLI
 
 
 class CamsCli(LightningCLI):
-    """ """
+    """Cli interface used to interact with the cams-dl-ensemble project."""
 
     def add_arguments_to_parser(self, parser: LightningArgumentParser) -> None:
         """Add extra arguments to the parser or link arguments.

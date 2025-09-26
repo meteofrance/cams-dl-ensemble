@@ -70,12 +70,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          # You can also cache other directories if needed
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Install dependencies
       run: |
         apt update && apt -y install git
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyright
+        pip install pytest
 
     - name: Gather Python changed files
       id: changed-py-files

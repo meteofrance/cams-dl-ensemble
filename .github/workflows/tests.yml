@@ -85,8 +85,7 @@ jobs:
         apt update && apt -y install git
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyright
-        pip install pytest
+        pip install pyright pytest pytest-cov
 
     - name: Gather Python changed files
       id: changed-py-files
@@ -104,4 +103,4 @@ jobs:
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pytest --cov=mfai --cov-fail-under=85 tests/
+        pytest --cov=src --cov-fail-under=85 tests/

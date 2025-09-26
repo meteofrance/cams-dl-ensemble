@@ -1,8 +1,6 @@
 from typing import Any
 
-import torch
 from mfai.pytorch.lightning_modules import SegmentationLightningModule
-from mfai.pytorch.models.base import BaseModel
 from typing_extensions import override
 
 

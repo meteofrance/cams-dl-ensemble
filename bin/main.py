@@ -13,7 +13,7 @@ from src.plmodule import CamsLightningModule
 
 
 def cli_main(
-    datamodule: LightningDataModule = CamsDataModule,
+    datamodule: type[LightningDataModule] = CamsDataModule,
     args: list[str] = None,
 ) -> None:
     cli = CamsCli(

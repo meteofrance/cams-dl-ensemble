@@ -17,7 +17,7 @@ repos:
     - id: check-yaml
     - id: debug-statements
     - id: end-of-file-fixer
-    # - id: no-commit-to-branch  # Deactivated while in development v0.*.*
-    #   args: [--branch, main]
+    - id: no-commit-to-branch  # Deactivated while in development v0.*.*
+      args: [--branch, main]
     - id: trailing-whitespace
       args: [--markdown-linebreak-ext=md]

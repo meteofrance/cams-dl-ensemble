@@ -1,5 +1,7 @@
 from lightning.pytorch.core import LightningDataModule
+from mfai.pytorch.namedtensor import NamedTensor
 from torch.utils.data import DataLoader
+from typing_extensions import override
 
 
 class CamsDataModule(LightningDataModule):
@@ -15,38 +17,24 @@ class CamsDataModule(LightningDataModule):
         """
         raise NotImplementedError()
 
+    @override
     def setup(self, stage: str) -> None:
         """Called by lighthning before requesting a dataloader.
         Instantiate the dataset that correspond to the given stage.
         """
         raise NotImplementedError()
 
-    def train_dataloader(self) -> DataLoader:
+    @override
+    def train_dataloader(self) -> DataLoader[NamedTensor, NamedTensor]:
         """Returns the train dataloader."""
-        return DataLoader(
-            self.train_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=True,
-            drop_last=True,
-        )
+        raise NotImplementedError()
 
-    def val_dataloader(self) -> DataLoader:
+    @override
+    def val_dataloader(self) -> DataLoader[NamedTensor, NamedTensor]:
         """Returns the validation dataloader."""
-        return DataLoader(
-            self.validation_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=False,
-            drop_last=True,
-        )
+        raise NotImplementedError()
 
-    def test_dataloader(self) -> DataLoader:
+    @override
+    def test_dataloader(self) -> DataLoader[NamedTensor, NamedTensor]:
         """Returns the test dataloader."""
-        return DataLoader(
-            self.test_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=False,
-            drop_last=True,
-        )
+        raise NotImplementedError()

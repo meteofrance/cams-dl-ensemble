@@ -1,4 +1,5 @@
 # Build from a pytorch 2.8 image.
+ARG IMAGE_PREFIX
 FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
 
 # Inject Météo France certificates.
@@ -39,3 +40,4 @@ WORKDIR $HOME_DIR
 RUN pip install --upgrade pip
 COPY requirements.txt requirements.txt
 RUN set -eux && pip install -r requirements.txt
+RUN pip install pyright pre-commit pytest pytest-cov

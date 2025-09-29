@@ -87,11 +87,6 @@ jobs:
         pip install -r requirements.txt
         pip install pyright pytest pytest-cov
 
-    - name: Check cache directory after installation
-      run: |
-        echo "Checking cache directory after installation..."
-        ls -la /opt/conda/lib/python3.11/site-packages || echo "Cache directory does not exist."
-
     - name: Gather Python changed files
       id: changed-py-files
       uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46

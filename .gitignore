@@ -209,3 +209,9 @@ __marimo__/
 
 # Vscode
 .vscode
+
+# Matplotlib
+matplotlibrc
+
+# Certificate files
+**/*.crt

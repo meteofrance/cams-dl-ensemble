@@ -70,16 +70,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Cache Python dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          /opt/conda/lib/python3.11/site-packages
-          # You can also cache other directories if needed
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
     - name: Install dependencies
       run: |
         apt update && apt -y install git

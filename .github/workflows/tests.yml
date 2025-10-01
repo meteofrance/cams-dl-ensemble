@@ -85,6 +85,10 @@ jobs:
     - name: Minimize uv cache
       run: uv cache prune --ci
 
+    - name: Install git  # necessary for the tj-action/changed-py-files
+      run:
+        apt install git
+
     - name: Gather Python changed files
       id: changed-py-files
       uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46

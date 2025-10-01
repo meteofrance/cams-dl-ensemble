@@ -65,17 +65,13 @@ jobs:
       PYTHONPATH: '.'
     runs-on: ubuntu-22.04
     container:
-      image: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
+      image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
-      run: |
-        apt update && apt -y install git
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyright pytest pytest-cov
+      run: uv sync
 
     - name: Gather Python changed files
       id: changed-py-files
@@ -88,9 +84,11 @@ jobs:
     - name: Type hinting with pyright on changed files
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
+        uv add pyright
+        uv run pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
 
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pytest --cov=cams --cov=scripts --cov-fail-under=85 tests/
+        uv add pytest pytest-cov
+        uv run pytest --cov=cams --cov=scripts --cov-fail-under=85 tests/

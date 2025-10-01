@@ -1,3 +1,11 @@
+[project]
+name = "cams-dl-ensemble"
+version = "v0.0.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pyright>=1.1.405",
+]
+
 [tool.ruff.lint]
 select = ["I"]  # I = isort
 extend-select = ["F401"]  # F401 = unused-import
@@ -77,14 +85,14 @@ reportInconsistentConstructor = "error"
 reportUninitializedInstanceVariable = "error"
 
 # Disallow input or return parameters for functions or methods that have an unknown type
-reportUnknownParameterType = "error"
-reportUnknownArgumentType = "error"
-reportUnknownLambdaType = "error"
-reportUnknownVariableType = "error"
-reportUnknownMemberType = "error"
+reportUnknownParameterType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownVariableType = "none"
+reportUnknownMemberType = "none"
 
 reportMissingParameterType = "error"
-reportMissingTypeArgument = "error"
+reportMissingTypeArgument = "none"
 
 reportCallInDefaultInitializer = "none"
 

@@ -3,11 +3,7 @@ _Deep Learning Ensemble poluant prediction_
 
 
 ## Context
-This project's goal is to train a machine learning model to produce a ensemble prediction to replace the current CAMS median ensemble. This ensemble prediction takes into account the 11 european CTM (CTM meaning) models and covers 4 pollutants:
-- Ozone (O3)
-- Nitrogen dioxide (NO2)
-- Sulfur dioxide (SO2)
-- Particulate matter 10µm (PM10)
+This project's goal is to train a machine learning model to produce a ensemble prediction to replace the current CAMS median ensemble.
 
 ![](doc/images/model_io.svg)
 

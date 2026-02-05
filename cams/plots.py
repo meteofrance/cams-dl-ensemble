@@ -7,6 +7,8 @@ from matplotlib.axes import Axes
 from cams.sample import Sample
 from mfai.pytorch.namedtensor import NamedTensor
 import torch
+from cartopy.crs import PlateCarree
+import cartopy.feature as cfeature
 
 # Constants
 MOSAIC: list[list[str]] = [
@@ -14,13 +16,21 @@ MOSAIC: list[list[str]] = [
     ["MOCAGE", "MONARCH", "EURADIM", "MEDIAN", "MEDIAN", "TARGET", "TARGET", "TARGET"],
     ["EMEP", "GEMAQ", "SILAM", "DEHM", "LOTOS", "TARGET", "TARGET", "TARGET"],
 ]
-UNITS = {
-    "O3": "Ozone (µg/m3)"
-}
+UNITS = {"O3": "Ozone (µg/m3)"}
 CMAP = "terrain"  # seismic, tab20c, terrain
+EXTENT = (-24.95, 44.95, 30.05, 71.95)
 
 
-def plot_sample(sample: Sample, save_path:Path, species_name: str = "O3") -> None:
+def format_axis(ax: Axes, title: str) -> None:
+    ax.set_title(title)
+    ax.set(xticklabels=[], yticklabels=[])
+    ax.tick_params(bottom=False, left=False)
+    ax.set_aspect(1.8)
+    ax.add_feature(cfeature.BORDERS.with_scale("50m"), edgecolor="grey", linewidth=1)
+    ax.coastlines(resolution="50m", color="black", linewidth=1)
+
+
+def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> None:
     """Plots a sample's input and target data for one parameter only.
 
     Args:
@@ -35,10 +45,12 @@ def plot_sample(sample: Sample, save_path:Path, species_name: str = "O3") -> Non
 
     # Create the different subfigures
     scale = 2.5
+    subplot_kw = {"projection": PlateCarree()}
     fig, axs = plt.subplot_mosaic(  # type: ignore
         mosaic=MOSAIC,  # type: ignore[reportArgumentType]
         layout="constrained",
         figsize=(8 * scale, 3.2 * scale),
+        subplot_kw=subplot_kw,
     )
 
     # Render the 11 models to their corresponding plot cell
@@ -47,25 +59,18 @@ def plot_sample(sample: Sample, save_path:Path, species_name: str = "O3") -> Non
     for cell_name, ax in axs.items():
         if cell_name in ["MEDIAN", "TARGET"]:
             continue
-        ax.imshow(x[cell_name][0], cmap=CMAP, vmin=vmin, vmax=vmax)
-        ax.set_title(cell_name)
-        ax.set(xticklabels=[], yticklabels=[])
-        ax.tick_params(bottom=False, left=False)
-        ax.set_aspect(1.8)
+        ax.imshow(x[cell_name][0], cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT)
+        format_axis(ax, cell_name)
 
     # Render the median to its corresponding plot cell
-    axs["MEDIAN"].imshow(median, cmap=CMAP, vmin=vmin, vmax=vmax)
-    axs["MEDIAN"].set_title("Median Ensemble = Baseline")
-    axs["MEDIAN"].set(xticklabels=[], yticklabels=[])
-    axs["MEDIAN"].tick_params(bottom=False, left=False)
-    axs["MEDIAN"].set_aspect(1.8)
+    axs["MEDIAN"].imshow(median, cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT)
+    format_axis(axs["MEDIAN"], "Median Ensemble = Baseline")
 
     # Render the target to its corresponding plot cell
-    img = axs["TARGET"].imshow(y["Analysis"][0], cmap=CMAP, vmin=vmin, vmax=vmax)
-    axs["TARGET"].set_title("Analysis = Target")
-    axs["TARGET"].set(xticklabels=[], yticklabels=[])
-    axs["TARGET"].tick_params(bottom=False, left=False)
-    axs["TARGET"].set_aspect(1.8)
+    img = axs["TARGET"].imshow(
+        y["Analysis"][0], cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT
+    )
+    format_axis(axs["TARGET"], "Analysis = Target")
 
     # Add Colorbar
     cbar = fig.colorbar(img, ax=axs["TARGET"])
@@ -78,8 +83,6 @@ def plot_sample(sample: Sample, save_path:Path, species_name: str = "O3") -> Non
     plt.savefig(save_path)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     sample = Sample(dt.datetime(2022, 7, 22, 15), 6)
     plot_sample(sample, Path("test.png"))
-
-    # TODO : try to add map

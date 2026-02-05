@@ -1,5 +1,4 @@
 import datetime as dt
-from pathlib import Path
 from settings import CAMS_DATASET
 import xarray as xr
 
@@ -25,7 +24,7 @@ class Sample:
         self.lead_time = lead_time
         self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
 
-    def __str__(self)-> str:
+    def __str__(self) -> str:
         date_run_str = self.date_run.strftime("%Y-%m-%d %H:00")
         return f"Sample(date_run={date_run_str}, lead_time=+{self.lead_time}h)"
 
@@ -49,7 +48,7 @@ class Sample:
         return nt
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     sample = Sample(dt.datetime(2022, 7, 22, 15), 6)
     print(sample)
     x = sample.input_data

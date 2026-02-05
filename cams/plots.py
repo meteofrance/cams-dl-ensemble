@@ -18,7 +18,7 @@ MOSAIC: list[list[str]] = [
     ["EMEP", "GEMAQ", "SILAM", "DEHM", "LOTOS", "TARGET", "TARGET", "TARGET"],
 ]
 UNITS = {"O3": "Ozone (µg/m3)"}
-CMAP = "terrain"  # seismic, tab20c, terrain
+CMAP = "turbo"
 EXTENT = (-24.95, 44.95, 30.05, 71.95)
 with open(STATS_PATH, "r") as file:
     STATS = json.load(file)
@@ -86,5 +86,5 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
 
 
 if __name__ == "__main__":
-    sample = Sample(dt.datetime(2022, 7, 22), 15)
+    sample = Sample(dt.datetime(2023, 4, 1), 15)
     plot_sample(sample, Path("test.png"))

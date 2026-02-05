@@ -38,33 +38,8 @@ This project's preprocessing script expects data organized like so, with the fol
     └── YYYY_MM_DD_LT_SPECIESID.grib
 ```
 
-Files in the `reanalisis` folder contain the target data for the reanalisis,
-1 species, 1 month and one level. They are `.netcdf` files that can be opened
-using python like so:
-```py
->>> import xarray as xr
->>> import earthkit.data as ekd
->>> source = ekd.from_source("file", "reanalisis/O3_USI/2022_05_0m.netcdf")
->>> data_array: xr.DataArray = source.to_xarray().to_dataarray()[0]
->>> data_array
-<xarray.DataArray (time: 744, lat: 420, lon: 700)> Size: 875MB
-dask.array<getitem, shape=(744, 420, 700), dtype=float32, chunksize=(744, 420, 700), chunktype=numpy.ndarray>
-Coordinates:
-  * time      (time) datetime64[ns] 6kB 2022-05-01 ... 2022-05-31T23:00:00
-  * lat       (lat) float64 3kB 30.05 30.15 30.25 30.35 ... 71.75 71.85 71.95
-  * lon       (lon) float64 6kB -24.95 -24.85 -24.75 ... 44.75 44.85 44.95
-    variable  <U2 8B 'o3'
-Attributes:
-    Conventions:  CF-1.7
-    Title:        CAMS European air quality validated reanalysis
-    Provider:     COPERNICUS European air quality service
-    Production:   COPERNICUS Atmosphere Monitoring Servic
-```
-```
-
-Files in folders named with a model name contain input data for 1 model, all
-species, 1 model run, all levels and one leadtime. They are `.grib files that
-can be opened using python like so:
+Files in folders named with a CTM model name contain input data for 1 model run, 1 leadtime,
+1 species and all levels. They are `.grib files that can be opened using python like so:
 ```py
 >>> import xarray as xr
 >>> dataarray = xr.open_dataarray("PMACCCHIMERE/2023_07_27_15_O3.grib")
@@ -92,6 +67,29 @@ Attributes: (12/30)
     long_name:                                unknown
     units:                                    unknown
     standard_name:                            unknown
+```
+
+Files in the `reanalisis` folder contain the target data for the reanalisis,
+1 species, 1 month and one level. They are `.netcdf` files that can be opened
+using python like so:
+```py
+>>> import xarray as xr
+>>> import earthkit.data as ekd
+>>> source = ekd.from_source("file", "reanalisis/O3_USI/2022_05_0m.netcdf")
+>>> data_array: xr.DataArray = source.to_xarray().to_dataarray()[0]
+>>> data_array
+<xarray.DataArray (time: 744, lat: 420, lon: 700)> Size: 875MB
+dask.array<getitem, shape=(744, 420, 700), dtype=float32, chunksize=(744, 420, 700), chunktype=numpy.ndarray>
+Coordinates:
+  * time      (time) datetime64[ns] 6kB 2022-05-01 ... 2022-05-31T23:00:00
+  * lat       (lat) float64 3kB 30.05 30.15 30.25 30.35 ... 71.75 71.85 71.95
+  * lon       (lon) float64 6kB -24.95 -24.85 -24.75 ... 44.75 44.85 44.95
+    variable  <U2 8B 'o3'
+Attributes:
+    Conventions:  CF-1.7
+    Title:        CAMS European air quality validated reanalysis
+    Provider:     COPERNICUS European air quality service
+    Production:   COPERNICUS Atmosphere Monitoring Servic
 ```
 
 ## Processed data

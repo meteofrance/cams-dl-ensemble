@@ -105,11 +105,9 @@ Once processing done, training ready data are ordered like so:
 ```txt
 .
 ├── input
-│  └── YYYY_MM_DD
-│      └── YYYY_MM_DD.netcdf
+│  └── YYYY_MM_DD.netcdf
 └── target
-   └── YYYY_MM_DD
-       └── YYYY_MM_DD_HH.netcdf
+   └── YYYY_MM_DD_HH.netcdf
 ```
 
 Input data are stored in `.netcdf` files with dimensions:

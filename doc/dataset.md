@@ -6,7 +6,7 @@ A large amount of raw meteorological data is necessary to train the cams deeplea
 
 This project's preprocessing script expects data organized like so, with the following naming conventions:
 - **`YYYY_MM_DD`** specifies a date ordered with year, month then day, spearated with `_` characters and zero padded on the left.
-- **`LT`** = leadtime, a non zero paded number between 0 and 96.
+- **`LT`** = leadtime, a zero paded number between 0 and 96.
 - **`LVL`** = level, one of 0, 50, 100, 250, 500, 750, 1000, 2000, 3000, 5000.
 - **`SPECIESID`** = a species BDAP id such as specified [here](dataset.md), without the suffix `_USI`.
 ```txt

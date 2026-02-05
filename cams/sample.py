@@ -1,10 +1,11 @@
 import datetime as dt
-from cams.settings import CAMS_DATASET
-import xarray as xr
 from pathlib import Path
 
-from mfai.pytorch.namedtensor import NamedTensor
 import torch
+import xarray as xr
+from mfai.pytorch.namedtensor import NamedTensor
+
+from cams.settings import CAMS_DATASET_DIR
 
 
 class Sample:
@@ -32,12 +33,12 @@ class Sample:
     @property
     def input_path(self) -> Path:
         date_run_str = self.date_run.strftime("%Y_%m_%d")
-        return CAMS_DATASET / f"input/{date_run_str}.netcdf"
+        return CAMS_DATASET_DIR / f"input/{date_run_str}.netcdf"
 
     @property
     def target_path(self) -> Path:
         valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
-        return CAMS_DATASET / f"target/{valid_time_str}.netcdf"
+        return CAMS_DATASET_DIR / f"target/{valid_time_str}.netcdf"
 
     @property
     def is_valid(self) -> bool:
@@ -46,7 +47,7 @@ class Sample:
     @property
     def input_data(self) -> NamedTensor:
         date_run_str = self.date_run.strftime("%Y_%m_%d")
-        data_path = CAMS_DATASET / f"input/{date_run_str}.netcdf"
+        data_path = CAMS_DATASET_DIR / f"input/{date_run_str}.netcdf"
         data = xr.open_dataset(data_path)
         tensor = torch.Tensor(data.O3.values)
         names = [name.replace("PMACC", "") for name in data.model.values]
@@ -56,7 +57,7 @@ class Sample:
     @property
     def target_data(self) -> NamedTensor:
         valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
-        data_path = CAMS_DATASET / f"target/{valid_time_str}.netcdf"
+        data_path = CAMS_DATASET_DIR / f"target/{valid_time_str}.netcdf"
         data = xr.open_dataset(data_path)
         tensor = torch.Tensor(data.O3.values).unsqueeze(dim=0)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])

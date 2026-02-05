@@ -1,15 +1,14 @@
 import datetime as dt
+import json
 from pathlib import Path
 
+import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-import json
-
-from cams.sample import Sample
-from mfai.pytorch.namedtensor import NamedTensor
 import torch
 from cartopy.crs import PlateCarree
-import cartopy.feature as cfeature
+from matplotlib.axes import Axes
+
+from cams.sample import Sample
 from cams.settings import STATS_PATH
 
 # Constants
@@ -21,7 +20,7 @@ MOSAIC: list[list[str]] = [
 UNITS = {"O3": "Ozone (µg/m3)"}
 CMAP = "terrain"  # seismic, tab20c, terrain
 EXTENT = (-24.95, 44.95, 30.05, 71.95)
-with open(STATS_PATH, 'r') as file:
+with open(STATS_PATH, "r") as file:
     STATS = json.load(file)
 
 

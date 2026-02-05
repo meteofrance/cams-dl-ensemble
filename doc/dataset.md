@@ -8,36 +8,34 @@ This project's preprocessing script expects data organized like so, with the fol
 - **`YYYY_MM_DD`** specifies a date ordered with year, month then day, spearated with `_` characters and zero padded on the left.
 - **`LT`** = leadtime, a non zero paded number between 0 and 96.
 - **`LVL`** = level, one of 0, 50, 100, 250, 500, 750, 1000, 2000, 3000, 5000.
-- **`SPECIESID`** = a species BDAP id such as specified [here](dataset.md)
+- **`SPECIESID`** = a species BDAP id such as specified [here](dataset.md), without the suffix `_USI`.
 ```txt
 .
 ├── reanalisis
 │   └── SPECIESID
 │       └── YYYY_MM_LVLm.netcdf
 ├── PMACCCHIMERE
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCDEHM
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCEMEP
-│   └── YYYY_MM_DD_LTh.grib
-├── PMACCENS
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCEURADIM
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCGEMAQ
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCLOTOS
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCMATCH
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCMINNI
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCMOCAGE
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 ├── PMACCMONARCH
-│   └── YYYY_MM_DD_LTh.grib
+│   └── YYYY_MM_DD_LT_SPECIESID.grib
 └── PMACCSILAM
-    └── YYYY_MM_DD_LTh.grib
+    └── YYYY_MM_DD_LT_SPECIESID.grib
 ```
 
 Files in the `reanalisis` folder contain the target data for the reanalisis,
@@ -110,14 +108,14 @@ Once processing done, training ready data are ordered like so:
 .
 ├── input
 │  └── YYYY_MM_DD
-│      └── YYYY_MM_DD_leadtime.netcdf  # (12, 18, 10, 700, 420)
+│      └── YYYY_MM_DD.netcdf
 └── target
    └── YYYY_MM_DD
        └── YYYY_MM_DD_HH.netcdf
 ```
 
 Input data are stored in `.netcdf` files with dimensions:
-- `(12, 18, 10, 700, 420)` or `(models, species, levels, width, height)`.
+- `(12, 96, 18, 10, 700, 420)` or `(models, leadtimes, species, levels, width, height)`.
 
 Target data are stored in `.netcdf` files with dimensions:
 - `(12, 18, 10, 700, 420)` or `(species, levels, widht, height)`

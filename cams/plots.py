@@ -84,5 +84,5 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
 
 
 if __name__ == "__main__":
-    sample = Sample(dt.datetime(2022, 7, 22, 15), 6)
+    sample = Sample(dt.datetime(2022, 7, 22), 15)
     plot_sample(sample, Path("test.png"))

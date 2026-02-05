@@ -1,6 +1,7 @@
 import datetime as dt
-from settings import CAMS_DATASET
+from cams.settings import CAMS_DATASET
 import xarray as xr
+from pathlib import Path
 
 from mfai.pytorch.namedtensor import NamedTensor
 import torch
@@ -25,12 +26,26 @@ class Sample:
         self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
 
     def __str__(self) -> str:
-        date_run_str = self.date_run.strftime("%Y-%m-%d %H:00")
+        date_run_str = self.date_run.strftime("%Y-%m-%d %H:%M")
         return f"Sample(date_run={date_run_str}, lead_time=+{self.lead_time}h)"
 
     @property
+    def input_path(self) -> Path:
+        date_run_str = self.date_run.strftime("%Y_%m_%d")
+        return CAMS_DATASET / f"input/{date_run_str}.netcdf"
+
+    @property
+    def target_path(self) -> Path:
+        valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
+        return CAMS_DATASET / f"target/{valid_time_str}.netcdf"
+
+    @property
+    def is_valid(self) -> bool:
+        return self.input_path.exists() and self.target_path.exists()
+
+    @property
     def input_data(self) -> NamedTensor:
-        date_run_str = self.date_run.strftime("%Y_%m_%d_%H")
+        date_run_str = self.date_run.strftime("%Y_%m_%d")
         data_path = CAMS_DATASET / f"input/{date_run_str}.netcdf"
         data = xr.open_dataset(data_path)
         tensor = torch.Tensor(data.O3.values)
@@ -40,8 +55,8 @@ class Sample:
 
     @property
     def target_data(self) -> NamedTensor:
-        date_run_str = self.date_run.strftime("%Y_%m_%d_%H")
-        data_path = CAMS_DATASET / f"target/{date_run_str}.netcdf"
+        valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
+        data_path = CAMS_DATASET / f"target/{valid_time_str}.netcdf"
         data = xr.open_dataset(data_path)
         tensor = torch.Tensor(data.O3.values).unsqueeze(dim=0)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
@@ -49,8 +64,9 @@ class Sample:
 
 
 if __name__ == "__main__":
-    sample = Sample(dt.datetime(2022, 7, 22, 15), 6)
+    sample = Sample(dt.datetime(2022, 7, 22), 15)
     print(sample)
+    print("Sample is valid ? ->", sample.is_valid)
     x = sample.input_data
     print(x)
     y = sample.target_data

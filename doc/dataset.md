@@ -15,27 +15,27 @@ This project's preprocessing script expects data organized like so, with the fol
 │   └── SPECIESID
 │       └── YYYY_MM_LVLm.netcdf
 ├── PMACCCHIMERE
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCDEHM
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCEMEP
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCEURADIM
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCGEMAQ
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCLOTOS
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCMATCH
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCMINNI
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCMOCAGE
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ├── PMACCMONARCH
-│   └── YYYY_MM_DD_LT_SPECIESID.grib
+│   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 └── PMACCSILAM
-    └── YYYY_MM_DD_LT_SPECIESID.grib
+    └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
 ```
 
 Files in folders named with a CTM model name contain input data for 1 model run, 1 leadtime,

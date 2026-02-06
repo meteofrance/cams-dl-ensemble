@@ -99,11 +99,9 @@ jobs:
     - name: Type hinting with pyright on changed files
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        uv add pyright
         uv run pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
 
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        uv add pytest pytest-cov
         uv run pytest --cov=cams --cov=scripts --cov-fail-under=85 tests/

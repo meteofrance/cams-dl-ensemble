@@ -6,13 +6,17 @@ requires-python = "==3.14.*"
 name = "cams-dl-ensemble"
 version = "0.0.0"
 source = { virtual = "." }
-dependencies = [
+
+[package.dev-dependencies]
+dev = [
     { name = "pyright", extra = ["nodejs"] },
     { name = "ruff" },
 ]
 
 [package.metadata]
-requires-dist = [
+
+[package.metadata.requires-dev]
+dev = [
     { name = "pyright", extras = ["nodejs"], specifier = ">=1.1.405" },
     { name = "ruff", specifier = ">=0.15.0" },
 ]

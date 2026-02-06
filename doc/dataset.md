@@ -113,11 +113,10 @@ Once processing done, training ready data are ordered like so:
 Processed data can be opened like so:
 ```py
 >>> import xarray as xr
->>> input_dataarray = xr.open_dataarray("processed_data/input/2023_12_18.netcdf")
->>> input_dataarray
-<xarray.DataArray 'unknown' (model: 11, species: 1, level: 1, leadtime: 1,
-                             latitude: 420, longitude: 700)> Size: 13MB
-[3234000 values with dtype=float32]
+>>> xr.open_dataarray("processed_data/input/2023_12_18.netcdf")
+<xarray.Dataset> Size: 13MB
+Dimensions:     (model: 11, species: 1, level: 1, leadtime: 1, latitude: 420,
+                 longitude: 700)
 Coordinates:
   * model       (model) <U12 528B 'PMACCCHIMERE' 'PMACCDEHM' ... 'PMACCSILAM'
   * species     (species) <U2 8B 'O3'
@@ -125,39 +124,32 @@ Coordinates:
   * leadtime    (leadtime) <U2 8B '15'
   * latitude    (latitude) float64 3kB 71.95 71.85 71.75 ... 30.25 30.15 30.05
   * longitude   (longitude) float64 6kB -24.95 -24.85 -24.75 ... 44.85 44.95
-    time        datetime64[ns] 8B ...
-    step        timedelta64[ns] 8B ...
-    surface     float64 8B ...
-    valid_time  datetime64[ns] 8B ...
-Attributes: (12/30)
-    GRIB_paramId:                             0
-    GRIB_dataType:                            fc
-    GRIB_numberOfPoints:                      294000
-    GRIB_typeOfLevel:                         surface
-    GRIB_stepUnits:                           1
-    GRIB_stepType:                            instant
-    ...                                       ...
-    GRIB_name:                                unknown
-    GRIB_shortName:                           unknown
-    GRIB_units:                               unknown
-    long_name:                                unknown
-    units:                                    unknown
-    standard_name:                            unknown
->>> target_dataarray = xr.open_dataarray("processed_data/target/2023_12_21_15.netcdf")
->>> target_dataarray
-<xarray.DataArray 'O3' (lat: 420, lon: 700)> Size: 1MB
-[294000 values with dtype=float32]
-Coordinates:
-  * lat       (lat) float64 3kB 71.95 71.85 71.75 71.65 ... 30.25 30.15 30.05
-  * lon       (lon) float64 6kB -24.95 -24.85 -24.75 ... 44.75 44.85 44.95
-    time      datetime64[ns] 8B ...
-    variable  <U2 8B ...
+    time        datetime64[ns] 8B 2024-05-26
+    step        timedelta64[ns] 8B 15:00:00
+    surface     float64 8B 0.0
+    valid_time  datetime64[ns] 8B 2024-05-26T15:00:00
+Data variables:
+    unknown     (model, species, level, leadtime, latitude, longitude) float32 13MB ...
 Attributes:
-    Conventions:  CF-1.7
-    Title:        CAMS European air quality interim reanalysis
-    Provider:     COPERNICUS European air quality service
-    Production:   COPERNICUS Atmosphere Monitoring Service
-    units:        µg/m3
+    GRIB_edition:            2
+    GRIB_centre:             lfpw
+    GRIB_centreDescription:  French Weather Service - Toulouse
+    GRIB_subCentre:          200
+    Conventions:             CF-1.7
+    institution:             French Weather Service - Toulouse
+    history:                 2026-02-06T10:16 GRIB to CDM+CF via cfgrib-0.9.1...
+    units:                   µg/m
+>>> xr.open_dataarray("processed_data/target/2023_12_21_15.netcdf")
+<xarray.Dataset> Size: 1MB
+Dimensions:                   (species: 1, lat: 420, lon: 700)
+Coordinates:
+  * species                   (species) <U2 8B 'O3'
+  * lat                       (lat) float64 3kB 71.95 71.85 ... 30.15 30.05
+  * lon                       (lon) float64 6kB -24.95 -24.85 ... 44.85 44.95
+    time                      datetime64[ns] 8B 2024-05-26T15:00:00
+    variable                  <U2 8B 'o3'
+Data variables:
+    2024_05_26_15 reanalisis  (species, lat, lon) float32 1MB 70.59 ... 113.5
 ```
 
 Processed data can be represented with the `plot.py` script:

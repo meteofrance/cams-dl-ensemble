@@ -114,9 +114,49 @@ Processed data can be opened like so:
 ```py
 >>> import xarray as xr
 >>> xr.open_dataarray("processed_data/input/2023_12_18.netcdf")
-<xarray.Dataset> Size: 13MB
-Dimensions:     (model: 11, species: 1, level: 1, leadtime: 1, latitude: 420,
-                 longitude: 700)
+<xarray.DataArray 'unknown' (model: 11, species: 1, level: 1, leadtime: 1,
+                             latitude: 420, longitude: 700)> Size: 13MB
+array([[[[[[ 75.52883 ,  75.958115,  74.04817 , ...,  79.07222 ,
+             79.7889  ,  81.11313 ],
+           [ 73.62617 ,  69.89724 ,  67.09236 , ...,  82.97578 ,
+             84.31819 ,  85.89707 ],
+           [ 60.68588 ,  61.235214,  61.52989 , ...,  80.44738 ,
+             82.46645 ,  84.73292 ],
+           ...,
+           [ 60.62767 ,  62.80318 ,  63.385258, ..., 122.52424 ,
+            126.23862 , 126.56967 ],
+           [ 60.634945,  61.76272 ,  62.42847 , ..., 122.29868 ,
+            125.64563 , 126.00942 ],
+           [ 60.85686 ,  61.74817 ,  62.421192, ..., 121.93125 ,
+            124.59425 , 124.81981 ]]]]],
+
+
+
+
+       [[[[[ 67.404686,  70.08944 ,  72.73593 , ...,  72.37322 ,
+             73.19843 ,  73.53374 ],
+           [ 69.367386,  70.92021 ,  71.78389 , ...,  71.51286 ,
+...
+           [ 40.661354,  40.690247,  40.726784, ..., 106.62416 ,
+            106.81082 , 106.52696 ]]]]],
+
+
+
+
+       [[[[[ 82.795525,  82.795525,  81.61274 , ...,  66.989815,
+             67.65971 ,  68.32961 ],
+           [ 80.04325 ,  77.368515,  77.05689 , ...,  66.989815,
+             66.989815,  67.65971 ],
+           [ 77.368515,  78.685875,  79.83399 , ...,  66.989815,
+             66.989815,  66.989815],
+           ...,
+           [ 62.065624,  62.779022,  63.49242 , ..., 132.15439 ,
+            130.26646 , 130.26646 ],
+           [ 60.63884 ,  62.065624,  62.779022, ..., 130.26646 ,
+            128.69698 , 128.43173 ],
+           [ 59.925426,  61.352226,  62.065624, ..., 131.83595 ,
+            128.69698 , 128.43173 ]]]]]],
+      shape=(11, 1, 1, 1, 420, 700), dtype=float32)
 Coordinates:
   * model       (model) <U12 528B 'PMACCCHIMERE' 'PMACCDEHM' ... 'PMACCSILAM'
   * species     (species) <U2 8B 'O3'
@@ -128,28 +168,50 @@ Coordinates:
     step        timedelta64[ns] 8B 15:00:00
     surface     float64 8B 0.0
     valid_time  datetime64[ns] 8B 2024-05-26T15:00:00
-Data variables:
-    unknown     (model, species, level, leadtime, latitude, longitude) float32 13MB ...
-Attributes:
-    GRIB_edition:            2
-    GRIB_centre:             lfpw
-    GRIB_centreDescription:  French Weather Service - Toulouse
-    GRIB_subCentre:          200
-    Conventions:             CF-1.7
-    institution:             French Weather Service - Toulouse
-    history:                 2026-02-06T10:16 GRIB to CDM+CF via cfgrib-0.9.1...
-    units:                   µg/m
+Attributes: (12/30)
+    GRIB_paramId:                             0
+    GRIB_dataType:                            fc
+    GRIB_numberOfPoints:                      294000
+    GRIB_typeOfLevel:                         surface
+    GRIB_stepUnits:                           1
+    GRIB_stepType:                            instant
+    ...                                       ...
+    GRIB_name:                                unknown
+    GRIB_shortName:                           unknown
+    GRIB_units:                               unknown
+    long_name:                                unknown
+    units:                                    unknown
+    standard_name:                            unknown
 >>> xr.open_dataarray("processed_data/target/2023_12_21_15.netcdf")
-<xarray.Dataset> Size: 1MB
-Dimensions:                   (species: 1, lat: 420, lon: 700)
+<xarray.DataArray '2024_05_26_15 reanalisis' (species: 1, level: 1, lat: 420,
+                                              lon: 700)> Size: 1MB
+array([[[[ 70.589096,  72.10544 ,  72.990875, ...,  70.14551 ,
+           70.08887 ,  69.83008 ],
+         [ 69.64901 ,  71.57346 ,  72.76011 , ...,  69.56738 ,
+           69.60742 ,  69.59961 ],
+         [ 67.513435,  67.72452 ,  69.90242 , ...,  69.21326 ,
+           69.40798 ,  69.14844 ],
+         ...,
+         [ 54.25    ,  54.48166 ,  54.725433, ..., 112.41094 ,
+          112.68443 , 113.4682  ],
+         [ 53.847656,  54.14258 ,  54.74739 , ..., 112.41508 ,
+          112.66978 , 113.30313 ],
+         [ 53.29117 ,  53.47168 ,  53.662224, ..., 112.98573 ,
+          113.166435, 113.46041 ]]]],
+      shape=(1, 1, 420, 700), dtype=float32)
 Coordinates:
-  * species                   (species) <U2 8B 'O3'
-  * lat                       (lat) float64 3kB 71.95 71.85 ... 30.15 30.05
-  * lon                       (lon) float64 6kB -24.95 -24.85 ... 44.85 44.95
-    time                      datetime64[ns] 8B 2024-05-26T15:00:00
-    variable                  <U2 8B 'o3'
-Data variables:
-    2024_05_26_15 reanalisis  (species, lat, lon) float32 1MB 70.59 ... 113.5
+  * species   (species) <U2 8B 'O3'
+  * level     (level) <U1 4B '0'
+  * lat       (lat) float64 3kB 71.95 71.85 71.75 71.65 ... 30.25 30.15 30.05
+  * lon       (lon) float64 6kB -24.95 -24.85 -24.75 ... 44.75 44.85 44.95
+    time      datetime64[ns] 8B 2024-05-26T15:00:00
+    variable  <U2 8B 'o3'
+Attributes:
+    Conventions:  CF-1.7
+    Title:        CAMS European air quality interim reanalysis
+    Provider:     COPERNICUS European air quality service
+    Production:   COPERNICUS Atmosphere Monitoring Service
+    units:        µg/m3
 ```
 
 Processed data can be represented with the `plot.py` script:

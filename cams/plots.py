@@ -79,12 +79,14 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     cbar.set_label(UNITS[species_name], size=13)
 
     # Add the plot's title
-    date = sample.date_run
-    fig.suptitle(f"{species_name} - {date.strftime(r'%Y-%m-%d %Hh%M')}", size=16)
+    run_str = sample.date_run.strftime(r'%Y-%m-%d %Hh')
+    title = f"{species_name} - Run {run_str} - Leadtime +{sample.lead_time}h"
+    fig.suptitle(title, size=16)
 
     plt.savefig(save_path)
 
 
 if __name__ == "__main__":
-    sample = Sample(dt.datetime(2023, 4, 1), 15)
-    plot_sample(sample, Path("test.png"))
+    date = dt.datetime(2024, 7, 30)
+    sample = Sample(date, 15)
+    plot_sample(sample, Path(f"{date.strftime('%Y-%m-%d_O3')}.png"))

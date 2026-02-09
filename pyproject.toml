@@ -1,19 +1,22 @@
 [project]
 name = "cams-dl-ensemble"
 version = "v0.0.0"
-requires-python = "==3.14.*"
+requires-python = "==3.12.*"
 dependencies = [
+  "torch==2.10.*",
+  "mfai>=6.3.0",
 ]
 
 
 [dependency-groups]
 dev = [
-    "pyright[nodejs]>=1.1.405",
-    "ruff>=0.15.0",
+  "pyright[nodejs]",
+  "ruff",
+  "pytest",
 ]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py312"
 line-length = 88
 builtins = ["_"]
 include = [

@@ -1,5 +1,5 @@
 # Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+FROM pytorch/pytorch:2.10.0-cuda13.0-cudnn9-runtime
 
 # Météo France certificates
 ARG INJECT_MF_CERT
@@ -35,17 +35,7 @@ RUN set -eux && groupadd --gid $USER_GUID $GROUPNAME \
 RUN mkdir -p /run/sshd
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
-# uv configuration
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
-# Ensure installed tools can be executed out of the box
-ENV UV_TOOL_BIN_DIR=/usr/local/bin
-
-# uv installation
-# Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --no-dev --allow-insecure-host https://github.com --allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org
+# Requirements installation
+COPY pyproject.toml .
+# RUN uv pip install -r pyproject.toml --extra dev --system --break-system-packages
+RUN pip install .[dev] --break-system-packages

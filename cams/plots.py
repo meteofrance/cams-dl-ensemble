@@ -79,7 +79,7 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     cbar.set_label(UNITS[species_name], size=13)
 
     # Add the plot's title
-    run_str = sample.date_run.strftime(r'%Y-%m-%d %Hh')
+    run_str = sample.date_run.strftime(r"%Y-%m-%d %Hh")
     title = f"{species_name} - Run {run_str} - Leadtime +{sample.lead_time}h"
     fig.suptitle(title, size=16)
 

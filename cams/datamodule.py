@@ -1,10 +1,12 @@
+import datetime as dt
+from typing import Literal
+
 from lightning.pytorch.core import LightningDataModule
+from mfai.pytorch.namedtensor import NamedTensor
+from torch.utils.data import DataLoader
+
 from cams.dataset import CamsDataset
 from cams.settings import CAMS_DATASET_DIR
-import datetime as dt
-from torch.utils.data import DataLoader
-from mfai.pytorch.namedtensor import NamedTensor
-from typing import Literal
 
 
 class CamsDataModule(LightningDataModule):
@@ -49,10 +51,10 @@ class CamsDataModule(LightningDataModule):
         self.val_end = list_dates[-1]
         self.val_start = self.val_end - dt.timedelta(days=num_days_in_val_set)
         self.train_start = list_dates[0]
-        self.train_end = self.val_start - dt.timedelta(days=4) # Avoid leadtime overlap in train/val sets
+        # To avoid data overlap in train/val sets, remove the last 4 days from train set
+        self.train_end = self.val_start - dt.timedelta(days=4)
         print(f"Train dataset: from {self.train_start} to {self.train_end}")
         print(f"Val dataset: from {self.val_start} to {self.val_end}")
-
 
     def setup(self, stage: Literal["fit", "val", "validate"]) -> None:  # type: ignore
         """Called by lightning, at the start of a stage.

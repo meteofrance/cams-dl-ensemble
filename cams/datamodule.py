@@ -1,4 +1,10 @@
 from lightning.pytorch.core import LightningDataModule
+from cams.dataset import CamsDataset
+from cams.settings import CAMS_DATASET_DIR
+import datetime as dt
+from torch.utils.data import DataLoader
+from mfai.pytorch.namedtensor import NamedTensor
+from typing import Literal
 
 
 class CamsDataModule(LightningDataModule):
@@ -7,9 +13,96 @@ class CamsDataModule(LightningDataModule):
     It defines the train/valid/test datasets and their dataloaders.
     """
 
-    def __init__(self) -> None:
-        """
+    train_dataset: CamsDataset | None = None  # Set at setup
+    val_dataset: CamsDataset | None = None
+
+    def __init__(
+        self,
+        batch_size: int = 2,
+        num_workers: int = 1,
+        prefetch_factor: int = 2,
+        num_days_in_val_set: int = 365,
+    ) -> None:
+        """_summary_
+
         Args:
-            not implemented yet
+            batch_size (int, optional): The batch size. Defaults to 2.
+            num_workers (int, optional): Num of processes to load data from disk. Defaults to 1.
+            prefetch_factor (int, optional): Num of batches loaded in advance by each worker. Defaults to 2.
+            num_days_in_val_set (int, optional): Num of days of data included in the validation set. Defaults to 12.
         """
-        raise NotImplementedError()
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.prefetch_factor = prefetch_factor
+
+        self.dataloader_kwargs = {
+            "batch_size": self.batch_size,
+            "collate_fn": self.collate_batch,
+            "num_workers": self.num_workers,
+            "persistent_workers": True,
+            "prefetch_factor": self.prefetch_factor,
+        }
+
+        list_runs = sorted(list(CAMS_DATASET_DIR.glob("input/*.netcdf")))
+        print(f"{len(list_runs)} elements in whole dataset.")
+        list_dates = [dt.datetime.strptime(path.stem, "%Y_%m_%d") for path in list_runs]
+        self.val_end = list_dates[-1]
+        self.val_start = self.val_end - dt.timedelta(days=num_days_in_val_set)
+        self.train_start = list_dates[0]
+        self.train_end = self.val_start - dt.timedelta(days=4) # Avoid leadtime overlap in train/val sets
+        print(f"Train dataset: from {self.train_start} to {self.train_end}")
+        print(f"Val dataset: from {self.val_start} to {self.val_end}")
+
+
+    def setup(self, stage: Literal["fit", "val", "validate"]) -> None:  # type: ignore
+        """Called by lightning, at the start of a stage.
+
+        Args:
+            stage: either 'fit', 'val', 'validate' or 'test'.
+        """
+        if stage == "fit":
+            self.train_dataset = (
+                CamsDataset(self.train_start, self.train_end)
+                if self.train_dataset is None
+                else self.train_dataset
+            )
+        elif stage in ["fit", "val", "validate"]:
+            self.val_dataset = (
+                CamsDataset(self.val_start, self.val_end)
+                if self.val_dataset is None
+                else self.val_dataset
+            )
+        else:
+            raise ValueError(
+                f"BMRDatamodule.setup():\n\tparameter stage should be either 'fit', 'val', 'validate', got '{stage}'."
+            )
+
+    def train_dataloader(self) -> DataLoader:
+        if self.train_dataset is None:
+            self.setup("fit")
+        return DataLoader(self.train_dataset, shuffle=True, **self.dataloader_kwargs)
+
+    def val_dataloader(self) -> DataLoader:
+        if self.val_dataset is None:
+            self.setup("val")
+        return DataLoader(self.val_dataset, shuffle=False, **self.dataloader_kwargs)
+
+    def collate_batch(
+        self,
+        batch: list[tuple[NamedTensor]],
+    ) -> tuple[NamedTensor]:
+        """Collate a batch of NamedTensor data."""
+
+        inputs = NamedTensor.collate_fn([item[0] for item in batch])
+        targets = NamedTensor.collate_fn([item[1] for item in batch])
+
+        return inputs, targets
+
+
+if __name__ == "__main__":
+    dm = CamsDataModule()
+    train_loader = dm.train_dataloader()
+    batch = next(iter(train_loader))
+    x, y = batch
+    print(x)
+    print(y)

@@ -3,7 +3,12 @@ name = "cams-dl-ensemble"
 version = "v0.0.0"
 requires-python = ">=3.11"
 dependencies = [
+    "cartopy>=0.25.0",
+    "mfai>=6.2.1",
+    "netcdf4>=1.7.4",
     "pyright>=1.1.405",
+    "tornado>=6.5.4",
+    "xarray>=2026.1.0",
 ]
 
 [tool.ruff.lint]

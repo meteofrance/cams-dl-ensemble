@@ -5,6 +5,8 @@ _Deep Learning Ensemble poluant prediction_
 ## Context
 This project's goal is to train a machine learning model to produce a ensemble prediction to replace the current CAMS median ensemble.
 
+![A training sample example](doc/images/sample_2024-07-30_O3.png)
+
 ![](doc/images/model_io.svg)
 
 

@@ -86,8 +86,6 @@ jobs:
       run: uv cache prune --ci
 
     - name: Install git  # necessary for the tj-action/changed-py-files
-
-    - name: Install git  # necessary for the tj-action/changed-py-files
       run: apt-get update && apt-get install -y git
 
     - name: Gather Python changed files

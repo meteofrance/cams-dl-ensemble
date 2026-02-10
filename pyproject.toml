@@ -1,19 +1,77 @@
 [project]
 name = "cams-dl-ensemble"
 version = "v0.0.0"
-requires-python = ">=3.11"
+requires-python = "==3.12.*"
 dependencies = [
-    "cartopy>=0.25.0",
-    "mfai>=6.2.1",
-    "netcdf4>=1.7.4",
-    "pyright>=1.1.405",
-    "tornado>=6.5.4",
-    "xarray>=2026.1.0",
+  "cartopy>=0.25.0",
+  "netcdf4>=1.7.4",
+  "pyright>=1.1.405",
+  "tornado>=6.5.4",
+  "xarray>=2026.1.0",
+  "torch==2.10.*",
+  "mfai>=6.3.0",
 ]
 
+[dependency-groups]
+dev = [
+  "pyright[nodejs]",
+  "ruff",
+  "pytest",
+  "pytest-cov",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+builtins = ["_"]
+include = [
+  "cams/**/*.py",
+  "scripts/**/*.py"
+]
+exclude = [
+  "tests/**/*.py",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint]
-select = ["I"]  # I = isort
-extend-select = ["F401"]  # F401 = unused-import
+select = [
+  "I",  # I = isort
+  "F",  # pyflakes
+  "W",  # pycodestyle warnings
+  "E",  # pycodestyle errors
+  "D",  # pydocstyle
+]
+ignore = [
+    "D100",  # Allow undocumented-public-module
+    "D200",  # Allow unnecessayry-multiline-docstring
+    "D202",  # Allow blank-line-after-function after function docstring
+    "D203",  # Allow incorrect-blank-line-before-class
+    "D205",  # Allow missing-blank-line-after-summary
+    "D212",  # Allow multi-line-summary-first-line
+    "D213",  # Allow multi-line-summary-second-line
+    "D415",  # Allow missing-terminal-punctuation
+
+    # "D101",  # Allow undocumented-public-class
+    # "D102",  # Allow undocumented-public-method
+    # "D103",  # Allow undocumented-public-function
+    # "D104",  # Allow undocumented-public-package
+    "D105",  # Allow undocumented-magic-method
+    # "D107",  # Allow undocumented-public-init
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+# ignore-var-parameters = true
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 88
+ignore-overlong-task-comments = true
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
 
 [tool.pyright]
 # https://microsoft.github.io/pyright/#/configuration?id=sample-pyprojecttoml-file

@@ -1,5 +1,5 @@
-# Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+# Use a python image with python 3.12 and pytorch 2.10 pre-installed
+FROM pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel
 
 # Météo France certificates
 ARG INJECT_MF_CERT
@@ -9,12 +9,18 @@ ARG REQUESTS_CA_BUNDLE
 ARG CURL_CA_BUNDLE
 
 # Define apt-get
-ENV MY_APT='apt-get -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecureRepositories=true" -o "Acquire::AllowDowngradeToInsecureRepositories=true" -o "Acquire::https::Verify-Host=false"'
+ENV MY_APT='apt -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecureRepositories=true" -o "Acquire::AllowDowngradeToInsecureRepositories=true" -o "Acquire::https::Verify-Host=false" --no-install-recommends'
 
 # Install the necessary libraries to use the image as a ssh server host
-RUN $MY_APT update && $MY_APT install -y curl gcc g++ nano sudo libgeos-dev libeccodes-dev libeccodes-tools git vim openssh-server wget
+RUN $MY_APT update \
+    && $MY_APT install -y git-lfs curl sudo git openssh-server\
+    && apt-get clean
 
-# Build time variables
+# Setup code server
+RUN mkdir -p /run/sshd
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
+# Build time variables 
 ARG USERNAME
 ARG GROUPNAME
 ARG USER_UID
@@ -31,21 +37,10 @@ RUN set -eux && groupadd --gid $USER_GUID $GROUPNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && echo "$USERNAME:$USERNAME" | chpasswd
 
-# Setup ssh server
-RUN mkdir -p /run/sshd
-RUN curl -fsSL https://code-server.dev/install.sh | sh
+# Setup workdir
+WORKDIR $HOME_DIR
 
-# uv configuration
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
-# Ensure installed tools can be executed out of the box
-ENV UV_TOOL_BIN_DIR=/usr/local/bin
-
-# uv installation
-# Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --no-dev --allow-insecure-host https://github.com --allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org
+# Install project's python requirements
+COPY pyproject.toml pyproject.toml
+RUN python -m pip install --break-system-packages --upgrade pip wheel setuptools
+RUN MAX_JOBS=10 python -m pip -v install --break-system-packages .

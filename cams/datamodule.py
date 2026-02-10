@@ -4,6 +4,7 @@ from typing import Literal
 from lightning.pytorch.core import LightningDataModule
 from mfai.pytorch.namedtensor import NamedTensor
 from torch.utils.data import DataLoader
+from typing_extensions import override
 
 from cams.dataset import CamsDataset
 from cams.settings import CAMS_DATASET_DIR
@@ -83,22 +84,24 @@ class CamsDataModule(LightningDataModule):
                 + f"'val', 'validate', got '{stage}'."
             )
 
+    @override
     def train_dataloader(self) -> DataLoader:
         """Returns the train dataloader"""
         if self.train_dataset is None:
             self.setup("fit")
-        return DataLoader(self.train_dataset, shuffle=True, **self.dataloader_kwargs)
+        return DataLoader(self.train_dataset, shuffle=True, **self.dataloader_kwargs)  # type: ignore[reportArgumentType]
 
+    @override
     def val_dataloader(self) -> DataLoader:
         """Returns the validation dataloader"""
         if self.val_dataset is None:
             self.setup("val")
-        return DataLoader(self.val_dataset, shuffle=False, **self.dataloader_kwargs)
+        return DataLoader(self.val_dataset, shuffle=False, **self.dataloader_kwargs)  # type: ignore[reportArgumentType]
 
     def collate_batch(
         self,
-        batch: list[tuple[NamedTensor]],
-    ) -> tuple[NamedTensor]:
+        batch: list[tuple[NamedTensor, NamedTensor]],
+    ) -> tuple[NamedTensor, NamedTensor]:
         """Collate a batch of NamedTensor data."""
 
         inputs = NamedTensor.collate_fn([item[0] for item in batch])

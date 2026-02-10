@@ -35,8 +35,8 @@ def format_axis(ax: Axes, title: str) -> None:
     ax.set(xticklabels=[], yticklabels=[])
     ax.tick_params(bottom=False, left=False)
     ax.set_aspect(1.8)
-    ax.add_feature(cfeature.BORDERS.with_scale("50m"), edgecolor="grey", linewidth=1)
-    ax.coastlines(resolution="50m", color="black", linewidth=1)
+    ax.add_feature(cfeature.BORDERS.with_scale("50m"), edgecolor="grey", linewidth=1)  # type: ignore[reportAttributeAccessIssue]
+    ax.coastlines(resolution="50m", color="black", linewidth=1)  # type: ignore[reportAttributeAccessIssue]
 
 
 def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> None:

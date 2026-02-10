@@ -4,6 +4,7 @@ from pathlib import Path
 import torch
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
+from typing_extensions import override
 
 from cams.settings import CAMS_DATASET_DIR
 
@@ -26,6 +27,7 @@ class Sample:
         self.lead_time = lead_time
         self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
 
+    @override
     def __str__(self) -> str:
         date_run_str = self.date_run.strftime("%Y-%m-%d %H:%M")
         return f"Sample(date_run={date_run_str}, lead_time=+{self.lead_time}h)"

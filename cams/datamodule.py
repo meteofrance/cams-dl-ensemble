@@ -1,5 +1,6 @@
 import datetime as dt
 from typing import Literal
+from pathlib import Path
 
 from lightning.pytorch.core import LightningDataModule
 from mfai.pytorch.namedtensor import NamedTensor
@@ -25,6 +26,7 @@ class CamsDataModule(LightningDataModule):
         num_workers: int = 1,
         prefetch_factor: int = 2,
         num_days_in_val_set: int = 365,
+        data_dir: Path = CAMS_DATASET_DIR,
     ) -> None:
         """_summary_
 
@@ -40,6 +42,7 @@ class CamsDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.prefetch_factor = prefetch_factor
+        self.data_dir = data_dir
 
         self.dataloader_kwargs = {
             "batch_size": self.batch_size,
@@ -49,7 +52,7 @@ class CamsDataModule(LightningDataModule):
             "prefetch_factor": self.prefetch_factor,
         }
 
-        list_runs = sorted(list(CAMS_DATASET_DIR.glob("input/*.netcdf")))
+        list_runs = sorted(list(data_dir.glob("input/*.netcdf")))
         print(f"{len(list_runs)} elements in whole dataset.")
         list_dates = [dt.datetime.strptime(path.stem, "%Y_%m_%d") for path in list_runs]
         self.val_end = list_dates[-1]
@@ -68,13 +71,13 @@ class CamsDataModule(LightningDataModule):
         """
         if stage == "fit":
             self.train_dataset = (
-                CamsDataset(self.train_start, self.train_end)
+                CamsDataset(self.train_start, self.train_end, self.data_dir)
                 if self.train_dataset is None
                 else self.train_dataset
             )
-        elif stage in ["fit", "val", "validate"]:
+        if stage in ["fit", "val", "validate"]:
             self.val_dataset = (
-                CamsDataset(self.val_start, self.val_end)
+                CamsDataset(self.val_start, self.val_end, self.data_dir)
                 if self.val_dataset is None
                 else self.val_dataset
             )

@@ -32,20 +32,24 @@ class Sample:
 
     @property
     def input_path(self) -> Path:
+        """The path to the netcdf of input ensemble data."""
         date_run_str = self.date_run.strftime("%Y_%m_%d")
         return CAMS_DATASET_DIR / f"input/{date_run_str}.netcdf"
 
     @property
     def target_path(self) -> Path:
+        """The path to the netcdf of target analysis data."""
         valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
         return CAMS_DATASET_DIR / f"target/{valid_time_str}.netcdf"
 
     @property
     def is_valid(self) -> bool:
+        """Returns True if the Sample is valid: if input and target files exist."""
         return self.input_path.exists() and self.target_path.exists()
 
     @property
     def input_data(self) -> NamedTensor:
+        """Returns the input ensemble data as a NamedTensor."""
         date_run_str = self.date_run.strftime("%Y_%m_%d")
         data_path = CAMS_DATASET_DIR / f"input/{date_run_str}.netcdf"
         data = xr.open_dataset(data_path)
@@ -56,6 +60,7 @@ class Sample:
 
     @property
     def target_data(self) -> NamedTensor:
+        """Returns the target analysis data as a NamedTensor."""
         valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
         data_path = CAMS_DATASET_DIR / f"target/{valid_time_str}.netcdf"
         data = xr.open_dataset(data_path)

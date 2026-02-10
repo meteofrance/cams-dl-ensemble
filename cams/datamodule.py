@@ -29,9 +29,12 @@ class CamsDataModule(LightningDataModule):
 
         Args:
             batch_size (int, optional): The batch size. Defaults to 2.
-            num_workers (int, optional): Num of processes to load data from disk. Defaults to 1.
-            prefetch_factor (int, optional): Num of batches loaded in advance by each worker. Defaults to 2.
-            num_days_in_val_set (int, optional): Num of days of data included in the validation set. Defaults to 12.
+            num_workers (int, optional): Num of processes to load data from disk.
+                Defaults to 1.
+            prefetch_factor (int, optional): Num of batches loaded in advance by
+                each worker. Defaults to 2.
+            num_days_in_val_set (int, optional): Num of days of data included in the
+                validation set. Defaults to 12.
         """
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -76,15 +79,18 @@ class CamsDataModule(LightningDataModule):
             )
         else:
             raise ValueError(
-                f"BMRDatamodule.setup():\n\tparameter stage should be either 'fit', 'val', 'validate', got '{stage}'."
+                "BMRDatamodule.setup():\n\tparameter stage should be either 'fit', "
+                + f"'val', 'validate', got '{stage}'."
             )
 
     def train_dataloader(self) -> DataLoader:
+        """Returns the train dataloader"""
         if self.train_dataset is None:
             self.setup("fit")
         return DataLoader(self.train_dataset, shuffle=True, **self.dataloader_kwargs)
 
     def val_dataloader(self) -> DataLoader:
+        """Returns the validation dataloader"""
         if self.val_dataset is None:
             self.setup("val")
         return DataLoader(self.val_dataset, shuffle=False, **self.dataloader_kwargs)

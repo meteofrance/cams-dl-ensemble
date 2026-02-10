@@ -25,6 +25,12 @@ with open(STATS_PATH, "r") as file:
 
 
 def format_axis(ax: Axes, title: str) -> None:
+    """Formats a given plot axis with title, labels, ticks and coastlines.
+
+    Args:
+        ax (Axes): A matplotlib Axes
+        title (str): The title of this axes.
+    """
     ax.set_title(title)
     ax.set(xticklabels=[], yticklabels=[])
     ax.tick_params(bottom=False, left=False)
@@ -37,8 +43,9 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     """Plots a sample's input and target data for one parameter only.
 
     Args:
-        sample: Sample we want to plot.
-        species_name: The species name to plot.
+        sample (Sample): Sample we want to plot.
+        save_path (Path): The path where the plot will be saved.
+        species_name (str): The species name to plot.
     """
     x, y = sample.input_data, sample.target_data
     median = torch.median(x.tensor, dim=0).values

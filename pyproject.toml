@@ -10,10 +10,6 @@ dependencies = [
   "xarray>=2026.1.0",
   "torch==2.10.*",
   "mfai>=6.3.0",
-]
-
-[dependency-groups]
-dev = [
   "pyright[nodejs]",
   "ruff",
   "pytest",

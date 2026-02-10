@@ -1,4 +1,4 @@
-"""Computes min & max of the different species (only O3 for now) on the Analysis data."""
+"""Computes min/max of the different species (only O3 for now) on the Analysis data."""
 
 import datetime as dt
 import json

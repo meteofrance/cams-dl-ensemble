@@ -16,7 +16,8 @@ class CamsDataset(Dataset):
         A sample point is a date and a forecast id, used to instantiate a Sample.
 
         Args:
-            split: Wich split of the dataset to load.
+            start_date (dt.datetime): the first date of this dataset.
+            end_date (dt.datetime): the last date of this dataset.
         """
         list_runs = sorted(list(CAMS_DATASET_DIR.glob("input/*.netcdf")))
         list_dates = [dt.datetime.strptime(path.stem, "%Y_%m_%d") for path in list_runs]

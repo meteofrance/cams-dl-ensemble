@@ -1,6 +1,6 @@
 import datetime as dt
-from typing import Literal
 from pathlib import Path
+from typing import Literal
 
 from lightning.pytorch.core import LightningDataModule
 from mfai.pytorch.namedtensor import NamedTensor
@@ -38,6 +38,7 @@ class CamsDataModule(LightningDataModule):
                 each worker. Defaults to 2.
             num_days_in_val_set (int, optional): Num of days of data included in the
                 validation set. Defaults to 12.
+            data_dir (Path, optional): Path to the Cams dataset.
         """
         self.batch_size = batch_size
         self.num_workers = num_workers

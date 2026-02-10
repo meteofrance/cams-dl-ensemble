@@ -12,13 +12,19 @@ from cams.settings import CAMS_DATASET_DIR
 class CamsDataset(Dataset):
     """Cams dataset, see [dataset doc](docs/data.md) for complete description."""
 
-    def __init__(self, start_date: dt.datetime, end_date: dt.datetime, data_dir: Path = CAMS_DATASET_DIR) -> None:
+    def __init__(
+        self,
+        start_date: dt.datetime,
+        end_date: dt.datetime,
+        data_dir: Path = CAMS_DATASET_DIR,
+    ) -> None:
         """Loads the dataset's sample points for the given split.
         A sample point is a date and a forecast id, used to instantiate a Sample.
 
         Args:
             start_date (dt.datetime): the first date of this dataset.
             end_date (dt.datetime): the last date of this dataset.
+            data_dir (Path, optional): Path to the Cams dataset.
         """
         list_runs = sorted(list(data_dir.glob("input/*.netcdf")))
         list_dates = [dt.datetime.strptime(path.stem, "%Y_%m_%d") for path in list_runs]

@@ -15,13 +15,16 @@ class Sample:
     - Load a datapoint from the Cams dataset from a given date and leadtime.
     """
 
-    def __init__(self, date_run: dt.datetime, lead_time: int, data_dir: Path = CAMS_DATASET_DIR) -> None:
+    def __init__(
+        self, date_run: dt.datetime, lead_time: int, data_dir: Path = CAMS_DATASET_DIR
+    ) -> None:
         """
         Args:
             date_run: The run date of the CTMs from which to load the sample.
             lead_time: Which forecast lead time to load the sample from.
                 The lead times step is 3h, from the given date at 00h00 to +96h.
                 The accepted values for lead_time are [3, 6, 9, ..., 93, 96]
+            data_dir (Path, optional): Path to the Cams dataset.
         """
         self.date_run = date_run
         self.lead_time = lead_time

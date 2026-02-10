@@ -30,6 +30,7 @@ class CamsDataset(Dataset):
 
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
+        """Returns one sample of training data."""
         sample = self.samples[idx]
         return sample.input_data, sample.target_data
 

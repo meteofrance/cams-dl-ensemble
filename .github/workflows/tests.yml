@@ -60,6 +60,7 @@ jobs:
   tests:
     env:
       PYTHONPATH: '.'
+    runs-on: ubuntu-22.04
     container:
       image: pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel
 

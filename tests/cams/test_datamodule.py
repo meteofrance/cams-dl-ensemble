@@ -1,22 +1,15 @@
 import datetime as dt
-import tempfile
-import shutil
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
-import numpy as np
-import xarray as xr
 import pytest
-import torch
-from lightning.pytorch.core import LightningDataModule
+from mfai.pytorch.namedtensor import NamedTensor
+from test_sample import (
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
 
 from cams.datamodule import CamsDataModule
-from cams.dataset import CamsDataset
-from cams.sample import Sample
-from test_sample import temp_dir, setup_cams_directories, create_dummy_input_netcdf, create_dummy_target_netcdf
-from mfai.pytorch.namedtensor import NamedTensor
 from cams.settings import MODEL_NAMES
-
 
 
 def test_cams_datamodule(setup_cams_directories: Path):
@@ -25,12 +18,18 @@ def test_cams_datamodule(setup_cams_directories: Path):
     dates = [dt.datetime(2022, 1, i) for i in range(1, 11)]
 
     for date in dates:
-        input_path = setup_cams_directories / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        target_path = setup_cams_directories / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
+        input_path = (
+            setup_cams_directories / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
+        )
+        target_path = (
+            setup_cams_directories / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
+        )
         create_dummy_input_netcdf(input_path)
         create_dummy_target_netcdf(target_path)
 
-    dm = CamsDataModule(batch_size=4, num_days_in_val_set=2, data_dir=setup_cams_directories)
+    dm = CamsDataModule(
+        batch_size=4, num_days_in_val_set=2, data_dir=setup_cams_directories
+    )
 
     # Check default values
     assert dm.batch_size == 4
@@ -58,12 +57,12 @@ def test_cams_datamodule(setup_cams_directories: Path):
 
     # Get train dataloader
     train_loader = dm.train_dataloader()
-    assert hasattr(train_loader, '__iter__')
+    assert hasattr(train_loader, "__iter__")
     assert train_loader.batch_size == 4
 
     # Get validation dataloader
     val_loader = dm.val_dataloader()
-    assert hasattr(val_loader, '__iter__')
+    assert hasattr(val_loader, "__iter__")
     assert val_loader.batch_size == 4
 
     # Create a mock batch

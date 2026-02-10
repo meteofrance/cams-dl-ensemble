@@ -1,15 +1,13 @@
 import datetime as dt
-import tempfile
 import shutil
+import tempfile
+from collections.abc import Iterator
 from pathlib import Path
 
 import numpy as np
-import xarray as xr
 import pytest
-import torch
-from collections.abc import Iterator
+import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
-from typing import Literal
 
 from cams.sample import Sample
 from cams.settings import MODEL_NAMES
@@ -47,9 +45,10 @@ def create_dummy_input_netcdf(path: Path):
             "model": MODEL_NAMES,
             "latitude": lats,
             "longitude": lons,
-        }
+        },
     )
     ds.to_netcdf(path)
+
 
 def create_dummy_target_netcdf(path: Path):
     """Create a dummy NetCDF file filled with zeros."""
@@ -64,16 +63,19 @@ def create_dummy_target_netcdf(path: Path):
         coords={
             "latitude": lats,
             "longitude": lons,
-        }
+        },
     )
     ds.to_netcdf(path)
 
 
-@pytest.mark.parametrize("run_date, lead_time", [
-    (dt.datetime(2022, 7, 22), 15),
-    (dt.datetime(2023, 1, 1), 3),
-    (dt.datetime(2023, 12, 31), 96),
-])
+@pytest.mark.parametrize(
+    "run_date, lead_time",
+    [
+        (dt.datetime(2022, 7, 22), 15),
+        (dt.datetime(2023, 1, 1), 3),
+        (dt.datetime(2023, 12, 31), 96),
+    ],
+)
 def test_sample_creation(run_date: dt.datetime, lead_time: int):
     sample = Sample(run_date, lead_time)
     assert sample.date_run == run_date

@@ -1,18 +1,14 @@
 import datetime as dt
-import tempfile
-import shutil
 from pathlib import Path
 
-import numpy as np
-import xarray as xr
-import pytest
-import torch
+from mfai.pytorch.namedtensor import NamedTensor
+from test_sample import (
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
 
 from cams.dataset import CamsDataset
-from cams.sample import Sample
-from test_sample import temp_dir, setup_cams_directories, create_dummy_input_netcdf, create_dummy_target_netcdf
 from cams.settings import MODEL_NAMES
-from mfai.pytorch.namedtensor import NamedTensor
 
 
 def test_cams_dataset_creation(setup_cams_directories: Path):
@@ -70,14 +66,18 @@ def test_cams_dataset_filtering_by_date(setup_cams_directories: Path):
     # Create multiple date files
     dates = [
         dt.datetime(2021, 12, 31),  # Should be excluded (before start)
-        dt.datetime(2022, 1, 1),   # Should be included
-        dt.datetime(2022, 1, 2),   # Should be included
+        dt.datetime(2022, 1, 1),  # Should be included
+        dt.datetime(2022, 1, 2),  # Should be included
         dt.datetime(2022, 3, 20),  # Should be excluded (after end)
     ]
 
     for date in dates:
-        input_path = setup_cams_directories / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        target_path = setup_cams_directories / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
+        input_path = (
+            setup_cams_directories / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
+        )
+        target_path = (
+            setup_cams_directories / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
+        )
         create_dummy_input_netcdf(input_path)
         create_dummy_target_netcdf(target_path)
 

@@ -7,7 +7,6 @@ dependencies = [
   "mfai>=6.3.0",
 ]
 
-
 [dependency-groups]
 dev = [
   "pyright[nodejs]",

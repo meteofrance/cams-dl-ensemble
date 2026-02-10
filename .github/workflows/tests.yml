@@ -80,7 +80,12 @@ jobs:
           uv-${{ runner.os }}
 
     - name: Install dependencies
-      run: pip install .
+      run: uv sync --locked --all-extras --dev
+
+    - name: Minimize uv cache
+      run: uv cache prune --ci
+
+    - name: Install git  # necessary for the tj-action/changed-py-files
 
     - name: Install git  # necessary for the tj-action/changed-py-files
       run: apt-get update && apt-get install -y git
@@ -96,9 +101,9 @@ jobs:
     - name: Type hinting with pyright on changed files
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
+        uv run pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
 
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pytest --cov=cams --cov=scripts --cov-fail-under=85 tests/
+        uv run pytest --cov=cams --cov=scripts --cov-fail-under=85 tests/

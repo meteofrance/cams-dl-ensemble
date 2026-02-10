@@ -12,6 +12,7 @@ dev = [
   "pyright[nodejs]",
   "ruff",
   "pytest",
+  "pytest-cov",
 ]
 
 [tool.ruff]

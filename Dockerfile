@@ -13,7 +13,7 @@ ENV MY_APT='apt -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecur
 
 # Install the necessary libraries to use the image as a ssh server host
 RUN $MY_APT update \
-    && $MY_APT install -y git-lfs curl gcc g++ nano sudo git vim openssh-server\
+    && $MY_APT install -y git-lfs curl sudo git openssh-server\
     && apt-get clean
 
 # Setup code server

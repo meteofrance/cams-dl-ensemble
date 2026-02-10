@@ -9,6 +9,7 @@ import pytest
 import torch
 from collections.abc import Iterator
 from mfai.pytorch.namedtensor import NamedTensor
+from typing import Literal
 
 from cams.sample import Sample
 from cams.settings import MODEL_NAMES
@@ -29,19 +30,10 @@ def setup_cams_directories(temp_dir: Path) -> Iterator[Path]:
     target_dir = temp_dir / "target"
     input_dir.mkdir(parents=True, exist_ok=True)
     target_dir.mkdir(parents=True, exist_ok=True)
-
-    # Redirect CAMS_DATASET_DIR to our temporary directory
-    import cams.settings
-    original_dir = cams.settings.CAMS_DATASET_DIR
-    cams.settings.CAMS_DATASET_DIR = temp_dir
-
     yield temp_dir
 
-    # Restore original
-    cams.settings.CAMS_DATASET_DIR = original_dir
 
-
-def create_dummy_netcdf(path: Path):
+def create_dummy_input_netcdf(path: Path):
     """Create a dummy NetCDF file filled with zeros."""
     data_shape = (len(MODEL_NAMES), 420, 700)
     lats = np.linspace(71.95, 30.05, data_shape[1])
@@ -53,6 +45,23 @@ def create_dummy_netcdf(path: Path):
         },
         coords={
             "model": MODEL_NAMES,
+            "latitude": lats,
+            "longitude": lons,
+        }
+    )
+    ds.to_netcdf(path)
+
+def create_dummy_target_netcdf(path: Path):
+    """Create a dummy NetCDF file filled with zeros."""
+    data_shape = (420, 700)
+    lats = np.linspace(71.95, 30.05, data_shape[0])
+    lons = np.linspace(-24.95, 44.95, data_shape[1])
+    data = np.zeros(data_shape)
+    ds = xr.Dataset(
+        {
+            "O3": (["latitude", "longitude"], data),
+        },
+        coords={
             "latitude": lats,
             "longitude": lons,
         }
@@ -96,18 +105,18 @@ def test_sample_is_valid_true(setup_cams_directories: Path):
     input_path = setup_cams_directories / "input/2022_07_22.netcdf"
     target_path = setup_cams_directories / "target/2022_07_22_15.netcdf"
 
-    create_dummy_netcdf(input_path)
-    create_dummy_netcdf(target_path)
+    create_dummy_input_netcdf(input_path)
+    create_dummy_target_netcdf(target_path)
 
-    sample = Sample(dt.datetime(2022, 7, 22), 15)
+    sample = Sample(dt.datetime(2022, 7, 22), 15, setup_cams_directories)
     assert sample.is_valid
 
 
 def test_sample_input_data(setup_cams_directories: Path):
     input_path = setup_cams_directories / "input/2022_07_22.netcdf"
-    create_dummy_netcdf(input_path)
+    create_dummy_input_netcdf(input_path)
 
-    sample = Sample(dt.datetime(2022, 7, 22), 15)
+    sample = Sample(dt.datetime(2022, 7, 22), 15, setup_cams_directories)
     data = sample.input_data
 
     assert isinstance(data, NamedTensor)
@@ -117,9 +126,9 @@ def test_sample_input_data(setup_cams_directories: Path):
 
 def test_sample_target_data(setup_cams_directories: Path):
     target_path = setup_cams_directories / "target/2022_07_22_15.netcdf"
-    create_dummy_netcdf(target_path)
+    create_dummy_target_netcdf(target_path)
 
-    sample = Sample(dt.datetime(2022, 7, 22), 15)
+    sample = Sample(dt.datetime(2022, 7, 22), 15, setup_cams_directories)
     data = sample.target_data
 
     assert isinstance(data, NamedTensor)

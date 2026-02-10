@@ -15,7 +15,7 @@ class Sample:
     - Load a datapoint from the Cams dataset from a given date and leadtime.
     """
 
-    def __init__(self, date_run: dt.datetime, lead_time: int) -> None:
+    def __init__(self, date_run: dt.datetime, lead_time: int, data_dir: Path = CAMS_DATASET_DIR) -> None:
         """
         Args:
             date_run: The run date of the CTMs from which to load the sample.
@@ -26,6 +26,7 @@ class Sample:
         self.date_run = date_run
         self.lead_time = lead_time
         self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
+        self.data_dir = data_dir
 
     @override
     def __str__(self) -> str:
@@ -36,13 +37,13 @@ class Sample:
     def input_path(self) -> Path:
         """The path to the netcdf of input ensemble data."""
         date_run_str = self.date_run.strftime("%Y_%m_%d")
-        return CAMS_DATASET_DIR / f"input/{date_run_str}.netcdf"
+        return self.data_dir / f"input/{date_run_str}.netcdf"
 
     @property
     def target_path(self) -> Path:
         """The path to the netcdf of target analysis data."""
         valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
-        return CAMS_DATASET_DIR / f"target/{valid_time_str}.netcdf"
+        return self.data_dir / f"target/{valid_time_str}.netcdf"
 
     @property
     def is_valid(self) -> bool:
@@ -52,9 +53,7 @@ class Sample:
     @property
     def input_data(self) -> NamedTensor:
         """Returns the input ensemble data as a NamedTensor."""
-        date_run_str = self.date_run.strftime("%Y_%m_%d")
-        data_path = CAMS_DATASET_DIR / f"input/{date_run_str}.netcdf"
-        data = xr.open_dataset(data_path)
+        data = xr.open_dataset(self.input_path)
         tensor = torch.Tensor(data.O3.values)
         names = [name.replace("PMACC", "") for name in data.model.values]
         nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
@@ -63,9 +62,7 @@ class Sample:
     @property
     def target_data(self) -> NamedTensor:
         """Returns the target analysis data as a NamedTensor."""
-        valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
-        data_path = CAMS_DATASET_DIR / f"target/{valid_time_str}.netcdf"
-        data = xr.open_dataset(data_path)
+        data = xr.open_dataset(self.target_path)
         tensor = torch.Tensor(data.O3.values).unsqueeze(dim=0)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
         return nt

@@ -3,13 +3,10 @@ from pathlib import Path
 
 import pytest
 from mfai.pytorch.namedtensor import NamedTensor
-from test_sample import (
-    create_dummy_input_netcdf,
-    create_dummy_target_netcdf,
-)
 
 from cams.datamodule import CamsDataModule
 from cams.settings import MODEL_NAMES
+from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
 def test_cams_datamodule(setup_cams_directories: Path):
@@ -43,6 +40,10 @@ def test_cams_datamodule(setup_cams_directories: Path):
     assert dm.train_end == dt.datetime(2022, 1, 4)  # val_start - 4 days
     assert dm.val_start == dt.datetime(2022, 1, 8)  # val_end - 2 days
     assert dm.val_end == dt.datetime(2022, 1, 10)
+
+    # This should raise an error
+    with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
+        dm.setup("invalid_stage")  # type: ignore[reportArgumentType]
 
     # Setup for fit stage
     dm.setup("fit")
@@ -87,12 +88,3 @@ def test_cams_datamodule(setup_cams_directories: Path):
     # Check names
     assert list(inputs.feature_names) == MODEL_NAMES
     assert list(targets.feature_names) == ["Analysis"]
-
-
-def test_cams_datamodule_invalid_stage():
-    """Test setup method with invalid stage."""
-    dm = CamsDataModule()
-
-    # This should raise an error
-    with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
-        dm.setup("invalid_stage")  # type: ignore[reportArgumentType]

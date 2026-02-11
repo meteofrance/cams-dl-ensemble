@@ -54,6 +54,9 @@ class CamsDataModule(LightningDataModule):
         }
 
         list_runs = sorted(list(data_dir.glob("input/*.netcdf")))
+        if len(list_runs) == 0:
+            raise FileNotFoundError(f"Cams dataset empty: {data_dir / 'input'}")
+
         print(f"{len(list_runs)} elements in whole dataset.")
         list_dates = [dt.datetime.strptime(path.stem, "%Y_%m_%d") for path in list_runs]
         self.val_end = list_dates[-1]

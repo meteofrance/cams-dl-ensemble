@@ -31,13 +31,13 @@ class CamsDataModule(LightningDataModule):
         """_summary_
 
         Args:
-            batch_size (int, optional): The batch size. Defaults to 2.
+            batch_size: The batch size. Defaults to 2.
             num_workers (int, optional): Num of processes to load data from disk.
                 Defaults to 1.
             prefetch_factor (int, optional): Num of batches loaded in advance by
                 each worker. Defaults to 2.
-            num_days_in_val_set (int, optional): Num of days of data included in the
-                validation set. Defaults to 12.
+            num_days_in_val_set: The number of days of data from the end of the dataset reserved for validation.
+                Defaults to 365 days.
             data_dir (Path, optional): Path to the Cams dataset.
         """
         self.batch_size = batch_size

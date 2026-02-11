@@ -38,7 +38,7 @@ class CamsDataModule(LightningDataModule):
                 each worker. Defaults to 2.
             num_days_in_val_set: The number of days of data from the end of the dataset reserved for validation.
                 Defaults to 365 days.
-            data_dir (Path, optional): Path to the Cams dataset.
+            data_dir: Path to the CAMS dataset.
         """
         self.batch_size = batch_size
         self.num_workers = num_workers

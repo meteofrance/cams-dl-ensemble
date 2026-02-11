@@ -22,14 +22,21 @@ class CamsDataset(Dataset):
         A sample point is a date and a forecast id, used to instantiate a Sample.
 
         Args:
-            start_date (dt.datetime): the first date of this dataset.
-            end_date (dt.datetime): the last date of this dataset.
-            data_dir (Path, optional): Path to the Cams dataset.
+            start_date: The first date of this dataset.
+            end_date: The last date of this dataset.
+            data_dir: Path to the CAMS dataset.
         """
-        list_runs = sorted(list(data_dir.glob("input/*.netcdf")))
-        list_dates = [dt.datetime.strptime(path.stem, "%Y_%m_%d") for path in list_runs]
-        list_dates = [date for date in list_dates if date >= start_date]
-        list_dates = [date for date in list_dates if date < end_date]
+        # Gather run dates
+        run_dates: list[dt.datetime] = [
+            dt.datetime.strptime(path.stem, "%Y_%m_%d")
+            for path in sorted(list(data_dir.glob("input/*.netcdf")))
+        ]
+        run_dates = [
+            date
+            for date in run_dates
+            if date >= start_date
+            if date < end_date
+        ]
         # For now, we only use the leadtime = 15h:
         list_samples = [Sample(date_run, 15, data_dir) for date_run in list_dates]
         self.samples = [sample for sample in list_samples if sample.is_valid]

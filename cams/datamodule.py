@@ -71,7 +71,7 @@ class CamsDataModule(LightningDataModule):
         """Called by lightning, at the start of a stage.
 
         Args:
-            stage: either 'fit', 'val', 'validate' or 'test'.
+            stage: Selects which dataset is loaded, either 'fit', 'val', 'validate' or 'test'.
         """
         if stage == "fit":
             self.train_dataset = (
@@ -109,7 +109,7 @@ class CamsDataModule(LightningDataModule):
         self,
         batch: list[tuple[NamedTensor, NamedTensor]],
     ) -> tuple[NamedTensor, NamedTensor]:
-        """Collate a batch of NamedTensor data."""
+        """Collates a batch of NamedTensor data."""
 
         inputs = NamedTensor.collate_fn([item[0] for item in batch])
         targets = NamedTensor.collate_fn([item[1] for item in batch])

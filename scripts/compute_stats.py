@@ -1,4 +1,4 @@
-"""Computes min/max of the different species (only O3 for now) on the Analysis data."""
+"""Computes min/max of the different species on the Analysis data."""
 
 import datetime as dt
 import json
@@ -21,7 +21,7 @@ def get_list_samples(data_dir: Path) -> list[Sample]:
 
 
 def compute_stats(samples: list[Sample]) -> dict:
-    """Computes min/max over the analysis data for the O3 species.
+    """Computes min/max over the reanalysis data.
 
     Args:
         samples (list[Sample]): A list of valid Samples

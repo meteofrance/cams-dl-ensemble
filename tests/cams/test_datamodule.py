@@ -9,7 +9,7 @@ from cams.settings import MODEL_NAMES
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
-def test_cams_datamodule(setup_cams_directories: Path):
+def test_CamsDatamodule(setup_cams_directories: Path):
     """Test CamsDataModule initialization."""
     # Create some dummy files to simulate a real dataset
     dates = [dt.datetime(2022, 1, i) for i in range(1, 11)]

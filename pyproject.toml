@@ -68,6 +68,14 @@ ignore-overlong-task-comments = true
 [tool.ruff.lint.flake8-unused-arguments]
 ignore-variadic-names = true
 
+[tool.coverage.run]
+source = ["cams/", "scripts/"]
+omit = ["cams/plots.py"]
+fail_under = 85
+
+[tool.coverage.report]
+show_missing = true
+
 
 [tool.pyright]
 # https://microsoft.github.io/pyright/#/configuration?id=sample-pyprojecttoml-file

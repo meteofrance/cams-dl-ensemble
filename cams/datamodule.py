@@ -120,7 +120,5 @@ class CamsDataModule(LightningDataModule):
 if __name__ == "__main__":
     dm = CamsDataModule()
     train_loader = dm.train_dataloader()
-    batch = next(iter(train_loader))
-    x, y = batch
-    print(x)
-    print(y)
+    x, y = next(iter(train_loader))
+    print(x, y)

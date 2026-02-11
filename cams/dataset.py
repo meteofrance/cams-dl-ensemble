@@ -45,8 +45,7 @@ class CamsDataset(Dataset):
 
 
 if __name__ == "__main__":
-    start_date = dt.datetime(2022, 1, 1)
-    end_date = dt.datetime(2022, 3, 19)
+    start_date, end_date = dt.datetime(2022, 1, 1), dt.datetime(2022, 3, 19)
     dataset = CamsDataset(start_date, end_date)
     print("Len dataset : ", len(dataset))
 
@@ -54,5 +53,4 @@ if __name__ == "__main__":
     print(sample)
 
     x, y = dataset[10]
-    print(x)
-    print(y)
+    print(x, y)

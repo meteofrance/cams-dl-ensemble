@@ -75,7 +75,5 @@ if __name__ == "__main__":
     sample = Sample(dt.datetime(2022, 7, 22), 15)
     print(sample)
     print("Sample is valid ? ->", sample.is_valid)
-    x = sample.input_data
-    print(x)
-    y = sample.target_data
-    print(y)
+    x, y = sample.input_data, sample.target_data
+    print(x, y)

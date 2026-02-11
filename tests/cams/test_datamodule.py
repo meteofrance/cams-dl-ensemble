@@ -95,4 +95,4 @@ def test_cams_datamodule_invalid_stage():
 
     # This should raise an error
     with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
-        dm.setup("invalid_stage")
+        dm.setup("invalid_stage")  # type: ignore[reportArgumentType]

@@ -33,8 +33,11 @@ pip install .
 
 
 ## Usage
+
+To plot a sample from the CAMS dataset:
+
 ```
-# TODO
+python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```
 
 ## Required data

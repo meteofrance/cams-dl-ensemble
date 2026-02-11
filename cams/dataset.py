@@ -9,8 +9,16 @@ from cams.sample import Sample
 from cams.settings import CAMS_DATASET_DIR
 
 
-class CamsDataset(Dataset):
-    """Cams dataset, see [dataset doc](docs/data.md) for complete description."""
+def get_run_dates(data_dir: Path) -> list[dt.datetime]:
+    """Retrieves the dates of all the runs available in a directory."""
+    return [
+        dt.datetime.strptime(path.stem, "%Y_%m_%d")
+        for path in sorted(list(data_dir.glob("input/*.netcdf")))
+    ]
+
+
+class CAMSDataset(Dataset):
+    """CAMS dataset, see [dataset doc](docs/data.md) for complete description."""
 
     def __init__(
         self,
@@ -27,18 +35,12 @@ class CamsDataset(Dataset):
             data_dir: Path to the CAMS dataset.
         """
         # Gather run dates
-        run_dates: list[dt.datetime] = [
-            dt.datetime.strptime(path.stem, "%Y_%m_%d")
-            for path in sorted(list(data_dir.glob("input/*.netcdf")))
-        ]
+        run_dates = get_run_dates(data_dir)
         run_dates = [
-            date
-            for date in run_dates
-            if date >= start_date
-            if date < end_date
+            date for date in run_dates if date >= start_date if date < end_date
         ]
         # For now, we only use the leadtime = 15h:
-        list_samples = [Sample(date_run, 15, data_dir) for date_run in list_dates]
+        list_samples = [Sample(date_run, 15, data_dir) for date_run in run_dates]
         self.samples = [sample for sample in list_samples if sample.is_valid]
 
     def __len__(self) -> int:
@@ -52,8 +54,10 @@ class CamsDataset(Dataset):
 
 
 if __name__ == "__main__":
+    # This is a simple example of how to instanciate and use a CAMSDataset
+
     start_date, end_date = dt.datetime(2022, 1, 1), dt.datetime(2022, 3, 19)
-    dataset = CamsDataset(start_date, end_date)
+    dataset = CAMSDataset(start_date, end_date)
     print("Len dataset : ", len(dataset))
 
     sample = dataset.samples[10]

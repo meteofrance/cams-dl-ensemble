@@ -4,13 +4,13 @@ from pathlib import Path
 import pytest
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.datamodule import CamsDataModule
+from cams.datamodule import CAMSDataModule
 from cams.settings import MODEL_NAMES
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
-def test_CamsDatamodule(setup_cams_directories: Path):
-    """Test CamsDataModule initialization."""
+def test_CAMSDatamodule(setup_cams_directories: Path):
+    """Test CAMSDataModule initialization."""
     # Create some dummy files to simulate a real dataset
     dates = [dt.datetime(2022, 1, i) for i in range(1, 11)]
 
@@ -24,7 +24,7 @@ def test_CamsDatamodule(setup_cams_directories: Path):
         create_dummy_input_netcdf(input_path)
         create_dummy_target_netcdf(target_path)
 
-    dm = CamsDataModule(
+    dm = CAMSDataModule(
         batch_size=4, num_days_in_val_set=2, data_dir=setup_cams_directories
     )
 

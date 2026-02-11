@@ -1,4 +1,3 @@
-import datetime as dt
 import json
 from pathlib import Path
 
@@ -55,7 +54,7 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     # Create the different subfigures
     scale = 2.5
     subplot_kw = {"projection": PlateCarree()}
-    fig, axs = plt.subplot_mosaic(  # type: ignore
+    fig, axs = plt.subplot_mosaic(
         mosaic=MOSAIC,  # type: ignore[reportArgumentType]
         layout="constrained",
         figsize=(8 * scale, 3.2 * scale),
@@ -91,9 +90,3 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     fig.suptitle(title, size=16)
 
     plt.savefig(save_path)
-
-
-if __name__ == "__main__":
-    date = dt.datetime(2024, 7, 30)
-    sample = Sample(date, 15)
-    plot_sample(sample, Path(f"{date.strftime('%Y-%m-%d_O3')}.png"))

@@ -70,7 +70,7 @@ ignore-variadic-names = true
 
 [tool.coverage.run]
 source = ["cams/", "scripts/"]
-omit = ["cams/plots.py"]
+omit = ["cams/plots.py", "scripts/plot_sample.py"]
 fail_under = 85
 
 [tool.coverage.report]

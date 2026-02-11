@@ -4,8 +4,8 @@ from mfai.pytorch.lightning_modules import SegmentationLightningModule
 from typing_extensions import override
 
 
-class CamsLightningModule(SegmentationLightningModule):
-    """Cams lightning module.
+class CAMSLightningModule(SegmentationLightningModule):
+    """CAMS lightning module.
     Responsibilities:
         - Training loop
         - Model test

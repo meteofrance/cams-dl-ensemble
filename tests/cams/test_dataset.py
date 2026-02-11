@@ -3,7 +3,7 @@ from pathlib import Path
 
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.dataset import CamsDataset
+from cams.dataset import CAMSDataset
 from cams.settings import MODEL_NAMES
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
@@ -23,7 +23,7 @@ def test_cams_dataset_creation(setup_cams_directories: Path):
 
     start_date = dt.datetime(2022, 1, 1)
     end_date = dt.datetime(2022, 1, 3)
-    dataset = CamsDataset(start_date, end_date, setup_cams_directories)
+    dataset = CAMSDataset(start_date, end_date, setup_cams_directories)
 
     assert len(dataset) == 2
     assert len(dataset.samples) == 2
@@ -52,7 +52,7 @@ def test_cams_dataset_no_valid_samples(setup_cams_directories: Path):
 
     start_date = dt.datetime(2022, 1, 3)
     end_date = dt.datetime(2022, 1, 4)
-    dataset = CamsDataset(start_date, end_date, setup_cams_directories)
+    dataset = CAMSDataset(start_date, end_date, setup_cams_directories)
 
     assert len(dataset) == 0
     assert len(dataset.samples) == 0
@@ -80,7 +80,7 @@ def test_cams_dataset_filtering_by_date(setup_cams_directories: Path):
 
     start_date = dt.datetime(2022, 1, 1)
     end_date = dt.datetime(2022, 3, 19)
-    dataset = CamsDataset(start_date, end_date, setup_cams_directories)
+    dataset = CAMSDataset(start_date, end_date, setup_cams_directories)
 
     # Only 2 dates should be included (2022-01-01 and 2022-01-02)
     assert len(dataset) == 2
@@ -97,7 +97,7 @@ def test_cams_dataset_empty_range(setup_cams_directories: Path):
 
     start_date = dt.datetime(2023, 1, 1)
     end_date = dt.datetime(2023, 12, 31)
-    dataset = CamsDataset(start_date, end_date, setup_cams_directories)
+    dataset = CAMSDataset(start_date, end_date, setup_cams_directories)
 
     assert len(dataset) == 0
     assert len(dataset.samples) == 0

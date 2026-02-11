@@ -10,9 +10,9 @@ from cams.settings import CAMS_DATASET_DIR
 
 
 class Sample:
-    """Cams sample.
+    """CAMS sample.
     Responsibilities:
-    - Load a datapoint from the Cams dataset from a given date and leadtime.
+    - Load a datapoint from the CAMS dataset from a given date and leadtime.
     """
 
     def __init__(
@@ -24,7 +24,7 @@ class Sample:
             lead_time: Which forecast lead time to load the sample from.
                 The lead times step is 3h, from the given date at 00h00 to +96h.
                 The accepted values for lead_time are [3, 6, 9, ..., 93, 96]
-            data_dir (Path, optional): Path to the Cams dataset.
+            data_dir: Path to the CAMS dataset.
         """
         self.date_run = date_run
         self.lead_time = lead_time
@@ -72,6 +72,8 @@ class Sample:
 
 
 if __name__ == "__main__":
+    # This is a simple example of how to instanciate and use a Sample
+
     sample = Sample(dt.datetime(2022, 7, 22), 15)
     print(sample)
     print("Sample is valid ? ->", sample.is_valid)

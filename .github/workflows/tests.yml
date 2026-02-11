@@ -23,8 +23,8 @@ jobs:
       uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
       with:
         files: |
-          *.py
-          **/*.py
+          cams/**/*.py
+          script/**/*.py
 
     - name: Lint with ruff
       if: steps.changed-py-files.outputs.any_changed == 'true'
@@ -70,7 +70,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install . pyright pytest pytest-cov --break-system-packages
-          
+
     - name: Install git  # necessary for the tj-action/changed-py-files
       run: apt-get update && apt-get install -y git
 

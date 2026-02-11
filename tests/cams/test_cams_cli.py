@@ -1,15 +1,15 @@
 import pytest
 
-from cams.cli import CamsCli
-from cams.datamodule import CamsDataModule
-from cams.plmodule import CamsLightningModule
+from cams.cli import CAMSCli
+from cams.datamodule import CAMSDataModule
+from cams.plmodule import CAMSLightningModule
 
 
-def test_CamsCli() -> None:
+def test_CAMSCli() -> None:
     with pytest.raises(Exception):
-        CamsCli(
-            model_class=CamsLightningModule,
-            datamodule_class=CamsDataModule,
+        CAMSCli(
+            model_class=CAMSLightningModule,
+            datamodule_class=CAMSDataModule,
             run=False,
             args=[],
         )

@@ -3,12 +3,13 @@ name = "cams-dl-ensemble"
 version = "v0.0.0"
 requires-python = "==3.12.*"
 dependencies = [
+  "cartopy>=0.25.0",
+  "netcdf4>=1.7.4",
+  "pyright>=1.1.405",
+  "tornado>=6.5.4",
+  "xarray>=2026.1.0",
   "torch==2.10.*",
   "mfai>=6.3.0",
-]
-
-[dependency-groups]
-dev = [
   "pyright[nodejs]",
   "ruff",
   "pytest",
@@ -66,6 +67,14 @@ ignore-overlong-task-comments = true
 
 [tool.ruff.lint.flake8-unused-arguments]
 ignore-variadic-names = true
+
+[tool.coverage.run]
+source = ["cams/", "scripts/"]
+omit = ["cams/plots.py", "scripts/plot_sample.py"]
+fail_under = 85
+
+[tool.coverage.report]
+show_missing = true
 
 
 [tool.pyright]

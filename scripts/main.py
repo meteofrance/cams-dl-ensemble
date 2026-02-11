@@ -7,11 +7,11 @@ for better checkpoint management.
 
 from lightning.pytorch.core import LightningDataModule
 
-from cams.datamodule import CamsDataModule
+from cams.datamodule import CAMSDataModule
 
 
 def cli_main(
-    datamodule: type[LightningDataModule] = CamsDataModule,
+    datamodule: type[LightningDataModule] = CAMSDataModule,
     args: list[str] = None,
 ) -> None:
     """Entry point into the cams lightnig cli."""

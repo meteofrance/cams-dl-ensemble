@@ -1,8 +1,8 @@
 import pytest
 
-from cams.plmodule import CamsLightningModule
+from cams.plmodule import CAMSLightningModule
 
 
-def test_CamsLightningModule() -> None:
+def test_CAMSLightningModule() -> None:
     with pytest.raises(NotImplementedError):
-        plmodule = CamsLightningModule()
+        plmodule = CAMSLightningModule()

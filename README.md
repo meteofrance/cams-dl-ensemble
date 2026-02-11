@@ -5,10 +5,9 @@ _Deep Learning Ensemble poluant prediction_
 ## Context
 This project's goal is to train a machine learning model to produce an ensemble prediction to replace the current CAMS median ensemble.
 
+![A training sample example: O3 concentration plot for the 11 models, median ensemble and VRA model runs of 30/07/2024 valid time 15h](doc/images/sample_2024-07-30_O3.png)
+
 ![Diagram of the model's input and target data](doc/images/model_io.svg)
-
-
-![O3 concentration plot for the 11 models, median ensemble and VRA model runs of 01/04/2023 valid time 15h](doc/images/2023_04_01_exemple.png)
 
 
 ## Installation instructions
@@ -22,7 +21,7 @@ uv sync
 > Using uv, the subsequent usage commands should be run with
 > `uv run <file.py>` instead of `python <file.py>`
 
-### Using pip  
+### Using pip
 Check that you are using a version of python >= 3.14.
 ```sh
 git clone https://github.com/meteofrance/cams-dl-ensemble.git
@@ -34,8 +33,11 @@ pip install .
 
 
 ## Usage
+
+To plot a sample from the CAMS dataset:
+
 ```
-# TODO
+python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```
 
 ## Required data

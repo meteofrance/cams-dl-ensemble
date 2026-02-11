@@ -2,7 +2,7 @@ from lightning.pytorch.cli import LightningArgumentParser, LightningCLI
 from typing_extensions import override
 
 
-class CamsCli(LightningCLI):
+class CAMSCli(LightningCLI):
     """Cli interface used to interact with the cams-dl-ensemble project."""
 
     @override

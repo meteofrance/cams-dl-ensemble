@@ -243,4 +243,4 @@ Processed data can be represented with the `plot.py` script:
 python scripts/plot_sample.py --date YYYYMMDDLT
 ```
 
-![O3 concentration plot for the 11 models, median ensemble and VRA model runs of 01/04/2023 valid time 15h](images/2023_04_01_exemple.png)
+![O3 concentration plot for the 11 models, median ensemble and VRA model runs of 01/04/2023 valid time 15h](images/sample_2024-07-30_O3.png)

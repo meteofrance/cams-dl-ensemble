@@ -203,7 +203,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         list(set(target_path.stem[:7] for target_path in target_file_paths))
     )
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     ax.bar(
         x=months,
         height=[len(list(target_dir.glob(f"{month}_*"))) for month in months],

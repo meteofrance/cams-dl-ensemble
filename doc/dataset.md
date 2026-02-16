@@ -33,7 +33,7 @@ following naming conventions:
 ```txt
 .
 └── raw
-    ├── reanalisis
+    ├── ensemble
     │   └── SPECIESID
     │       └── YYYY_MM_LVLm.netcdf
     ├── PMACCCHIMERE

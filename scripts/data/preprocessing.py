@@ -9,7 +9,6 @@ import pickle as pkl
 from pathlib import Path
 from warnings import warn
 
-import dayplot
 import earthkit.data as ekd
 import gribapi
 import joblib
@@ -88,17 +87,22 @@ def report_available_data(
     print(f"dates: {available_dates}")
 
     # Plot dates
-    plot_dates: list[dt.date] = sorted(
-        [dt.date(date.year, date.month, date.day) for date in available_dates]
-    )
-    plot_values: list[int] = [len(available_input_leadtimes)] * len(plot_dates)
-    _, ax = plt.subplots()
-    dayplot.calendar(
-        dates=plot_dates,
-        values=plot_values,
-        ax=ax,
+    months = sorted(
+        list(set(target_stem[:7] for target_stem in target_file_stems))
     )
 
+    _, ax = plt.subplots()
+    ax.bar(
+        x=months,
+        height=[len(available_levels)] * len(months),
+    )
+    ax.set_title(f"What raw data seems available for dataset {dataset_dir.stem}")
+    ax.set_ylabel("Number of leadtime available")
+    ax.tick_params("x", rotation=30)
+    plt.xticks(
+        [month for i, month in enumerate(months) if i % 4 == 0],
+        [month for i, month in enumerate(months) if i % 4 == 0],
+    )
     plt.savefig(plot_save_path)
 
 
@@ -199,7 +203,7 @@ def _process_input_date(
         output_dataset = xr.open_mfdataset(
             paths=list(raw_dir.glob(f"**/{run_date_string}*.grib")),
             preprocess=preprocess_input,
-            coords="minimal",
+            coords="minimal",  # type: ignore[reportArgumentType]
             compat="equals",
             join="outer",
         )

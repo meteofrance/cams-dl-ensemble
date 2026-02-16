@@ -17,12 +17,17 @@ import numpy as np
 import xarray as xr
 from tqdm import tqdm
 
-from camsdl.pmacc_settings import PMACC_MODEL_NAMES
-from camsdl.settings import (
+from cams.settings import (
     CAMS_DATASET_DIR,
     ECMWF_MF_PARAMETER_NAME_MAPPING,
     KILOGRAM_TO_MICROGRAM,
+    MODEL_NAMES,
 )
+
+PMACC_MODEL_NAMES = [
+    "PMACC" + model_name
+    for model_name in MODEL_NAMES
+]
 
 
 def report_available_data(
@@ -75,7 +80,9 @@ def report_available_data(
 
     # Gather available models
     available_models: set[str] = set(
-        path.stem for path in raw_dir.iterdir() if path.stem in PMACC_MODEL_NAMES
+        path.stem
+        for path in raw_dir.iterdir()
+        if path.stem in PMACC_MODEL_NAMES
     )
 
     # Print report

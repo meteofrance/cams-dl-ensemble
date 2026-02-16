@@ -9,7 +9,7 @@ from pyparsing import cast
 from tqdm import tqdm
 import numpy as np
 
-from camsdl.settings import CAMS_DATASET_DIR
+from cams.settings import CAMS_DATASET_DIR
 
 
 def validate(dataset_dir: Path, plot_save_path: Path) -> None:

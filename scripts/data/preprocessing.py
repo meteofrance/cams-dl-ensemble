@@ -8,6 +8,7 @@ import os
 import pickle as pkl
 from pathlib import Path
 from warnings import warn
+
 import dayplot
 import earthkit.data as ekd
 import gribapi
@@ -24,10 +25,7 @@ from cams.settings import (
     MODEL_NAMES,
 )
 
-PMACC_MODEL_NAMES = [
-    "PMACC" + model_name
-    for model_name in MODEL_NAMES
-]
+PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
 
 def report_available_data(
@@ -80,9 +78,7 @@ def report_available_data(
 
     # Gather available models
     available_models: set[str] = set(
-        path.stem
-        for path in raw_dir.iterdir()
-        if path.stem in PMACC_MODEL_NAMES
+        path.stem for path in raw_dir.iterdir() if path.stem in PMACC_MODEL_NAMES
     )
 
     # Print report
@@ -179,18 +175,16 @@ def _process_input_date(
         # Round latitude coordinates
         rounded_lat = np.round(dataset.latitude.values, decimals=2)
         rounded_lon = np.round(dataset.longitude.values, decimals=2)
-        if (
-            not np.allclose(dataset.latitude, rounded_lat)
-            or
-            not np.allclose(dataset.longitude, rounded_lon)
+        if not np.allclose(dataset.latitude, rounded_lat) or not np.allclose(
+            dataset.longitude, rounded_lon
         ):
             warn(
                 "Rounded longitude or latitude is not close to the "
                 f"original coordinate for {path}."
             )
         dataset = dataset.assign_coords(
-                latitude=np.round(dataset.coords["latitude"].values, decimals=2),
-                longitude=np.round(dataset.coords["longitude"].values, decimals=2),
+            latitude=np.round(dataset.coords["latitude"].values, decimals=2),
+            longitude=np.round(dataset.coords["longitude"].values, decimals=2),
         )
 
         # Convert from kg/m3 to micro gram per cubic meter
@@ -248,9 +242,7 @@ def _process_target_month(
 
     # Find the netcdf files for the given month
     file_paths: list[Path] = list(
-        raw_dir.glob(
-            f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf"
-        )
+        raw_dir.glob(f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf")
     )
     if file_paths == []:
         return
@@ -314,9 +306,7 @@ def _process_target_month(
     # Save a target file for each dates required
     for date in required_dates:
         # Check if output path exists
-        save_path = (
-            processed_dir / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
-        )
+        save_path = processed_dir / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
         if save_path.exists():
             continue
 
@@ -369,8 +359,7 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
 
     # Verify the input dir hierarchy
     if not all(
-        dir in list(PMACC_MODEL_NAMES) + ["ensemble"]
-        for dir in os.listdir(raw_dir)
+        dir in list(PMACC_MODEL_NAMES) + ["ensemble"] for dir in os.listdir(raw_dir)
     ):
         raise ValueError("The dir given to process has an unknown file structure.")
 
@@ -443,11 +432,14 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
     # ---------------------------------------------------------------------
 
     # Delete processed input files that do not have an associated target file
-    for input_path in tqdm(list((processed_dir / "input").glob("*.netcdf")),desc="Cleanup"):
+    for input_path in tqdm(
+        list((processed_dir / "input").glob("*.netcdf")), desc="Cleanup"
+    ):
         date = dt.datetime.strptime(input_path.stem, r"%Y_%m_%d")
         if not all(
             (
-                processed_dir / "target"
+                processed_dir
+                / "target"
                 / (date + dt.timedelta(hours=leadtime)).strftime(r"%Y_%m_%d_%H.netcdf")
             ).exists()
             for leadtime in leadtimes

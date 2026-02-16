@@ -16,7 +16,10 @@ class Sample:
     """
 
     def __init__(
-        self, date_run: dt.datetime, lead_time: int, processed_dir: Path = PROCESSED_DATA_DIR
+        self,
+        date_run: dt.datetime,
+        lead_time: int,
+        processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """
         Args:

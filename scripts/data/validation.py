@@ -2,12 +2,11 @@ import datetime as dt
 import math
 from pathlib import Path
 
-import dayplot
 import matplotlib.pyplot as plt
+import numpy as np
 import xarray as xr
 from pyparsing import cast
 from tqdm import tqdm
-import numpy as np
 
 from cams.settings import CAMS_DATASET_DIR
 
@@ -36,7 +35,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         ]
     ):
         raise FileNotFoundError(
-            "Dataset directory hierarchy not respected at dataset " f"path {dataset_dir}."
+            f"Dataset directory hierarchy not respected at dataset path {dataset_dir}."
         )
 
     input_dir: Path = dataset_dir / "processed" / "input"
@@ -85,9 +84,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
 
         # Check that the input and input sample coordinates match
         if not all(
-            (
-                input_dataarray.coords[coord] == input_sample.coords[coord]
-            ).all()
+            (input_dataarray.coords[coord] == input_sample.coords[coord]).all()
             for coord in (
                 "model",
                 "species",
@@ -121,7 +118,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
                 f"{input_sample_order_of_magnitude}."
             )
 
-    print(f"\nAll input files are similar to this one:\n" f"{input_sample}\n")
+    print(f"\nAll input files are similar to this one:\n{input_sample}\n")
 
     # ----------------------------------------------------------
     # Check all the necessary target files exist
@@ -202,33 +199,21 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
     # Display report
     # ----------------------------------------------------------
 
-    months = sorted(list(set(
-        target_path.stem[:7]
-        for target_path in target_file_paths
-    )))
+    months = sorted(
+        list(set(target_path.stem[:7] for target_path in target_file_paths))
+    )
 
     fig, ax = plt.subplots()
     ax.bar(
         x=months,
-        height=[
-            len(list(target_dir.glob(f"{month}_*")))
-            for month in months
-        ],
+        height=[len(list(target_dir.glob(f"{month}_*"))) for month in months],
     )
     ax.set_title(f"Validation calendar for dataset {dataset_dir.stem}")
     ax.set_ylabel("Number of leadtime available")
     ax.tick_params("x", rotation=30)
     plt.xticks(
-        [
-            month
-            for i, month in enumerate(months)
-            if i % 4 == 0
-        ],
-        [
-            month
-            for i, month in enumerate(months)
-            if i % 4 == 0
-        ]
+        [month for i, month in enumerate(months) if i % 4 == 0],
+        [month for i, month in enumerate(months) if i % 4 == 0],
     )
     plt.savefig(plot_save_path)
 

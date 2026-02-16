@@ -6,14 +6,14 @@ from torch.utils.data import Dataset
 from typing_extensions import override
 
 from cams.sample import Sample
-from cams.settings import CAMS_DATASET_DIR
+from cams.settings import PROCESSED_DATA_DIR
 
 
-def get_run_dates(data_dir: Path) -> list[dt.datetime]:
+def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     """Retrieves the dates of all the runs available in a directory."""
     return [
         dt.datetime.strptime(path.stem, "%Y_%m_%d")
-        for path in sorted(list(data_dir.glob("input/*.netcdf")))
+        for path in sorted(list(processed_dir.glob("input/*.netcdf")))
     ]
 
 
@@ -24,7 +24,7 @@ class CAMSDataset(Dataset):
         self,
         start_date: dt.datetime,
         end_date: dt.datetime,
-        data_dir: Path = CAMS_DATASET_DIR,
+        processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """Loads the dataset's sample points for the given split.
         A sample point is a date and a forecast id, used to instantiate a Sample.
@@ -32,15 +32,15 @@ class CAMSDataset(Dataset):
         Args:
             start_date: The first date of this dataset.
             end_date: The last date of this dataset.
-            data_dir: Path to the CAMS dataset.
+            processed_dir: Path to the CAMS dataset's processed data.
         """
         # Gather run dates
-        run_dates = get_run_dates(data_dir)
+        run_dates = get_run_dates(processed_dir)
         run_dates = [
             date for date in run_dates if date >= start_date if date < end_date
         ]
         # For now, we only use the leadtime = 15h:
-        list_samples = [Sample(date_run, 15, data_dir) for date_run in run_dates]
+        list_samples = [Sample(date_run, 15, processed_dir) for date_run in run_dates]
         self.samples = [sample for sample in list_samples if sample.is_valid]
 
     def __len__(self) -> int:

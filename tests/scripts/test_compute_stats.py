@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
-from scripts.compute_stats import get_list_samples, compute_stats
+from scripts.data.compute_stats import get_list_samples, compute_stats
 
 def test_compute_stats(setup_cams_directories: Path):
     # Create dummy files

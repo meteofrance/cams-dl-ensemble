@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from typing_extensions import override
 
 from cams.dataset import CAMSDataset, get_run_dates
-from cams.settings import CAMS_DATASET_DIR
+from cams.settings import PROCESSED_DATA_DIR
 
 
 class CAMSDataModule(LightningDataModule):
@@ -26,7 +26,7 @@ class CAMSDataModule(LightningDataModule):
         num_workers: int = 1,
         prefetch_factor: int = 2,
         num_days_in_val_set: int = 365,
-        data_dir: Path = CAMS_DATASET_DIR,
+        processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """_summary_
 
@@ -37,12 +37,12 @@ class CAMSDataModule(LightningDataModule):
                 Defaults to 2.
             num_days_in_val_set: The number of days of data from the end of the dataset
                 reserved for validation. Defaults to 365 days.
-            data_dir: Path to the CAMS dataset.
+            processed_dir: Path to the CAMS dataset.
         """
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.prefetch_factor = prefetch_factor
-        self.data_dir = data_dir
+        self.processed_dir = processed_dir
 
         self.dataloader_kwargs = {
             "batch_size": self.batch_size,
@@ -52,9 +52,9 @@ class CAMSDataModule(LightningDataModule):
             "prefetch_factor": self.prefetch_factor,
         }
 
-        run_dates = get_run_dates(self.data_dir)
+        run_dates = get_run_dates(self.processed_dir)
         if len(run_dates) == 0:
-            raise FileNotFoundError(f"CAMS dataset empty: {data_dir / 'input'}")
+            raise FileNotFoundError(f"CAMS dataset empty: {processed_dir / 'input'}")
         print(f"{len(run_dates)} runs available in whole dataset.")
 
         # The val dataset spans 'num_days_in_val_set' days a the end of the period
@@ -79,13 +79,13 @@ class CAMSDataModule(LightningDataModule):
         """
         if stage == "fit":
             self.train_dataset = (
-                CAMSDataset(self.train_start, self.train_end, self.data_dir)
+                CAMSDataset(self.train_start, self.train_end, self.processed_dir)
                 if self.train_dataset is None
                 else self.train_dataset
             )
         if stage in ["fit", "val", "validate"]:
             self.val_dataset = (
-                CAMSDataset(self.val_start, self.val_end, self.data_dir)
+                CAMSDataset(self.val_start, self.val_end, self.processed_dir)
                 if self.val_dataset is None
                 else self.val_dataset
             )

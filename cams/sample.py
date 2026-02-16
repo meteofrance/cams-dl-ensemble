@@ -27,7 +27,7 @@ class Sample:
             lead_time: Which forecast lead time to load the sample from.
                 The lead times step is 3h, from the given date at 00h00 to +96h.
                 The accepted values for lead_time are [3, 6, 9, ..., 93, 96]
-            processed_dir: Path to the CAMS dataset.
+            processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run
         self.lead_time = lead_time

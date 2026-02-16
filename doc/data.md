@@ -30,7 +30,7 @@ Description of the dataset's content, its content, format and naming conventions
 | SO4_DRY_USI    |                               | Sulfate secondary aerosol in PM2.5                    |
 
 > ⚠️ `NO3_DRY_USI`, `NH4_DRY_USI` and `SO4_DRY_USI` data exist in Météo France's
-> database for the 11 CTM models, but no reanalisis for it exist yet.
+> database for the 11 CTM models, but no reanalysis for it exists yet.
 
 ## Levels
 

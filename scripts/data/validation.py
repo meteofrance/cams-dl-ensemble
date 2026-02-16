@@ -129,7 +129,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         int(leadtime) for leadtime in input_sample.coords["leadtime"].values
     ]
 
-    # Check that a target file exist for every lead time of every input file
+    # Check that a target file exists for every lead time of every input file
     for input_path in tqdm(input_file_paths[:1], desc="File existence check"):
         date = dt.datetime.strptime(input_path.stem, r"%Y_%m_%d")
         if not all(

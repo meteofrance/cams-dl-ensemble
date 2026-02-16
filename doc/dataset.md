@@ -61,7 +61,7 @@ following naming conventions:
 ```
 
 Files in folders named with a CTM model name contain input data for 1 model
-run, 1 leadtime, 1 species and all levels. They are `.grib files that can be
+run, 1 leadtime, 1 species and all levels. They are `.grib` files that can be
 opened using python like so:
 ```py
 >>> import xarray as xr

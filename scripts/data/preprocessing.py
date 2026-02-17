@@ -1,6 +1,6 @@
 """Preprocessing script for a cams dataset.
 
-The script `camsdl/validation.py` should be executed after this one.
+The script `scripts/data/validation.py` should be executed after this one.
 """
 
 import datetime as dt
@@ -126,7 +126,7 @@ def _process_input_date(
         lon_coordinates: Longitude coordinates to normalize data to.
     """
 
-    # Check if the pocessed file exists
+    # Check if the processed file exists
     save_path = processed_dir / "input" / f"{run_date_string}.netcdf"
     if save_path.exists():
         return
@@ -228,13 +228,13 @@ def _process_target_month(
     processed_dir: Path,
     levels: list[str],
 ) -> None:
-    """Processes a raw input netcdf month.
-    Split the weather parameter files into one file for each hour of the month
+    """Processes some raw netcdf files of monthly target (reanalysis) data.
+    Split the reanalysis monthly files into one file for each hour of the month
     they contain.
 
     Args:
         required_dates: List of dates expected to be extracted
-            from one month of reanalisis.
+            from one month of reanalysis.
         raw_dir: Path to the dir containing the downloaded dataset.
         processed_dir: Path to the dir where the processed dataset
             will be written.

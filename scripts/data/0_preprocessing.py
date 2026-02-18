@@ -15,19 +15,19 @@ python scripts/data/0_preprocessing.py \
 The script `scripts/data/validation.py` should be executed after this one.
 """
 
-# import datetime as dt
-# import os
-# import pickle as pkl
+import datetime as dt
+import os
+import pickle as pkl
 from pathlib import Path
-# from warnings import warn
+from warnings import warn
 
-# import earthkit.data as ekd
-# import gribapi
-# import joblib
-# import matplotlib.pyplot as plt
-# import numpy as np
-# import xarray as xr
-# from tqdm import tqdm
+import earthkit.data as ekd
+import gribapi
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import xarray as xr
+from tqdm import tqdm
 
 from cams.settings import (
     CAMS_DATASET_DIR,
@@ -99,9 +99,7 @@ def report_available_data(
     print(f"dates: {available_dates}")
 
     # Plot dates
-    months = sorted(
-        list(set(target_stem[:7] for target_stem in target_file_stems))
-    )
+    months = sorted(list(set(target_stem[:7] for target_stem in target_file_stems)))
 
     _, ax = plt.subplots()
     ax.bar(
@@ -490,10 +488,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--overwrite",
         action="store_true",
-        help=(
-            "If given, will delete the processed data folder before "
-            "writing to it."
-        ),
+        help=("If given, will delete the processed data folder before writing to it."),
     )
     parser.add_argument(
         "--plot_output",

@@ -9,7 +9,7 @@ CAMS_DATASET_DIR: Path = (
     else Path(dataset_dir_from_env)
 )
 
-# Define paths to the cams dataset directory content
+# Define paths to the CAMS dataset directory content
 RAW_DATA_DIR: Path = CAMS_DATASET_DIR / "raw"
 PROCESSED_DATA_DIR: Path = CAMS_DATASET_DIR / "processed"
 LOGS_DIR: Path = CAMS_DATASET_DIR / "logs"

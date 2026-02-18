@@ -1,4 +1,4 @@
-"""Preprocessing script for a cams dataset.
+"""Preprocessing script for a CAMS dataset.
 
 Usage:
 ```bash
@@ -355,7 +355,7 @@ def _process_target_month(
 
 
 def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> None:
-    """Prepares a cams dataset for use in training.
+    """Prepares a CAMS dataset for use in training.
 
     Args:
         dataset_dir: Path to the dataset dir.

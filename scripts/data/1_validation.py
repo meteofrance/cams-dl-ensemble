@@ -1,4 +1,4 @@
-"""Scripts that validates a cams dataset. Checks:
+"""Scripts that validates a CAMS dataset. Checks:
 - The dataset directory hierarchy.
 - Coordinates.
 - Units.
@@ -28,7 +28,7 @@ from cams.settings import CAMS_DATASET_DIR
 
 
 def validate(dataset_dir: Path, plot_save_path: Path) -> None:
-    """Validates a cams dataset.
+    """Validates a CAMS dataset.
 
     Args:
         dataset_dir: Path to the dir containing the unprocessed downloaded files.

@@ -1,21 +1,33 @@
 """Preprocessing script for a cams dataset.
 
+Usage:
+```bash
+python scripts/data/0_preprocessing.py \
+    --dataset-dir  # Path to the dataset dir. Defaults to value in settings.py
+    -n --nb-jobs   # Number of parallel processes used. Defaults to 15.
+                     Choose one to be able to catch error effectively.
+    --overwrite    # If given, will delete the processed data folder before
+                     writing to it.
+    --plot_output  # Where the date availability plot will be saved.
+                     Defaults to `./availability_calendar.png`
+```
+
 The script `scripts/data/validation.py` should be executed after this one.
 """
 
-import datetime as dt
-import os
-import pickle as pkl
+# import datetime as dt
+# import os
+# import pickle as pkl
 from pathlib import Path
-from warnings import warn
+# from warnings import warn
 
-import earthkit.data as ekd
-import gribapi
-import joblib
-import matplotlib.pyplot as plt
-import numpy as np
-import xarray as xr
-from tqdm import tqdm
+# import earthkit.data as ekd
+# import gribapi
+# import joblib
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import xarray as xr
+# from tqdm import tqdm
 
 from cams.settings import (
     CAMS_DATASET_DIR,
@@ -456,18 +468,41 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description="Download PMACC models from the BDAP.",
+        description="Processes a CAMS dataset raw folder into processed folder.",
     )
     parser.add_argument(
         "--dataset-dir",
         "-i",
         type=Path,
         default=CAMS_DATASET_DIR,
+        help="Path to the dataset dir. Defaults to value in settings.py",
     )
-    parser.add_argument("--nb-jobs", "-j", type=int, default=15)
-    parser.add_argument("--overwrite", action="store_true")
     parser.add_argument(
-        "--plot_output", type=Path, default=Path("availability_calendar.png")
+        "--nb-jobs",
+        "-j",
+        type=int,
+        default=15,
+        help=(
+            "Number of parallel processes used. Defaults to 15. "
+            "Choose one to be able to catch error effectively."
+        ),
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help=(
+            "If given, will delete the processed data folder before "
+            "writing to it."
+        ),
+    )
+    parser.add_argument(
+        "--plot_output",
+        type=Path,
+        default=Path("availability_calendar.png"),
+        help=(
+            "Where the date availability plot will be saved. "
+            "Defaults to `./availability_calendar.png`"
+        ),
     )
     args = parser.parse_args()
 

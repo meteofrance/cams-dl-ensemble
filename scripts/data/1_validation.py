@@ -1,3 +1,19 @@
+"""Scripts that validates a cams dataset. Checks:
+- The dataset directory hierarchy.
+- Coordinates.
+- Units.
+- Every input has a target.
+
+Usage:
+```bash
+python scripts/data/1_validation.py \
+    -d --dataset_dir  # Path to the dataset dir. Default value in settings.py
+    -o --output       # Path where the validation plot is saved.
+```
+
+The script `scripts/data/2_compute_stats.py` should be executed after this one.
+"""
+
 import datetime as dt
 import math
 from pathlib import Path

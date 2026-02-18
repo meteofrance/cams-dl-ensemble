@@ -1,1 +1,1 @@
-"""Main cams project module."""
+"""Main CAMS project module."""

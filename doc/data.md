@@ -29,6 +29,8 @@ Description of the dataset's content, its content, format and naming conventions
 | NH4_DRY_USI    |                               | Ammonium secondary aerosol in PM2.5                   |
 | SO4_DRY_USI    |                               | Sulfate secondary aerosol in PM2.5                    |
 
+> ⚠️ `NO3_DRY_USI`, `NH4_DRY_USI` and `SO4_DRY_USI` data exist in Météo France's
+> database for the 11 CTM models, but no reanalysis for it exists yet.
 
 ## Levels
 
@@ -47,7 +49,8 @@ Description of the dataset's content, its content, format and naming conventions
 
 > ⚠️ The 11 european CTM model's level 0 (or SOL levels)  altitude are not unified.
 > Depending on the model, this first surface level can represent the state
-> of the atmosphere at altitude 0, 10 or 20 meters.
+> of the atmosphere at altitude 0, 10 or 20 meters. In this project all the
+> surface levels are considered to be at altitude 0 meter.
 
 ## Lead times
 The 11 European CTM models are executed each night at midnight, producing forecasts that cover the next 96 hours. For this project we will use three specific terms to describe the timing of those forecasts:

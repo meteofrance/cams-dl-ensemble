@@ -6,7 +6,7 @@ import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
-from cams.settings import CAMS_DATASET_DIR
+from cams.settings import PROCESSED_DATA_DIR
 
 
 class Sample:
@@ -16,7 +16,10 @@ class Sample:
     """
 
     def __init__(
-        self, date_run: dt.datetime, lead_time: int, data_dir: Path = CAMS_DATASET_DIR
+        self,
+        date_run: dt.datetime,
+        lead_time: int,
+        processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """
         Args:
@@ -24,12 +27,12 @@ class Sample:
             lead_time: Which forecast lead time to load the sample from.
                 The lead times step is 3h, from the given date at 00h00 to +96h.
                 The accepted values for lead_time are [3, 6, 9, ..., 93, 96]
-            data_dir: Path to the CAMS dataset.
+            processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run
         self.lead_time = lead_time
         self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
-        self.data_dir = data_dir
+        self.processed_dir = processed_dir
 
     @override
     def __str__(self) -> str:
@@ -40,13 +43,13 @@ class Sample:
     def input_path(self) -> Path:
         """The path to the netcdf of input ensemble data."""
         date_run_str = self.date_run.strftime("%Y_%m_%d")
-        return self.data_dir / f"input/{date_run_str}.netcdf"
+        return self.processed_dir / f"input/{date_run_str}.netcdf"
 
     @property
     def target_path(self) -> Path:
         """The path to the netcdf of target analysis data."""
         valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
-        return self.data_dir / f"target/{valid_time_str}.netcdf"
+        return self.processed_dir / f"target/{valid_time_str}.netcdf"
 
     @property
     def is_valid(self) -> bool:

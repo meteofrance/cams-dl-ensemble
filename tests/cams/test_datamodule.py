@@ -25,7 +25,7 @@ def test_CAMSDatamodule(setup_cams_directories: Path):
         create_dummy_target_netcdf(target_path)
 
     dm = CAMSDataModule(
-        batch_size=4, num_days_in_val_set=2, data_dir=setup_cams_directories
+        batch_size=4, num_days_in_val_set=2, processed_dir=setup_cams_directories
     )
 
     # Check default values

@@ -9,13 +9,13 @@ from tqdm import tqdm
 
 from cams.dataset import get_run_dates
 from cams.sample import Sample
-from cams.settings import CAMS_DATASET_DIR, STATS_PATH
+from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
 
 
-def get_list_samples(data_dir: Path) -> list[Sample]:
+def get_list_samples(processed_dir: Path) -> list[Sample]:
     """Returns the list of valid samples available in data_dir."""
-    run_dates = get_run_dates(data_dir)
-    samples = [Sample(date, 15, data_dir) for date in run_dates]
+    run_dates = get_run_dates(processed_dir)
+    samples = [Sample(date, 15, processed_dir) for date in run_dates]
     samples = [sample for sample in samples if sample.is_valid]
     return samples
 
@@ -40,7 +40,7 @@ def compute_stats(samples: list[Sample]) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    samples = get_list_samples(CAMS_DATASET_DIR)
+    samples = get_list_samples(PROCESSED_DATA_DIR)
     stats = compute_stats(samples)
 
     # Save stats as json

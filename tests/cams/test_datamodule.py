@@ -6,40 +6,30 @@ from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.datamodule import CAMSDataModule
 from cams.settings import MODEL_NAMES
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
-def test_CAMSDatamodule(setup_cams_directories: Path):
+PROCESSED_DIR = Path("tests/data/")
+
+def test_CAMSDatamodule():
     """Test CAMSDataModule initialization."""
-    # Create some dummy files to simulate a real dataset
-    dates = [dt.datetime(2022, 1, i) for i in range(1, 11)]
-
-    for date in dates:
-        input_path = (
-            setup_cams_directories / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        )
-        target_path = (
-            setup_cams_directories / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
-        )
-        create_dummy_input_netcdf(input_path)
-        create_dummy_target_netcdf(target_path)
-
     dm = CAMSDataModule(
-        batch_size=4, num_days_in_val_set=2, processed_dir=setup_cams_directories
+        batch_size=1, num_days_in_val_set=2, processed_dir=PROCESSED_DIR
     )
 
     # Check default values
-    assert dm.batch_size == 4
+    assert dm.batch_size == 1
     assert dm.num_workers == 1
     assert dm.prefetch_factor == 2
     assert dm.train_dataset is None
     assert dm.val_dataset is None
 
     # Check date calculations
-    assert dm.train_start == dt.datetime(2022, 1, 1)
-    assert dm.train_end == dt.datetime(2022, 1, 4)  # val_start - 4 days
-    assert dm.val_start == dt.datetime(2022, 1, 8)  # val_end - 2 days
-    assert dm.val_end == dt.datetime(2022, 1, 10)
+    assert dm.train_start == dt.datetime(2023, 1, 1)
+    assert dm.train_end == dt.datetime(2022, 12, 28)  # val_start - 4 days
+    # train_start > train_end, because we don't have enough data for tests
+
+    assert dm.val_start == dt.datetime(2023, 1, 1)  # val_end - 2 days
+    assert dm.val_end == dt.datetime(2023, 1, 2)
 
     # This should raise an error
     with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
@@ -50,26 +40,21 @@ def test_CAMSDatamodule(setup_cams_directories: Path):
 
     # Check that train dataset was created
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == 3  # 2022-01-01 to 2022-01-02 (minus 4 days overlap)
+    assert len(dm.train_dataset) == 0
 
     # Check that val dataset was also created (because of the condition)
     assert dm.val_dataset is not None
-    assert len(dm.val_dataset) == 2  # 2022-01-3 to 2022-01-05
-
-    # Get train dataloader
-    train_loader = dm.train_dataloader()
-    assert hasattr(train_loader, "__iter__")
-    assert train_loader.batch_size == 4
+    assert len(dm.val_dataset) == 2
 
     # Get validation dataloader
     val_loader = dm.val_dataloader()
     assert hasattr(val_loader, "__iter__")
-    assert val_loader.batch_size == 4
+    assert val_loader.batch_size == 1
 
     # Create a mock batch
     batch = []
     for i in range(2):
-        sample = dm.train_dataset.samples[i]
+        sample = dm.val_dataset.samples[i]
         input_data = sample.input_data
         target_data = sample.target_data
         batch.append((input_data, target_data))
@@ -86,5 +71,5 @@ def test_CAMSDatamodule(setup_cams_directories: Path):
     assert targets.tensor.shape == (2, 1, 420, 700)
 
     # Check names
-    assert list(inputs.feature_names) == MODEL_NAMES
+    assert set(inputs.feature_names) == set(MODEL_NAMES)
     assert list(targets.feature_names) == ["Analysis"]

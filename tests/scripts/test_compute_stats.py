@@ -1,24 +1,15 @@
 from pathlib import Path
 
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 from scripts.data.compute_stats import get_list_samples, compute_stats
 
-def test_compute_stats(setup_cams_directories: Path):
-    # Create dummy files
-    input_path1 = setup_cams_directories / "input/2022_01_01.netcdf"
-    input_path2 = setup_cams_directories / "input/2022_01_02.netcdf"
-    target_path1 = setup_cams_directories / "target/2022_01_01_15.netcdf"
-    target_path2 = setup_cams_directories / "target/2022_01_02_15.netcdf"
+PROCESSED_DIR = Path("tests/data/")
 
-    create_dummy_input_netcdf(input_path1)
-    create_dummy_input_netcdf(input_path2)
-    create_dummy_target_netcdf(target_path1)
-    create_dummy_target_netcdf(target_path2)
+def test_compute_stats():
 
-    samples = get_list_samples(setup_cams_directories)
+    samples = get_list_samples(PROCESSED_DIR)
 
     assert len(samples) == 2
 
     stats = compute_stats(samples)
 
-    assert stats == {"O3": {"min": 0, "max":0}}
+    assert stats == {"O3": {"min": 0.07472377270460129, "max": 99.25}}

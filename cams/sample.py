@@ -59,8 +59,8 @@ class Sample:
     @property
     def input_data(self) -> NamedTensor:
         """Returns the input ensemble data as a NamedTensor."""
-        data = xr.open_dataset(self.input_path)
-        tensor = torch.Tensor(data.O3.values)
+        data = xr.open_dataarray(self.input_path)
+        tensor = torch.Tensor(data.to_numpy())[:, 0, 0, 0]
         names = [name.replace("PMACC", "") for name in data.model.values]
         nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
         return nt
@@ -68,8 +68,8 @@ class Sample:
     @property
     def target_data(self) -> NamedTensor:
         """Returns the target analysis data as a NamedTensor."""
-        data = xr.open_dataset(self.target_path)
-        tensor = torch.Tensor(data.O3.values).unsqueeze(dim=0)
+        data = xr.open_dataarray(self.target_path)
+        tensor = torch.Tensor(data.to_numpy())[0, 0].unsqueeze(dim=0)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
         return nt
 
@@ -80,5 +80,6 @@ if __name__ == "__main__":
     sample = Sample(dt.datetime(2022, 7, 22), 15)
     print(sample)
     print("Sample is valid ? ->", sample.is_valid)
+    print(sample.input_path)
     x, y = sample.input_data, sample.target_data
     print(x, y)

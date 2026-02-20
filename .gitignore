@@ -215,3 +215,6 @@ matplotlibrc
 
 # Certificate files
 **/*.crt
+
+# Script output plots
+data/*.png

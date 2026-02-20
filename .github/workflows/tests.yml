@@ -69,7 +69,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install . pyright pytest pytest-cov --break-system-packages
+        pip install . --break-system-packages
 
     - name: Install git  # necessary for the tj-action/changed-py-files
       run: apt-get update && apt-get install -y git

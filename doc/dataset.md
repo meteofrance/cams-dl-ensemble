@@ -28,7 +28,7 @@ following naming conventions:
     spearated with `_` characters and zero padded on the left.
 - **`LT`** = leadtime, a zero paded number between 0 and 96.
 - **`LVL`** = level, one of 0, 50, 100, 250, 500, 750, 1000, 2000, 3000, 5000.
-- **`SPECIESID`** = a species BDAP id such as specified [here](dataset.md),
+- **`SPECIESID`** = a species BDAP id such as specified [here](data.md),
     without the suffix `_USI`.
 ```txt
 .

@@ -16,7 +16,7 @@ LOGS_DIR: Path = CAMS_DATASET_DIR / "logs"
 STATS_PATH = CAMS_DATASET_DIR / "species_stats.json"
 
 # Model names
-MODEL_NAMES = [
+MODEL_NAMES = set([
     "MATCH",
     "MINNI",
     "CHIMERE",
@@ -28,7 +28,7 @@ MODEL_NAMES = [
     "SILAM",
     "DEHM",
     "LOTOS",
-]
+])
 
 # Parameter name mapping
 ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {

@@ -24,7 +24,7 @@ import xarray as xr
 from pyparsing import cast
 from tqdm import tqdm
 
-from cams.settings import CAMS_DATASET_DIR
+from cams.settings import CAMS_DATASET_DIR, MODEL_NAMES
 
 
 def validate(dataset_dir: Path, plot_save_path: Path) -> None:
@@ -60,7 +60,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
     target_file_paths: list[Path] = list(target_dir.glob("*.netcdf"))
 
     # ---------------------------------------------------------
-    # Check all input files have the same coordinates and units
+    # Load a sample input file ant check its validity
     # ---------------------------------------------------------
 
     # Load sample input dataarray to compare to the others
@@ -77,7 +77,31 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
             "longitude, run_date]"
         )
 
-    for input_path in tqdm(input_file_paths[:1], desc="Coordinates and units"):
+    # Check that input sample has the right coordinates content
+    if not set(
+        str(model_name)
+        for model_name in input_sample.model.values
+    ) == MODEL_NAMES :
+        coords_model_names = set(
+            str(model_name)
+            for model_name in input_sample.model.values
+        )
+        missing_model_names = set(
+            model_name
+            for model_name in MODEL_NAMES
+            if model_name not in coords_model_names
+        )
+        raise ValueError(
+            "Not all models present in processed input model coordinates\n"
+            f"Present: {coords_model_names}\n"
+            f"Missing: {missing_model_names}"
+        )
+
+    # ---------------------------------------------------------
+    # Check input files are similar to input sample
+    # ---------------------------------------------------------
+
+    for input_path in tqdm(input_file_paths, desc="Coordinates and units"):
         input_dataarray = xr.open_dataarray(input_path)
 
         # Check that the input has the right coordinates
@@ -94,13 +118,13 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         ):
             raise ValueError(
                 f"Input has {list(input_sample.coords.keys())} "
-                "coordinates when [species, level, latitue, longitude, "
-                "valid_date] is expected."
+                "coordinates when [model, species, level, leadtime, "
+                "latitude, longitude, valid_date] is expected."
             )
 
         # Check that the input and input sample coordinates match
         if not all(
-            (input_dataarray.coords[coord] == input_sample.coords[coord]).all()
+            (input_dataarray.coords[coord] == input_sample.coords[coord]).all().item()
             for coord in (
                 "model",
                 "species",
@@ -112,6 +136,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         ):
             raise ValueError(
                 "Target file coordinates does not match input coordinates."
+                f"sample input:\n{input_sample}\nother input: {input_dataarray}"
             )
 
         # Check run_date coordinate
@@ -146,7 +171,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
     ]
 
     # Check that a target file exists for every lead time of every input file
-    for input_path in tqdm(input_file_paths[:1], desc="File existence check"):
+    for input_path in tqdm(input_file_paths, desc="File existence check"):
         date = dt.datetime.strptime(input_path.stem, r"%Y_%m_%d")
         if not all(
             (
@@ -163,7 +188,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
     # Check all target files have the same coordinates and units
     # ----------------------------------------------------------
 
-    for target_path in tqdm(target_file_paths[:1], desc="Target files check"):
+    for target_path in tqdm(target_file_paths, desc="Target files check"):
         target_dataarray = xr.load_dataarray(target_path)
 
         # Check that target has the right coordinates
@@ -249,7 +274,7 @@ if __name__ == "__main__":
         "-o",
         "--output",
         type=Path,
-        default=Path("./validation_calendar.png"),
+        default=Path("./data/validation_calendar.png"),
         help="Path where the validation plot is saved.",
     )
     args = parser.parse_args()

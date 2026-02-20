@@ -1,15 +1,17 @@
 """Script that opens sample data and opens pdb to allow you to inspect it.
-The sample data opened it one raw input, target, processed input and target
-files.
+The sample data opened is one random raw input, target, processed input and
+target files.
 """
 
-import earthkit.data as ekd
-from random import choice
 from pathlib import Path
+from random import choice
+
+import earthkit.data as ekd
 import xarray as xr
+
 from cams.settings import (
-    RAW_DATA_DIR,
     PROCESSED_DATA_DIR,
+    RAW_DATA_DIR,
 )
 
 # Build file paths
@@ -21,9 +23,7 @@ processed_target_path: Path = choice(list(PROCESSED_DATA_DIR.glob("target/*.netc
 # Open sample files
 raw_input = xr.open_dataarray(raw_input_path)
 raw_target: xr.DataArray = (
-    ekd.from_source("file", raw_target_path)
-    .to_xarray()
-    .to_dataarray()[0]
+    ekd.from_source("file", raw_target_path).to_xarray().to_dataarray()[0]
 )
 processed_input = xr.open_dataarray(processed_input_path)
 processed_target = xr.open_dataarray(processed_target_path)

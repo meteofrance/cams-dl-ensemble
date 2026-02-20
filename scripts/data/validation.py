@@ -78,13 +78,12 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         )
 
     # Check that input sample has the right coordinates content
-    if not set(
-        str(model_name)
-        for model_name in input_sample.model.values
-    ) == MODEL_NAMES :
+    if (
+        not set(str(model_name) for model_name in input_sample.model.values)
+        == MODEL_NAMES
+    ):
         coords_model_names = set(
-            str(model_name)
-            for model_name in input_sample.model.values
+            str(model_name) for model_name in input_sample.model.values
         )
         missing_model_names = set(
             model_name

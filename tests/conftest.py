@@ -34,9 +34,10 @@ def create_dummy_input_netcdf(path: Path):
     lats = np.linspace(71.95, 30.05, data_shape[-2])
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)
-    ds = xr.DataArray(
-        data=data,
-        dims=["model", "species", "level", "leadtime", "latitude", "longitude"],
+    ds = xr.Dataset(
+        {
+            "data": (["model", "species", "level", "leadtime", "latitude", "longitude"], data)
+        },
         coords={
             "model": MODEL_NAMES,
             "species": ["O3"],
@@ -64,9 +65,10 @@ def create_dummy_target_netcdf(path: Path):
     lats = np.linspace(71.95, 30.05, data_shape[-2])
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)
-    ds = xr.DataArray(
-        data=data,
-        dims=["species", "level", "latitude", "longitude"],
+    ds = xr.Dataset(
+        {
+            "data": (["species", "level", "latitude", "longitude"], data)
+        },
         coords={
             "species": ["O3"],
             "level": [0],

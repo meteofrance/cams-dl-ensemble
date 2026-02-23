@@ -37,7 +37,7 @@ class CAMSDataset(Dataset):
         # Gather run dates
         run_dates = get_run_dates(processed_dir)
         run_dates = [
-            date for date in run_dates if date >= start_date if date < end_date
+            date for date in run_dates if date >= start_date if date <= end_date
         ]
         # For now, we only use the leadtime = 15h:
         list_samples = [Sample(date_run, 15, processed_dir) for date_run in run_dates]

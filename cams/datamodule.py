@@ -59,7 +59,7 @@ class CAMSDataModule(LightningDataModule):
 
         # The val dataset spans 'num_days_in_val_set' days a the end of the period
         self.val_end = run_dates[-1]
-        self.val_start = self.val_end - dt.timedelta(days=num_days_in_val_set)
+        self.val_start = self.val_end - dt.timedelta(days=num_days_in_val_set - 1)
 
         # The train dataset spans the rest of the period, starting at the begining
         self.train_start = run_dates[0]

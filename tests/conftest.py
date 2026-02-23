@@ -30,16 +30,18 @@ def setup_cams_directories(temp_dir: Path) -> Iterator[Path]:
 
 def create_dummy_input_netcdf(path: Path):
     """Create a dummy NetCDF file filled with zeros."""
-    data_shape = (len(MODEL_NAMES), 420, 700)
-    lats = np.linspace(71.95, 30.05, data_shape[1])
-    lons = np.linspace(-24.95, 44.95, data_shape[2])
+    data_shape = (len(MODEL_NAMES), 1, 1, 1, 420, 700)
+    lats = np.linspace(71.95, 30.05, data_shape[-2])
+    lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)
-    ds = xr.Dataset(
-        {
-            "O3": (["model", "latitude", "longitude"], data),
-        },
+    ds = xr.DataArray(
+        data=data,
+        dims=["model", "species", "level", "leadtime", "latitude", "longitude"],
         coords={
             "model": MODEL_NAMES,
+            "species": ["O3"],
+            "level": [0],
+            "leadtime": [15],
             "latitude": lats,
             "longitude": lons,
         },
@@ -58,15 +60,16 @@ def create_dummy_input_netcdf(path: Path):
 
 def create_dummy_target_netcdf(path: Path):
     """Create a dummy NetCDF file filled with zeros."""
-    data_shape = (420, 700)
-    lats = np.linspace(71.95, 30.05, data_shape[0])
-    lons = np.linspace(-24.95, 44.95, data_shape[1])
+    data_shape = (1, 1, 420, 700)
+    lats = np.linspace(71.95, 30.05, data_shape[-2])
+    lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)
-    ds = xr.Dataset(
-        {
-            "O3": (["latitude", "longitude"], data),
-        },
+    ds = xr.DataArray(
+        data=data,
+        dims=["species", "level", "latitude", "longitude"],
         coords={
+            "species": ["O3"],
+            "level": [0],
             "latitude": lats,
             "longitude": lons,
         },

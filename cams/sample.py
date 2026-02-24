@@ -61,7 +61,7 @@ class Sample:
         """Returns the input ensemble data as a NamedTensor."""
         data = xr.open_dataarray(self.input_path)
         tensor = torch.Tensor(data.to_numpy())
-        # For now, we only work with the first species, level, and leadtime:
+        # For now, we work with all models, the first species, level, and leadtime:
         tensor = tensor[:, 0, 0, 0]
         names = [name.replace("PMACC", "") for name in data.model.values]
         nt = NamedTensor(tensor, ["features", "lat", "lon"], names)

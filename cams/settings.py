@@ -58,3 +58,7 @@ ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {
 
 # Physics constants
 KILOGRAM_TO_MICROGRAM = 10**9
+
+# Size of the working grid
+SIZE_LAT = 420
+SIZE_LON = 700

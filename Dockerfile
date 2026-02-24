@@ -1,5 +1,5 @@
-# Use a python image with python 3.12 and pytorch 2.10 pre-installed
-FROM pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel
+# Use a python image with python 3.11 and pytorch 2.6 pre-installed
+FROM pytorch/pytorch:2.6.0-cuda11.8-cudnn9-devel
 
 # Météo France certificates
 ARG INJECT_MF_CERT
@@ -9,18 +9,18 @@ ARG REQUESTS_CA_BUNDLE
 ARG CURL_CA_BUNDLE
 
 # Define apt-get
-ENV MY_APT='apt -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecureRepositories=true" -o "Acquire::AllowDowngradeToInsecureRepositories=true" -o "Acquire::https::Verify-Host=false" --no-install-recommends'
+ENV MY_APT='apt -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecureRepositories=true" -o "Acquire::AllowDowngradeToInsecureRepositories=true" -o "Acquire::https::Verify-Host=false"'
 
 # Install the necessary libraries to use the image as a ssh server host
 RUN $MY_APT update \
-    && $MY_APT install -y git-lfs curl sudo git openssh-server\
-    && apt-get clean
+    && $MY_APT install -y curl gcc g++ nano sudo libgeos-dev libeccodes-dev libeccodes-tools git vim libtiff5 openssh-server
+ENV TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1
 
 # Setup code server
 RUN mkdir -p /run/sshd
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
-# Build time variables 
+# Build time variables
 ARG USERNAME
 ARG GROUPNAME
 ARG USER_UID
@@ -41,6 +41,5 @@ RUN set -eux && groupadd --gid $USER_GUID $GROUPNAME \
 WORKDIR $HOME_DIR
 
 # Install project's python requirements
-COPY pyproject.toml pyproject.toml
-RUN python -m pip install --break-system-packages --upgrade pip wheel setuptools
-RUN MAX_JOBS=10 python -m pip -v install --break-system-packages .
+COPY requirements.txt /root/requirements.txt
+RUN pip install --upgrade pip && pip install -r /root/requirements.txt

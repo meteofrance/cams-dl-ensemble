@@ -54,7 +54,11 @@ class Sample:
     @property
     def is_valid(self) -> bool:
         """Returns True if the Sample is valid: if input and target files exist."""
-        return self.input_path.exists() and self.target_path.exists()
+        if not self.input_path.exists() or not self.target_path.exists():
+            return False
+        # TODO : remove this when data is fixed @oscar
+        data = xr.open_dataarray(self.input_path)
+        return len(data.model.values) == 11  # Need 11 models
 
     @property
     def input_data(self) -> NamedTensor:

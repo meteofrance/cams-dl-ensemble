@@ -5,17 +5,15 @@ for better checkpoint management.
 - Use `scripts/predict.py` to run inference from a checkpoint.
 """
 
-from lightning.pytorch.core import LightningDataModule
+from lightning.pytorch.cli import LightningCLI
 
 from cams.datamodule import CAMSDataModule
+from cams.plmodule import CAMSLightningModule
 
 
-def cli_main(
-    datamodule: type[LightningDataModule] = CAMSDataModule,
-    args: list[str] = None,
-) -> None:
+def cli_main() -> None:
     """Entry point into the cams lightnig cli."""
-    raise NotImplementedError()
+    LightningCLI(CAMSLightningModule, CAMSDataModule)
 
 
 if __name__ == "__main__":

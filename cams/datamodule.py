@@ -39,6 +39,7 @@ class CAMSDataModule(LightningDataModule):
                 reserved for validation. Defaults to 365 days.
             processed_dir: Path to the CAMS processed dataset.
         """
+        super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.prefetch_factor = prefetch_factor
@@ -70,6 +71,8 @@ class CAMSDataModule(LightningDataModule):
         print(f"Train dataset: from {self.train_start} to {self.train_end}")
         print(f"Val dataset: from {self.val_start} to {self.val_end}")
 
+        self.save_hyperparameters()
+
     @override
     def setup(self, stage: Literal["fit", "val", "validate"]) -> None:  # type: ignore[reportIncompatibleMethodOverride]
         """Called by lightning, at the start of a stage.
@@ -84,12 +87,14 @@ class CAMSDataModule(LightningDataModule):
                 if self.train_dataset is None
                 else self.train_dataset
             )
+            print("--> Train dataset length: ", len(self.train_dataset))
         if stage in ["fit", "val", "validate"]:
             self.val_dataset = (
                 CAMSDataset(self.val_start, self.val_end, self.processed_dir)
                 if self.val_dataset is None
                 else self.val_dataset
             )
+            print("--> Val dataset length: ", len(self.val_dataset))
         else:
             raise ValueError(
                 "BMRDatamodule.setup():\n\tparameter stage should be either 'fit', "

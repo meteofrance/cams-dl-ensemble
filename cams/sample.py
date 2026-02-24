@@ -60,7 +60,9 @@ class Sample:
     def input_data(self) -> NamedTensor:
         """Returns the input ensemble data as a NamedTensor."""
         data = xr.open_dataarray(self.input_path)
-        tensor = torch.Tensor(data.to_numpy())[:, 0, 0, 0]
+        tensor = torch.Tensor(data.to_numpy())
+        # For now, we only work with the first species, level, and leadtime:
+        tensor = tensor[:, 0, 0, 0]
         names = [name.replace("PMACC", "") for name in data.model.values]
         nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
         return nt
@@ -69,7 +71,9 @@ class Sample:
     def target_data(self) -> NamedTensor:
         """Returns the target analysis data as a NamedTensor."""
         data = xr.open_dataarray(self.target_path)
-        tensor = torch.Tensor(data.to_numpy())[0, 0].unsqueeze(dim=0)
+        tensor = torch.Tensor(data.to_numpy())
+        tensor = tensor[0, 0]  # For now, select the first species and level
+        tensor = tensor.unsqueeze(dim=0)  # Add feature dimension
         nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
         return nt
 

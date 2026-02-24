@@ -30,6 +30,7 @@ def setup_cams_directories(temp_dir: Path) -> Iterator[Path]:
 
 def create_dummy_input_netcdf(path: Path):
     """Create a dummy NetCDF file filled with zeros."""
+    # Data shape = (model, species, level, leadtime, latitude, longitude)
     data_shape = (len(MODEL_NAMES), 1, 1, 1, 420, 700)
     lats = np.linspace(71.95, 30.05, data_shape[-2])
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
@@ -61,7 +62,7 @@ def create_dummy_input_netcdf(path: Path):
 
 def create_dummy_target_netcdf(path: Path):
     """Create a dummy NetCDF file filled with zeros."""
-    data_shape = (1, 1, 420, 700)
+    data_shape = (1, 1, 420, 700)  # (species, level, latitude, longitude)
     lats = np.linspace(71.95, 30.05, data_shape[-2])
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)

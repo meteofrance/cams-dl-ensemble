@@ -1,0 +1,1 @@
+export RUNAI_EXTRA_MOUNTS="-v $HOME/.config/earthkit:$HOME/.config/earthkit"

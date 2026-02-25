@@ -41,5 +41,6 @@ RUN set -eux && groupadd --gid $USER_GUID $GROUPNAME \
 WORKDIR $HOME_DIR
 
 # Install project's python requirements
-COPY requirements.txt /root/requirements.txt
-RUN pip install --break-system-packages --upgrade pip && pip install --break-system-packages -r /root/requirements.txt
+COPY pyproject.toml pyproject.toml
+RUN python -m pip install --break-system-packages --upgrade pip wheel setuptools
+RUN MAX_JOBS=10 python -m pip -v install --break-system-packages .

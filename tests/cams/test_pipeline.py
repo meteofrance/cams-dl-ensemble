@@ -1,7 +1,7 @@
 
 
 from scripts.fit_and_val import fit_and_val
-from tests.cams import CAMSDataModuleTest
+from tests.conftest import CAMSDataModuleTest
 
 
 def test_full_pipeline() -> None:

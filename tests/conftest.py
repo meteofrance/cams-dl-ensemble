@@ -1,3 +1,4 @@
+import datetime as dt
 import shutil
 import tempfile
 from collections.abc import Iterator
@@ -5,8 +6,13 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import torch
 import xarray as xr
+from typing_extensions import override
 
+from cams.datamodule import CAMSDataModule
+from cams.dataset import CAMSDataset
+from cams.sample import NamedTensor, Sample
 from cams.settings import MODEL_NAMES, SIZE_LAT, SIZE_LON
 
 
@@ -37,7 +43,10 @@ def create_dummy_input_netcdf(path: Path):
     data = np.zeros(data_shape)
     ds = xr.Dataset(
         {
-            "data": (["model", "species", "level", "leadtime", "latitude", "longitude"], data)
+            "data": (
+                ["model", "species", "level", "leadtime", "latitude", "longitude"],
+                data,
+            )
         },
         coords={
             "model": MODEL_NAMES,
@@ -50,7 +59,7 @@ def create_dummy_input_netcdf(path: Path):
     )
     try:
         ds.to_netcdf(path)
-    except Exception as e:
+    except Exception:
         import io
 
         buffer = io.BytesIO()
@@ -67,9 +76,7 @@ def create_dummy_target_netcdf(path: Path):
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)
     ds = xr.Dataset(
-        {
-            "data": (["species", "level", "latitude", "longitude"], data)
-        },
+        {"data": (["species", "level", "latitude", "longitude"], data)},
         coords={
             "species": ["O3"],
             "level": [0],
@@ -79,7 +86,7 @@ def create_dummy_target_netcdf(path: Path):
     )
     try:
         ds.to_netcdf(path)
-    except Exception as e:
+    except Exception:
         # Si erreur, essaye avec un buffer temporaire
         import io
 
@@ -88,3 +95,58 @@ def create_dummy_target_netcdf(path: Path):
         buffer.seek(0)
         with open(path, "wb") as f:
             f.write(buffer.getvalue())
+
+
+class SampleTest(Sample):
+    @property
+    @override
+    def is_valid(self) -> bool:
+        """Always returns True, because we use fake data."""
+        return True
+
+    @property
+    @override
+    def input_data(self) -> NamedTensor:
+        """Returns fake input ensemble data as a NamedTensor."""
+        num_models = 11
+        tensor = torch.zeros((num_models, 128, 128))
+        names = [str(i) for i in range(num_models)]
+        nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
+        return nt
+
+    @property
+    @override
+    def target_data(self) -> NamedTensor:
+        """Returns fake target analysis data as a NamedTensor."""
+        tensor = torch.zeros((1, 128, 128))
+        nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
+        return nt
+
+
+class CAMSDatasetTest(CAMSDataset):
+    @property
+    @override
+    def run_dates(self) -> list[dt.datetime]:
+        """Returns a fake list of available run dates for CAMS models"""
+        run_dates = [dt.datetime(2000, 1, i) for i in range(1, 32)]
+        return run_dates
+
+    @override
+    def create_sample(
+        self, date_run: dt.datetime, lead_time: int, path: Path
+    ) -> Sample:
+        return SampleTest(date_run, lead_time, path)
+
+
+class CAMSDataModuleTest(CAMSDataModule):
+    @property
+    @override
+    def run_dates(self) -> list[dt.datetime]:
+        """Returns a fake list of available run dates for CAMS models"""
+        return [dt.datetime(2000, 1, i) for i in range(1, 32)]
+
+    @override
+    def create_dataset(
+        self, start: dt.datetime, end: dt.datetime, dir: Path
+    ) -> CAMSDataset:
+        return CAMSDatasetTest(start, end, dir)

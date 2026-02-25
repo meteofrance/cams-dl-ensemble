@@ -1,5 +1,5 @@
-# Use a python image with python 3.11 and pytorch 2.6 pre-installed
-FROM pytorch/pytorch:2.6.0-cuda11.8-cudnn9-devel
+# Use a python image with python 3.12 and pytorch 2.10 pre-installed
+FROM pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel
 
 # Météo France certificates
 ARG INJECT_MF_CERT
@@ -42,4 +42,4 @@ WORKDIR $HOME_DIR
 
 # Install project's python requirements
 COPY requirements.txt /root/requirements.txt
-RUN pip install --upgrade pip && pip install -r /root/requirements.txt
+RUN pip install --break-system-packages --upgrade pip && pip install --break-system-packages -r /root/requirements.txt

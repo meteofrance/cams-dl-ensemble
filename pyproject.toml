@@ -21,6 +21,9 @@ dependencies = [
   "pytest-cov",
 ]
 
+[tool.setuptools.packages.find]
+exclude = ["doc*", "configs*"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 88

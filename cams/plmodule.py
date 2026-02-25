@@ -93,7 +93,39 @@ class CAMSLightningModule(LightningModule):
         y_hat = NamedTensor(output, names=y.names, feature_names=["AI_Forecast"])
         return y_hat, loss
 
-    def _shared_plot_step(
+    
+
+    ####################################################################################
+    #                                      TRAIN STEPS                                 #
+    ####################################################################################
+    @override
+    def on_train_start(self) -> None:
+        """Print log directory at training start"""
+        if self.logger and self.logger.log_dir:
+            print(f"Logs will be saved in \033[96m{self.logger.log_dir}\033[0m")  # cyan
+
+    @override
+    def training_step(
+        self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
+    ) -> Any:
+        """Defines the training step"""
+        x, y = batch
+        _, loss = self._shared_forward_step(x, y)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+        return loss
+
+    ####################################################################################
+    #                                 VALIDATION STEPS                                 #
+    ####################################################################################
+
+    def val_plot_step(
         self,
         batch_idx: int,
         x: NamedTensor,
@@ -117,38 +149,11 @@ class CAMSLightningModule(LightningModule):
         # tb = self.logger.experiment  # type: ignore[reporteAttributeAccessIssue]
         # tb.add_figure(f"{mode}_plots/val_figure_{batch_idx}", fig, self.current_epoch)
 
-    ####################################################################################
-    #                                      TRAIN STEPS                                 #
-    ####################################################################################
-    @override
-    def on_train_start(self) -> None:
-        if self.logger and self.logger.log_dir:
-            print(f"Logs will be saved in \033[96m{self.logger.log_dir}\033[0m")  # cyan
-
-    @override
-    def training_step(
-        self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
-    ) -> Any:
-        x, y = batch
-        _, loss = self._shared_forward_step(x, y)
-        self.log(
-            "train_loss",
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-        return loss
-
-    ####################################################################################
-    #                                 VALIDATION STEPS                                 #
-    ####################################################################################
-
     @override
     def validation_step(
         self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
     ) -> Any:
+        """Defines the validation step"""
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
@@ -156,14 +161,16 @@ class CAMSLightningModule(LightningModule):
         # _, y = self.trainer.datamodule.val_dataset.undo_transforms(x, y)
         # x, y_hat = self.trainer.datamodule.val_dataset.undo_transforms(x, y_hat)
         self.metrics.update(y_hat.tensor, y.tensor)
-        self._shared_plot_step(batch_idx, x, y, y_hat, mode="val")
+        self.val_plot_step(batch_idx, x, y, y_hat, mode="val")
         return loss
 
     @override
     def on_validation_epoch_end(self) -> None:
+        """Computes and logs metrics at validation end"""
         if self.logger is None:
             return
-        self.log_dict(self.metrics, logger=True, sync_dist=True, on_epoch=True)
+        self.log_dict(self.metrics.compute(), logger=True, sync_dist=True, on_epoch=True)
+        self.metrics.reset()
 
 
 def load_model(last_ckpt: Path) -> CAMSLightningModule:

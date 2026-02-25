@@ -1,15 +1,11 @@
 lightning==2.5.1
 jsonargparse[signatures]==4.32.1
 cartopy==0.25.0
-matplotlib==3.10.8
 xarray==2025.3.1
 cfgrib==0.9.15.1
 netCDF4==1.7.2
-numpy==1.26.4
 joblib==1.4.0
 argparse-dataclass==2.0.0
-tqdm==4.67.1
-protobuf==6.33.5
 pytest==9.0.2
 mfai==6.3.0
 tornado==6.5.4

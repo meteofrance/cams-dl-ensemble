@@ -1,7 +1,8 @@
 from pathlib import Path
 
+from scripts.data.compute_stats import compute_stats, get_list_samples
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
-from scripts.data.compute_stats import get_list_samples, compute_stats
+
 
 def test_compute_stats(setup_cams_directories: Path):
     # Create dummy files
@@ -21,4 +22,4 @@ def test_compute_stats(setup_cams_directories: Path):
 
     stats = compute_stats(samples)
 
-    assert stats == {"O3": {"min": 0, "max":0}}
+    assert stats == {"O3": {"min": 0, "max": 0}}

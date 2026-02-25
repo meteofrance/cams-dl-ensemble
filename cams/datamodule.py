@@ -53,18 +53,13 @@ class CAMSDataModule(LightningDataModule):
             "prefetch_factor": self.prefetch_factor,
         }
 
-        run_dates = get_run_dates(self.processed_dir)
-        if len(run_dates) == 0:
-            raise FileNotFoundError(f"CAMS dataset empty: {processed_dir / 'input'}")
-        print(f"{len(run_dates)} runs available in whole dataset.")
-
         # The val dataset spans 'num_days_in_val_set' days a the end of the period
-        self.val_end = run_dates[-1]
+        self.val_end = self.run_dates[-1]
         # The last date is included, so the first date is `num_days - 1` days ago:
         self.val_start = self.val_end - dt.timedelta(days=num_days_in_val_set - 1)
 
         # The train dataset spans the rest of the period, starting at the begining
-        self.train_start = run_dates[0]
+        self.train_start = self.run_dates[0]
         # To avoid overlap in train/val sets, we remove the last 4 days from train set
         self.train_end = self.val_start - dt.timedelta(days=4)
 
@@ -72,6 +67,25 @@ class CAMSDataModule(LightningDataModule):
         print(f"Val dataset: from {self.val_start} to {self.val_end}")
 
         self.save_hyperparameters()
+
+    @property
+    def run_dates(self) -> list[dt.datetime]:
+        """Returns the list of available run dates for CAMS models"""
+        run_dates = get_run_dates(self.processed_dir)
+        if len(run_dates) == 0:
+            raise FileNotFoundError(
+                f"CAMS dataset empty: {self.processed_dir / 'input'}"
+            )
+        print(f"{len(run_dates)} runs available in whole dataset.")
+        return run_dates
+
+    def create_dataset(
+        self, start: dt.datetime, end: dt.datetime, dir: Path
+    ) -> CAMSDataset:
+        """Wrapper to create the dataset.
+        Overriden in unit tests, to change the class of the dataset.
+        """
+        return CAMSDataset(start, end, dir)
 
     @override
     def setup(self, stage: Literal["fit", "val", "validate"]) -> None:  # type: ignore[reportIncompatibleMethodOverride]
@@ -83,21 +97,23 @@ class CAMSDataModule(LightningDataModule):
         """
         if stage == "fit":
             self.train_dataset = (
-                CAMSDataset(self.train_start, self.train_end, self.processed_dir)
+                self.create_dataset(
+                    self.train_start, self.train_end, self.processed_dir
+                )
                 if self.train_dataset is None
                 else self.train_dataset
             )
             print("--> Train dataset length: ", len(self.train_dataset))
         if stage in ["fit", "val", "validate"]:
             self.val_dataset = (
-                CAMSDataset(self.val_start, self.val_end, self.processed_dir)
+                self.create_dataset(self.val_start, self.val_end, self.processed_dir)
                 if self.val_dataset is None
                 else self.val_dataset
             )
             print("--> Val dataset length: ", len(self.val_dataset))
         else:
             raise ValueError(
-                "BMRDatamodule.setup():\n\tparameter stage should be either 'fit', "
+                "CAMSDatamodule.setup():\n\tparameter stage should be either 'fit', "
                 + f"'val', 'validate', got '{stage}'."
             )
 

@@ -9,12 +9,12 @@ ARG REQUESTS_CA_BUNDLE
 ARG CURL_CA_BUNDLE
 
 # Define apt-get
-ENV MY_APT='apt -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecureRepositories=true" -o "Acquire::AllowDowngradeToInsecureRepositories=true" -o "Acquire::https::Verify-Host=false"'
+ENV MY_APT='apt -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowInsecureRepositories=true" -o "Acquire::AllowDowngradeToInsecureRepositories=true" -o "Acquire::https::Verify-Host=false" --no-install-recommends'
 
 # Install the necessary libraries to use the image as a ssh server host
 RUN $MY_APT update \
-    && $MY_APT install -y curl gcc g++ nano sudo libgeos-dev libeccodes-dev libeccodes-tools git vim libtiff5 openssh-server
-ENV TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1
+    && $MY_APT install -y git-lfs curl sudo git openssh-server\
+    && apt-get clean
 
 # Setup code server
 RUN mkdir -p /run/sshd

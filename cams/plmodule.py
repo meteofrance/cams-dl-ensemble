@@ -55,13 +55,6 @@ class CAMSLightningModule(LightningModule):
         }
         return tm.MetricCollection(metrics_dict)
 
-    def get_hparams(self) -> dict:
-        """Return the hparams we want to save in logger"""
-        hparams = dict(self.hparams)
-        hparams["loss"] = self.loss.__class__.__name__
-        hparams["model"] = self.model.__class__.__name__
-        return hparams
-
     @override
     def configure_optimizers(self) -> AdamW:
         """Lightning method to define optimizers and learning-rate schedulers"""

@@ -52,10 +52,6 @@ def fit_and_val(
         run=False,
     )
 
-    # Load model from checkpoint if one is given
-    if ckpt_path is not None:
-        cli.model = CAMSLightningModule.load_from_checkpoint(ckpt_path)
-
     # Train
     cli.datamodule.setup(stage="fit")
     cli.trainer.fit(cli.model, datamodule=cli.datamodule)

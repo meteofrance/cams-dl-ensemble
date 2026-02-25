@@ -4,8 +4,8 @@ trainer:
   logger: null
   callbacks: null
   max_epochs: 1
-  limit_train_batches: 1
-  limit_val_batches: 1
+  limit_train_batches: 2
+  limit_val_batches: 2
 
 model:
   learning_rate: 0.0001

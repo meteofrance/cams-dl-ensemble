@@ -10,11 +10,13 @@ from cams.sample import NamedTensor, Sample
 
 
 class SampleTest(Sample):
+    @override
     @property
     def is_valid(self) -> bool:
         """Always returns True, because we use fake data."""
         return True
 
+    @override
     @property
     def input_data(self) -> NamedTensor:
         """Returns fake input ensemble data as a NamedTensor."""
@@ -24,6 +26,7 @@ class SampleTest(Sample):
         nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
         return nt
 
+    @override
     @property
     def target_data(self) -> NamedTensor:
         """Returns fake target analysis data as a NamedTensor."""
@@ -35,7 +38,7 @@ class SampleTest(Sample):
 class CAMSDatasetTest(CAMSDataset):
     @override
     @property
-    def run_dates(self):
+    def run_dates(self) -> list[dt.datetime]:
         """Returns a fake list of available run dates for CAMS models"""
         run_dates = [dt.datetime(2000, 1, i) for i in range(1, 32)]
         return run_dates
@@ -50,7 +53,7 @@ class CAMSDatasetTest(CAMSDataset):
 class CAMSDataModuleTest(CAMSDataModule):
     @override
     @property
-    def run_dates(self):
+    def run_dates(self) -> list[dt.datetime]:
         """Returns a fake list of available run dates for CAMS models"""
         return [dt.datetime(2000, 1, i) for i in range(1, 32)]
 

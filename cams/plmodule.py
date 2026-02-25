@@ -19,19 +19,25 @@ class CAMSLightningModule(LightningModule):
         - Model eval
         - Logging
     """
+
     def __init__(
         self,
-        network: BaseModel,
+        model: BaseModel,
         loss: torch.nn.Module,
         learning_rate: float = 0.0001,
-        min_learning_rate: float = 0.0,
     ) -> None:
+        """CAMS lightning module
+
+        Args:
+            model: A model inheriting from mfai.BaseModel
+            loss: The loss function.
+            learning_rate: The optimizer's learning rate. Defaults to 0.0001.
+        """
         super().__init__()
-        self.model = network
+        self.model = model
         self.model = torch.compile(self.model)
         self.loss = loss
         self.learning_rate = learning_rate
-        self.min_learning_rate = min_learning_rate
 
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
@@ -77,8 +83,8 @@ class CAMSLightningModule(LightningModule):
         return y_hat
 
     def _shared_forward_step(
-            self, x: NamedTensor, y: NamedTensor
-        ) -> tuple[NamedTensor, Any]:
+        self, x: NamedTensor, y: NamedTensor
+    ) -> tuple[NamedTensor, Any]:
         """Computes forward pass and loss for a batch.
         Step shared by training, validation and test steps
         """
@@ -120,10 +126,19 @@ class CAMSLightningModule(LightningModule):
             print(f"Logs will be saved in \033[96m{self.logger.log_dir}\033[0m")  # cyan
 
     @override
-    def training_step(self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int) -> Any:
+    def training_step(
+        self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
+    ) -> Any:
         x, y = batch
         _, loss = self._shared_forward_step(x, y)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
         return loss
 
     ####################################################################################
@@ -132,8 +147,8 @@ class CAMSLightningModule(LightningModule):
 
     @override
     def validation_step(
-            self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
-        ) -> Any:
+        self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
+    ) -> Any:
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
@@ -149,6 +164,7 @@ class CAMSLightningModule(LightningModule):
         if self.logger is None:
             return
         self.log_dict(self.metrics, logger=True, sync_dist=True, on_epoch=True)
+
 
 def load_model(last_ckpt: Path) -> CAMSLightningModule:
     """Loads a trained model, ready for inference."""

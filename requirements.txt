@@ -1,5 +1,5 @@
 lightning==2.6.1
-jsonargparse[signatures]==4.39.0
+jsonargparse[signatures]==4.41.0
 cartopy==0.25.0
 xarray==2025.3.1
 cfgrib==0.9.15.1

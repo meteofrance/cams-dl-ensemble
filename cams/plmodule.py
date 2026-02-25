@@ -93,8 +93,6 @@ class CAMSLightningModule(LightningModule):
         y_hat = NamedTensor(output, names=y.names, feature_names=["AI_Forecast"])
         return y_hat, loss
 
-    
-
     ####################################################################################
     #                                      TRAIN STEPS                                 #
     ####################################################################################
@@ -146,7 +144,7 @@ class CAMSLightningModule(LightningModule):
         #     y_hat.select_dim("batch", 0),
         #     f"Sample {batch_idx}",
         # )
-        # tb = self.logger.experiment  # type: ignore[reporteAttributeAccessIssue]
+        # tb = self.logger.experiment
         # tb.add_figure(f"{mode}_plots/val_figure_{batch_idx}", fig, self.current_epoch)
 
     @override
@@ -169,7 +167,9 @@ class CAMSLightningModule(LightningModule):
         """Computes and logs metrics at validation end"""
         if self.logger is None:
             return
-        self.log_dict(self.metrics.compute(), logger=True, sync_dist=True, on_epoch=True)
+        self.log_dict(
+            self.metrics.compute(), logger=True, sync_dist=True, on_epoch=True
+        )
         self.metrics.reset()
 
 

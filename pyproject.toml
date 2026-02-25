@@ -7,7 +7,7 @@ dependencies = [
   "netcdf4==1.7.2",
   "pyright>=1.1.405",
   "tornado>=6.5.4",
-  "xarray==2025.3.1",
+  "xarray>=2026.1.0",
   "torch==2.10.*",
   "mfai>=6.3.0",
   "earthkit==0.13.2",

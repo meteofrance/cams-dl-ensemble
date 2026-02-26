@@ -40,6 +40,12 @@ To plot a sample from the CAMS dataset:
 python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```
 
+To use `skew` or `kurtosis` statistics in the `ReplaceEnsembleByStatisctics` transform, you should export:
+```bash
+export SCIPY_ARRAY_API=1
+```
+This enables array API from `scipy`. Please see https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for more details.
+
 ## Required data
 Before using this project to train a model, you will need to gather the necessary weather data. A full description of the data required is available in [doc/dataset.md](doc/dataset.md).
 

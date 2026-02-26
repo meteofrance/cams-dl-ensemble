@@ -130,7 +130,7 @@ class CAMSLightningModule(LightningModule):
         interesting_batches = [0, 6, 12, 42, 66]
         if batch_idx not in interesting_batches:
             return
-        pass # TODO
+        pass  # TODO
 
     @override
     def validation_step(

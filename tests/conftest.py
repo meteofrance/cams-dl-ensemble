@@ -1,4 +1,5 @@
 import datetime as dt
+from functools import cached_property
 import shutil
 import tempfile
 from collections.abc import Iterator
@@ -139,7 +140,7 @@ class CAMSDatasetTest(CAMSDataset):
 
 
 class CAMSDataModuleTest(CAMSDataModule):
-    @property
+    @cached_property
     @override
     def run_dates(self) -> list[dt.datetime]:
         """Returns a fake list of available run dates for CAMS models"""

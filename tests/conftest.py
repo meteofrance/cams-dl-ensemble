@@ -27,10 +27,10 @@ def tmp_dataset_dir(temp_dir: Path) -> Iterator[Path]:
     yield temp_dir
 
 
-def create_dummy_input_netcdf(path: Path):
+def create_dummy_input_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: int = SIZE_LON):
     """Create a dummy NetCDF file filled with zeros."""
     # Data shape = (model, species, level, leadtime, latitude, longitude)
-    data_shape = (len(MODEL_NAMES), 1, 1, 1, SIZE_LAT, SIZE_LON)
+    data_shape = (len(MODEL_NAMES), 1, 1, 1, size_lat, size_lon)
     lats = np.linspace(71.95, 30.05, data_shape[-2])
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)
@@ -62,9 +62,9 @@ def create_dummy_input_netcdf(path: Path):
             f.write(buffer.getvalue())
 
 
-def create_dummy_target_netcdf(path: Path):
+def create_dummy_target_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: int = SIZE_LON):
     """Create a dummy NetCDF file filled with zeros."""
-    data_shape = (1, 1, SIZE_LAT, SIZE_LON)  # (species, level, latitude, longitude)
+    data_shape = (1, 1, size_lat, size_lon)  # (species, level, latitude, longitude)
     lats = np.linspace(71.95, 30.05, data_shape[-2])
     lons = np.linspace(-24.95, 44.95, data_shape[-1])
     data = np.zeros(data_shape)

@@ -19,12 +19,13 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
     """
 
     # Create fake dataset
+    img_size = (64, 64)  # Small images to lighten the pipeline
     dates = [dt.datetime(2000, 1, i) for i in range(1, 32)]
     for date in dates:
         input_path = tmp_dataset_dir / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
         target_path = tmp_dataset_dir / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
-        create_dummy_input_netcdf(input_path)
-        create_dummy_target_netcdf(target_path)
+        create_dummy_input_netcdf(input_path, *img_size)
+        create_dummy_target_netcdf(target_path, *img_size)
 
     # Train with a test config.
     fit_and_val(

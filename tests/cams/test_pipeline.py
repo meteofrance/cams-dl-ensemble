@@ -19,7 +19,7 @@ def test_full_pipeline() -> None:
     # Train with a test config.
     fit_and_val(
         datamodule_cls=CAMSDataModuleTest,
-        args=["--config", "configs/test_config.yaml"],
+        args=["--config", "tests/test_config.yaml"],
     )
 
 

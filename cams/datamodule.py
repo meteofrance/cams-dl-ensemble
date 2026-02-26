@@ -1,4 +1,5 @@
 import datetime as dt
+from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
@@ -63,12 +64,12 @@ class CAMSDataModule(LightningDataModule):
         # To avoid overlap in train/val sets, we remove the last 4 days from train set
         self.train_end = self.val_start - dt.timedelta(days=4)
 
-        print(f"Train dataset: from {self.train_start} to {self.train_end}")
-        print(f"Val dataset: from {self.val_start} to {self.val_end}")
+        print(f"--> Train dataset: from {self.train_start} to {self.train_end}")
+        print(f"--> Val dataset: from {self.val_start} to {self.val_end}")
 
         self.save_hyperparameters()
 
-    @property
+    @cached_property
     def run_dates(self) -> list[dt.datetime]:
         """Returns the list of available run dates for CAMS models"""
         run_dates = get_run_dates(self.processed_dir)
@@ -76,7 +77,7 @@ class CAMSDataModule(LightningDataModule):
             raise FileNotFoundError(
                 f"CAMS dataset empty: {self.processed_dir / 'input'}"
             )
-        print(f"{len(run_dates)} runs available in whole dataset.")
+        print(f"--> {len(run_dates)} runs available in whole dataset.")
         return run_dates
 
     def create_dataset(

@@ -3,10 +3,9 @@ seed_everything: true
 trainer:
   logger: null
   callbacks: null
-  fast_dev_run: true
-  max_epochs: null
-  limit_train_batches: null
-  limit_val_batches: null
+  max_epochs: 3
+  limit_train_batches: 3
+  limit_val_batches: 3
 
 model:
   learning_rate: 0.0001
@@ -19,14 +18,14 @@ model:
         - 420
         - 700
       settings:
+        num_filters: 8
         autopad_enabled: True
   loss:
     class_path: torch.nn.MSELoss
 
 data:
   batch_size: 2
-  num_workers: 1
+  num_workers: 3
   prefetch_factor: 2
   num_days_in_val_set: 365
   processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
-ckpt_path: null

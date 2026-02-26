@@ -53,11 +53,11 @@ def fit_and_val(
     )
 
     # Train
-    cli.datamodule.setup(stage="fit")
+    # cli.datamodule.setup(stage="fit")
     cli.trainer.fit(cli.model, datamodule=cli.datamodule)
 
-    # Validate
-    cli.datamodule.setup(stage="validate")
+    # Validate on the best checkpoint
+    # cli.datamodule.setup(stage="validate")
     cli.trainer.validate(cli.model, cli.datamodule.val_dataloader(), ckpt_path="best")
 
 

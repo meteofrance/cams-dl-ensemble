@@ -18,6 +18,7 @@ model:
         - 128
         - 128
       settings:
+        num_filters: 8
         autopad_enabled: True
   loss:
     class_path: torch.nn.MSELoss

@@ -1,8 +1,8 @@
-"""Script that fit and valid a model.
+"""Script that fits a model and runs the validation stage on the best checkpoint.
 Use cases:
-1.
+1. Train from scratch:
 `fit_and_val.py --config config/path.yaml`
-2.
+2. Retrain from checkpoint:
 ```
 fit_and_val.py
     --ckpt_path experiment/folder/checkpoint.ckpt
@@ -12,10 +12,6 @@ fit_and_val.py
 => error if mismatch between ckpt and current init args
     in LightningModule or DataModule.
 
-Default values for a config file can be displayed with:
-```
-runai python bin/main.py fit --print_config
-```
 """
 
 import argparse
@@ -23,22 +19,19 @@ import sys
 from pathlib import Path
 
 from lightning.pytorch.cli import LightningCLI
-from lightning.pytorch.core import LightningDataModule
 
 from cams.datamodule import CAMSDataModule
 from cams.plmodule import CAMSLightningModule
 
 
 def fit_and_val(
-    datamodule_cls: type[LightningDataModule] = CAMSDataModule,
     args: list[str] | None = None,
     ckpt_path: Path | None = None,
 ) -> None:
-    """Fits and validates a model.
+    """Fits a model and runs the validation stage on the best checkpoint.
 
     Args:
-        datamodule_cls: What data module to use for fitting and validation.
-        args: arguments givent to the SargassesLightningCLI object.
+        args: arguments givent to the LightningCLI object.
             Allows configuration arguments such as:
                 ['--config', 'config/file/path.yaml']
         ckpt_path: loads a model from a checkpoint before fitting and validation.
@@ -47,17 +40,15 @@ def fit_and_val(
     # LightningModule and DataModule, but not run subcommands
     cli = LightningCLI(
         model_class=CAMSLightningModule,
-        datamodule_class=datamodule_cls,
+        datamodule_class=CAMSDataModule,
         args=args,
         run=False,
     )
 
     # Train
-    # cli.datamodule.setup(stage="fit")
     cli.trainer.fit(cli.model, datamodule=cli.datamodule)
 
     # Validate on the best checkpoint
-    # cli.datamodule.setup(stage="validate")
     cli.trainer.validate(cli.model, cli.datamodule.val_dataloader(), ckpt_path="best")
 
 
@@ -81,7 +72,6 @@ if __name__ == "__main__":
             config_args = ["--config", str(config_path)]
 
     fit_and_val(
-        datamodule_cls=CAMSDataModule,
         args=config_args,
         ckpt_path=parsed_arguments.ckpt_path,
     )

@@ -1,7 +1,6 @@
 import datetime as dt
 from pathlib import Path
 
-from cams.datamodule import CAMSDataModule
 from scripts.fit_and_val import fit_and_val
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
@@ -29,7 +28,6 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
 
     # Train with a test config.
     fit_and_val(
-        datamodule_cls=CAMSDataModule,
         args=[
             "--config",
             "tests/test_config.yaml",

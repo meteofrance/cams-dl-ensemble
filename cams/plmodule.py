@@ -130,15 +130,7 @@ class CAMSLightningModule(LightningModule):
         interesting_batches = [0, 6, 12, 42, 66]
         if batch_idx not in interesting_batches:
             return
-        # TODO : plot function
-        # fig = plot_sample(
-        #     x.select_dim("batch", 0),
-        #     y.select_dim("batch", 0),
-        #     y_hat.select_dim("batch", 0),
-        #     f"Sample {batch_idx}",
-        # )
-        # tb = self.logger.experiment
-        # tb.add_figure(f"{mode}_plots/val_figure_{batch_idx}", fig, self.current_epoch)
+        pass # TODO
 
     @override
     def validation_step(
@@ -148,9 +140,6 @@ class CAMSLightningModule(LightningModule):
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
-        # TODO : add when we will have transforms
-        # _, y = self.trainer.datamodule.val_dataset.undo_transforms(x, y)
-        # x, y_hat = self.trainer.datamodule.val_dataset.undo_transforms(x, y_hat)
         self.metrics.update(y_hat.tensor, y.tensor)
         self.val_plot_step(batch_idx, x, y, y_hat, mode="val")
         return loss

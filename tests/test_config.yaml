@@ -15,8 +15,8 @@ model:
       in_channels: 11  # 11 CAMS models
       out_channels: 1
       input_shape:
-        - 128
-        - 128
+        - 420
+        - 700
       settings:
         num_filters: 8
         autopad_enabled: True

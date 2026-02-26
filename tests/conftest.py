@@ -1,5 +1,3 @@
-import datetime as dt
-from functools import cached_property
 import shutil
 import tempfile
 from collections.abc import Iterator
@@ -7,13 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import torch
 import xarray as xr
-from typing_extensions import override
-
-from cams.datamodule import CAMSDataModule
-from cams.dataset import CAMSDataset
-from cams.sample import NamedTensor, Sample
 from cams.settings import MODEL_NAMES, SIZE_LAT, SIZE_LON
 
 
@@ -26,7 +18,7 @@ def temp_dir() -> Iterator[Path]:
 
 
 @pytest.fixture(scope="function")
-def setup_cams_directories(temp_dir: Path) -> Iterator[Path]:
+def tmp_dataset_dir(temp_dir: Path) -> Iterator[Path]:
     """Set up input and target directories in the temporary directory."""
     input_dir = temp_dir / "input"
     target_dir = temp_dir / "target"
@@ -96,58 +88,3 @@ def create_dummy_target_netcdf(path: Path):
         buffer.seek(0)
         with open(path, "wb") as f:
             f.write(buffer.getvalue())
-
-
-class SampleTest(Sample):
-    @property
-    @override
-    def is_valid(self) -> bool:
-        """Always returns True, because we use fake data."""
-        return True
-
-    @property
-    @override
-    def input_data(self) -> NamedTensor:
-        """Returns fake input ensemble data as a NamedTensor."""
-        num_models = 11
-        tensor = torch.zeros((num_models, 128, 128))
-        names = [str(i) for i in range(num_models)]
-        nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
-        return nt
-
-    @property
-    @override
-    def target_data(self) -> NamedTensor:
-        """Returns fake target analysis data as a NamedTensor."""
-        tensor = torch.zeros((1, 128, 128))
-        nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
-        return nt
-
-
-class CAMSDatasetTest(CAMSDataset):
-    @property
-    @override
-    def run_dates(self) -> list[dt.datetime]:
-        """Returns a fake list of available run dates for CAMS models"""
-        run_dates = [dt.datetime(2000, 1, i) for i in range(1, 32)]
-        return run_dates
-
-    @override
-    def create_sample(
-        self, date_run: dt.datetime, lead_time: int, path: Path
-    ) -> Sample:
-        return SampleTest(date_run, lead_time, path)
-
-
-class CAMSDataModuleTest(CAMSDataModule):
-    @cached_property
-    @override
-    def run_dates(self) -> list[dt.datetime]:
-        """Returns a fake list of available run dates for CAMS models"""
-        return [dt.datetime(2000, 1, i) for i in range(1, 32)]
-
-    @override
-    def create_dataset(
-        self, start: dt.datetime, end: dt.datetime, dir: Path
-    ) -> CAMSDataset:
-        return CAMSDatasetTest(start, end, dir)

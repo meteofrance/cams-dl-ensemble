@@ -1,11 +1,11 @@
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.transforms import ReplaceEnsembleByStatisctics
+from cams.transforms import ExtractInputStatisticalFeatures
 
 
-def test_replace_ensemble_by_statistics():
-    """Test of ReplaceEnsembleByStatisctics tranform."""
+def test_ExtractInputStatisticalFeatures():
+    """Test of ExtractInputStatisticalFeatures tranform."""
     input_data = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], 
                               [[5.0, 6.0], [7.0, 8.0]], 
                               [[9.0, 10.0], [11.0, 12.0]]])
@@ -14,7 +14,7 @@ def test_replace_ensemble_by_statistics():
     )
     target_nt = NamedTensor(torch.ones(1, 2, 2), names=["features", "lat", "lon"], feature_names=["analysis"])
     
-    transform = ReplaceEnsembleByStatisctics(
+    transform = ExtractInputStatisticalFeatures(
         ["mean", "amin", "argmin", "amax", "argmax", "median", "skew", "kurtosis"]
     )
     result_nt, target_nt_result = transform(input_nt, target_nt)

@@ -6,7 +6,7 @@ from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor, nn
 
 
-class ReplaceEnsembleByStatisctics(nn.Module):
+class ExtractInputStatisticalFeatures(nn.Module):
     """Replace ensemble data by statistical features.
 
     This module computes various statistical measures from ensemble data and

@@ -51,9 +51,8 @@ class ReplaceEnsembleByStatisctics(nn.Module):
             target_nt: Target NamedTensor to be preserved unchanged.
 
         Returns:
-            Tuple containing:
-                - NamedTensor with computed statistics as features
-                - Original target NamedTensor unchanged
+            NamedTensor: Computed statistics as features.
+            NamedTensor: Target unchanged.
 
         Note:
             For skew and kurtosis, scipy.stats is used with nan_policy="omit".

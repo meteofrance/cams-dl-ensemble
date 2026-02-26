@@ -41,13 +41,13 @@ class ReplaceEnsembleByStatisctics(nn.Module):
         self.statistic_types = statistic_types
 
     def forward(
-        self, input_nt: NamedTensor, target_nt: NamedTensor
+        self, input: NamedTensor, target: NamedTensor
     ) -> tuple[NamedTensor, NamedTensor]:
         """Compute statistical features from input and return them with target.
 
         Args:
-            input_nt: Input NamedTensor containing ensemble data with spatial dimensions.
-            target_nt: Target NamedTensor to be preserved unchanged.
+            input: Input NamedTensor containing ensemble data with spatial dimensions.
+            target: Target NamedTensor to be preserved unchanged.
 
         Returns:
             NamedTensor: Computed statistics as features.
@@ -57,10 +57,10 @@ class ReplaceEnsembleByStatisctics(nn.Module):
             For skew and kurtosis, scipy.stats is used with nan_policy="omit".
             For median, only the values are returned (not indices) from torch.median().
         """
-        input_tensor: Tensor = input_nt.tensor
+        input_tensor: Tensor = input.tensor
         stat_tensor: Tensor = torch.empty(
             len(self.statistic_types),
-            *[input_tensor.shape[idx] for idx in input_nt.spatial_dim_idx],
+            *[input_tensor.shape[idx] for idx in input.spatial_dim_idx],
         )
         for idx, statistic_type in enumerate(self.statistic_types):
             if statistic_type in ["skew", "kurtosis"]:
@@ -79,4 +79,4 @@ class ReplaceEnsembleByStatisctics(nn.Module):
             names=["features", "lat", "lon"],
             feature_names=self.statistic_types,
         )
-        return stat_nt, target_nt
+        return stat_nt, target

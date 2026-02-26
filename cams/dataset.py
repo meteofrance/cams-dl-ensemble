@@ -44,7 +44,8 @@ class CAMSDataset(Dataset):
         """Returns the list of valid samples in the dataset."""
         run_dates = get_run_dates(self.processed_dir)
         run_dates = [
-            date for date in run_dates
+            date
+            for date in run_dates
             if date >= self.start_date
             if date <= self.end_date
         ]

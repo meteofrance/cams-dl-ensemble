@@ -69,12 +69,8 @@ def test_cams_dataset_filtering_by_date(tmp_dataset_dir: Path):
     ]
 
     for date in dates:
-        input_path = (
-            tmp_dataset_dir / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        )
-        target_path = (
-            tmp_dataset_dir / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
-        )
+        input_path = tmp_dataset_dir / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
+        target_path = tmp_dataset_dir / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
         create_dummy_input_netcdf(input_path)
         create_dummy_target_netcdf(target_path)
 

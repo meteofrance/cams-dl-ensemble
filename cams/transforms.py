@@ -31,8 +31,7 @@ class ReplaceEnsembleByStatisctics(nn.Module):
             ]
         ],
     ):
-        """Initialize the ReplaceEnsembleByStatisctics module.
-
+        """
         Args:
             statistic_types: List of statistical measures to compute.
                 Must be one or more of: 'mean', 'amin', 'argmin', 'amax', 

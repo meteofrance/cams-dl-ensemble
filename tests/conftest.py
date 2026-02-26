@@ -53,6 +53,8 @@ def create_dummy_input_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: in
     try:
         ds.to_netcdf(path)
     except Exception:
+        # If error, tries with a temporary buffer.
+        # Caused by concurential access from pytest
         import io
 
         buffer = io.BytesIO()
@@ -80,7 +82,8 @@ def create_dummy_target_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: i
     try:
         ds.to_netcdf(path)
     except Exception:
-        # Si erreur, essaye avec un buffer temporaire
+        # If error, tries with a temporary buffer.
+        # Caused by concurential access from pytest
         import io
 
         buffer = io.BytesIO()

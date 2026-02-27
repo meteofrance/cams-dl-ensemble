@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 
 import scipy.stats
@@ -40,6 +41,16 @@ class ExtractInputStatisticalFeatures(nn.Module):
         """
         super().__init__()
         self.statistic_types = statistic_types
+
+        if "skew" in self.statistic_types or "kurtosis" in self.statistic_types:
+            scipy_array_api = os.getenv("SCIPY_ARRAY_API")
+            if scipy_array_api != "1":
+                raise RuntimeError(
+                    "Environement variable 'SCIPY_ARRAY_API' should be set to '1' to "
+                    + "use 'skew' and/or 'kurtosis' statistics. See "
+                    + "https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for"
+                    + "more details about scipy array API support."
+                )
 
     @override
     def forward(

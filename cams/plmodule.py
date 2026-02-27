@@ -79,7 +79,7 @@ class CAMSLightningModule(LightningModule):
         self, x: NamedTensor, y: NamedTensor
     ) -> tuple[NamedTensor, Any]:
         """Computes forward pass and loss for a batch.
-        Step shared by training, validation and test steps
+        Step shared by training, validation and test steps.
         """
         output = self.last_activation(self.model(x.tensor))
         loss = self.loss(output, y.tensor)
@@ -136,7 +136,7 @@ class CAMSLightningModule(LightningModule):
     def validation_step(
         self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
     ) -> Any:
-        """Defines the validation step"""
+        """Defines the validation step."""
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
@@ -146,7 +146,7 @@ class CAMSLightningModule(LightningModule):
 
     @override
     def on_validation_epoch_end(self) -> None:
-        """Computes and logs metrics at validation end"""
+        """Computes and logs metrics at validation end."""
         if self.logger is None:
             return
         self.log_dict(

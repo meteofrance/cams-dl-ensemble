@@ -6,6 +6,7 @@ import torchmetrics as tm
 from lightning import LightningModule
 from mfai.pytorch.models.base import BaseModel
 from mfai.pytorch.namedtensor import NamedTensor
+from pytorch_lightning.utilities import rank_zero_only
 from torch import Tensor
 from torch.optim import AdamW
 from typing_extensions import override
@@ -89,6 +90,7 @@ class CAMSLightningModule(LightningModule):
     ####################################################################################
     #                                      TRAIN STEPS                                 #
     ####################################################################################
+    @rank_zero_only
     @override
     def on_train_start(self) -> None:
         """Print log directory at training start"""

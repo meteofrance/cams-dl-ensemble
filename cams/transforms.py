@@ -4,6 +4,7 @@ import scipy.stats
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor, nn
+from typing_extensions import override
 
 
 class ExtractInputStatisticalFeatures(nn.Module):
@@ -40,6 +41,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
         super().__init__()
         self.statistic_types = statistic_types
 
+    @override
     def forward(
         self, input: NamedTensor, target: NamedTensor
     ) -> tuple[NamedTensor, NamedTensor]:

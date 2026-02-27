@@ -50,7 +50,7 @@ def test_ExtractInputStatisticalFeatures():
     torch.testing.assert_close(result_nt["kurtosis"], expected_kurtosis)
 
     # Test 7: Empty statistic list
-    module = ReplaceEnsembleByStatisctics([])
+    module = ExtractInputStatisticalFeatures([])
     result_nt, target_nt_result = module(input_nt, target_nt)
 
     assert result_nt.tensor.shape == (0, 2, 2)

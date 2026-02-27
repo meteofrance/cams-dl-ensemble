@@ -20,7 +20,7 @@ RUN $MY_APT update \
 RUN mkdir -p /run/sshd
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
-# Build time variables 
+# Build time variables
 ARG USERNAME
 ARG GROUPNAME
 ARG USER_UID

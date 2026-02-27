@@ -1,0 +1,31 @@
+# lightning.pytorch==2.6.1
+seed_everything: true
+trainer:
+  logger: null
+  callbacks: null
+  max_epochs: 3
+  limit_train_batches: 3
+  limit_val_batches: 3
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.half_unet.HalfUNet
+    init_args:
+      in_channels: 11  # 11 CAMS models
+      out_channels: 1
+      input_shape:
+        - 420
+        - 700
+      settings:
+        num_filters: 8
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.MSELoss
+
+data:
+  batch_size: 2
+  num_workers: 3
+  prefetch_factor: 2
+  num_days_in_val_set: 365
+  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed

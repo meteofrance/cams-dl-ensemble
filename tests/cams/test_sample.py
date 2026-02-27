@@ -43,23 +43,23 @@ def test_sample_is_valid_false():
     assert not sample.is_valid
 
 
-def test_sample_is_valid_true(setup_cams_directories: Path):
+def test_sample_is_valid_true(tmp_dataset_dir: Path):
     # Create dummy files in directories
-    input_path = setup_cams_directories / "input/2022_07_22.netcdf"
-    target_path = setup_cams_directories / "target/2022_07_22_15.netcdf"
+    input_path = tmp_dataset_dir / "input/2022_07_22.netcdf"
+    target_path = tmp_dataset_dir / "target/2022_07_22_15.netcdf"
 
     create_dummy_input_netcdf(input_path)
     create_dummy_target_netcdf(target_path)
 
-    sample = Sample(dt.datetime(2022, 7, 22), 15, setup_cams_directories)
+    sample = Sample(dt.datetime(2022, 7, 22), 15, tmp_dataset_dir)
     assert sample.is_valid
 
 
-def test_sample_input_data(setup_cams_directories: Path):
-    input_path = setup_cams_directories / "input/2022_07_22.netcdf"
+def test_sample_input_data(tmp_dataset_dir: Path):
+    input_path = tmp_dataset_dir / "input/2022_07_22.netcdf"
     create_dummy_input_netcdf(input_path)
 
-    sample = Sample(dt.datetime(2022, 7, 22), 15, setup_cams_directories)
+    sample = Sample(dt.datetime(2022, 7, 22), 15, tmp_dataset_dir)
     data = sample.input_data
 
     assert isinstance(data, NamedTensor)
@@ -67,11 +67,11 @@ def test_sample_input_data(setup_cams_directories: Path):
     assert data.feature_names == MODEL_NAMES
 
 
-def test_sample_target_data(setup_cams_directories: Path):
-    target_path = setup_cams_directories / "target/2022_07_22_15.netcdf"
+def test_sample_target_data(tmp_dataset_dir: Path):
+    target_path = tmp_dataset_dir / "target/2022_07_22_15.netcdf"
     create_dummy_target_netcdf(target_path)
 
-    sample = Sample(dt.datetime(2022, 7, 22), 15, setup_cams_directories)
+    sample = Sample(dt.datetime(2022, 7, 22), 15, tmp_dataset_dir)
     data = sample.target_data
 
     assert isinstance(data, NamedTensor)

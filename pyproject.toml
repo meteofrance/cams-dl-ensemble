@@ -4,7 +4,7 @@ version = "v0.0.0"
 requires-python = "==3.12.*"
 dependencies = [
   "cartopy>=0.25.0",
-  "netcdf4>=1.7.4",
+  "netcdf4==1.7.2",
   "pyright>=1.1.405",
   "tornado>=6.5.4",
   "xarray>=2026.1.0",
@@ -13,11 +13,16 @@ dependencies = [
   "earthkit==0.13.2",
   "joblib==1.5.3",
   "cfgrib==0.9.15.1",
+  "lightning==2.6.1",
+  "jsonargparse[signatures]<=4.41.0",
   "pyright[nodejs]",
   "ruff",
   "pytest",
   "pytest-cov",
 ]
+
+[tool.setuptools.packages.find]
+exclude = ["doc*", "configs*"]
 
 [tool.ruff]
 target-version = "py312"

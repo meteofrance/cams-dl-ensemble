@@ -31,6 +31,13 @@ source .venv/bin/activate  # On windows: .venv/Script/Activate.ps1
 pip install .
 ```
 
+### Using `skew` or `kurtosis` statistics
+To use `skew` or `kurtosis` statistics in the `ReplaceEnsembleByStatisctics` transform, you should export:
+```bash
+export SCIPY_ARRAY_API=1
+```
+This enables array API from `scipy`. Please see https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for more details.
+
 
 ## Usage
 

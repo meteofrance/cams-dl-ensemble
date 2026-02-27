@@ -15,11 +15,11 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     Attributes:
         statistic_types: List of statistical measures to compute from the input.
-            Supported statistics include: 'mean', 'amin', 'argmin', 'amax', 
+            Supported statistics include: 'mean', 'amin', 'argmin', 'amax',
             'argmax', 'median', 'skew', 'kurtosis'.
 
     Note:
-        For 'skew' and 'kurtosis', you should first enable the array API standard support.
+        For 'skew' and 'kurtosis', you should enable the array API standard support.
         -> https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html
     """
 
@@ -34,7 +34,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
         """
         Args:
             statistic_types: List of statistical measures to compute.
-                Must be one or more of: 'mean', 'amin', 'argmin', 'amax', 
+                Must be one or more of: 'mean', 'amin', 'argmin', 'amax',
                 'argmax', 'median', 'skew', 'kurtosis'.
         """
         super().__init__()
@@ -67,9 +67,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 stat_tensor[idx, :, :] = getattr(scipy.stats, statistic_type)(
                     input_tensor, axis=0, nan_policy="omit"
                 )
-            elif (
-                statistic_type == "median"
-            ):
+            elif statistic_type == "median":
                 # Tensor.median() returns a tuple[values, indices], so we keep values
                 stat_tensor[idx, :, :] = getattr(input_tensor, statistic_type)(dim=0)[0]
             else:

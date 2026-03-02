@@ -22,7 +22,7 @@ uv sync
 > `uv run <file.py>` instead of `python <file.py>`
 
 ### Using pip
-Check that you are using a version of python >= 3.14.
+Check that you are using a version of python >= 3.12.
 ```sh
 git clone https://github.com/meteofrance/cams-dl-ensemble.git
 cd cams-dl-ensemble

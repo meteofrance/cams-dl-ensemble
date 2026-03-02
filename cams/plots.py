@@ -1,14 +1,19 @@
 import json
 from pathlib import Path
 
+import cartopy
 import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import torch
 from cartopy.crs import PlateCarree
 from matplotlib.axes import Axes
+from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.sample import Sample
 from cams.settings import STATS_PATH
+
+# Setup cache dir for cartopy to avoid downloading data each time
+cartopy.config["data_dir"] = "/scratch/shared/cartopy"
 
 # Constants
 MOSAIC: list[list[str]] = [
@@ -89,4 +94,26 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     title = f"{species_name} - Run {run_str} - Leadtime +{sample.lead_time}h"
     fig.suptitle(title, size=16)
 
+    plt.savefig(save_path)
+
+
+def plot_y_vs_yhat(y: NamedTensor, y_hat: NamedTensor, save_path:Path, title: str = "") -> None:
+    """Plots the ground truth VS the prediction from a model."""
+    subplot_kw = {"projection": PlateCarree()}
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize = (11, 5), subplot_kw=subplot_kw)
+    axs = axs.flatten()
+
+    vmin, vmax = STATS["O3"]["min"], STATS["O3"]["max"]
+    plot_kwargs = {"cmap":CMAP, "vmin":vmin, "vmax":vmax, "extent":EXTENT}
+
+    axs[0].imshow(y.tensor[0].cpu(), **plot_kwargs)
+    format_axis(axs[0], "Ground Truth = Analysis")
+    img = axs[1].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
+    format_axis(axs[1], "Prediction")
+
+    cbar = fig.colorbar(img, ax=axs, fraction=.023)
+    cbar.set_label(UNITS["O3"], size=13)
+
+    fig.suptitle(title, size=18)
+    # plt.tight_layout()
     plt.savefig(save_path)

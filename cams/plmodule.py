@@ -102,7 +102,10 @@ class CAMSLightningModule(LightningModule):
         print("\033[96m-----TRAINING START------\033[0m")
         if isinstance(self.logger, MLFlowLogger):
             print("\033[96mTracking run with MLFlow:\033[0m")
-            print(f"-> Experiment: {self.logger._experiment_name} - Id: {self.logger.experiment_id}")
+            print(
+                f"-> Experiment: {self.logger._experiment_name} - "
+                "Id: {self.logger.experiment_id}"
+            )
             print(f"-> Run: {self.logger._run_name} - Id: {self.logger.run_id}")
         if self.trainer.checkpoint_callback:
             print(f"-> Checkpoint path: {self.trainer.checkpoint_callback.dirpath}")
@@ -149,15 +152,15 @@ class CAMSLightningModule(LightningModule):
             tmp_img_path,
             f"Sample {batch_idx}",
         )
-        mlf_logger  = self.logger.experiment  # type: ignore[reporteAttributeAccessIssue]
+        mlf_logger = self.logger.experiment  # type: ignore[reporteAttributeAccessIssue]
         with Image.open(tmp_img_path) as img:
             mlf_logger.log_image(
                 self.logger.run_id,
                 image=img,
                 key=f"val_plot_{batch_idx}",
-                step=self.current_epoch)
+                step=self.current_epoch,
+            )
         tmp_img_path.unlink()
-
 
     @override
     def validation_step(

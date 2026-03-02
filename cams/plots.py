@@ -97,21 +97,23 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     plt.savefig(save_path)
 
 
-def plot_y_vs_yhat(y: NamedTensor, y_hat: NamedTensor, save_path:Path, title: str = "") -> None:
+def plot_y_vs_yhat(
+    y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
+) -> None:
     """Plots the ground truth VS the prediction from a model."""
     subplot_kw = {"projection": PlateCarree()}
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize = (11, 5), subplot_kw=subplot_kw)
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(11, 5), subplot_kw=subplot_kw)
     axs = axs.flatten()
 
     vmin, vmax = STATS["O3"]["min"], STATS["O3"]["max"]
-    plot_kwargs = {"cmap":CMAP, "vmin":vmin, "vmax":vmax, "extent":EXTENT}
+    plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
 
     axs[0].imshow(y.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[0], "Ground Truth = Analysis")
     img = axs[1].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[1], "Prediction")
 
-    cbar = fig.colorbar(img, ax=axs, fraction=.023)
+    cbar = fig.colorbar(img, ax=axs, fraction=0.023)
     cbar.set_label(UNITS["O3"], size=13)
 
     fig.suptitle(title, size=18)

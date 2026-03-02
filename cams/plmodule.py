@@ -4,6 +4,7 @@ from typing import Any
 import torch
 import torchmetrics as tm
 from lightning import LightningModule
+from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
 from mfai.pytorch.namedtensor import NamedTensor
 from pytorch_lightning.utilities import rank_zero_only
@@ -94,8 +95,14 @@ class CAMSLightningModule(LightningModule):
     @override
     def on_train_start(self) -> None:
         """Print log directory at training start"""
-        if self.logger and self.logger.log_dir:
-            print(f"Logs will be saved in \033[96m{self.logger.log_dir}\033[0m")  # cyan
+        print("\033[96m-----TRAINING START------\033[0m")
+        if isinstance(self.logger, MLFlowLogger):
+            print("\033[96mTracking run with MLFlow:\033[0m")
+            print(f"-> Experiment: {self.logger._experiment_name} - Id: {self.logger.experiment_id}")
+            print(f"-> Run: {self.logger._run_name} - Id: {self.logger.run_id}")
+        if self.trainer.checkpoint_callback:
+            print(f"-> Checkpoint path: {self.trainer.checkpoint_callback.dirpath}")
+        print("\033[96m-------------------------\033[0m")
 
     @override
     def training_step(

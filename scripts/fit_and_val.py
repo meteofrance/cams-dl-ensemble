@@ -41,6 +41,7 @@ def fit_and_val(
     cli = LightningCLI(
         model_class=CAMSLightningModule,
         datamodule_class=CAMSDataModule,
+        save_config_kwargs={"overwrite": True},
         args=args,
         run=False,
     )

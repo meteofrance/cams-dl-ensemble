@@ -1,4 +1,5 @@
 import json
+import warnings
 from pathlib import Path
 
 import cartopy
@@ -13,7 +14,9 @@ from cams.sample import Sample
 from cams.settings import STATS_PATH
 
 # Setup cache dir for cartopy to avoid downloading data each time
-cartopy.config["data_dir"] = "/scratch/shared/cartopy"
+cache_cartopy = Path("/scratch/shared/cartopy")
+if cache_cartopy.exists():
+    cartopy.config["data_dir"] = str(cache_cartopy)
 
 # Constants
 MOSAIC: list[list[str]] = [
@@ -24,8 +27,23 @@ MOSAIC: list[list[str]] = [
 UNITS = {"O3": "Ozone (µg/m3)"}
 CMAP = "turbo"
 EXTENT = (-24.95, 44.95, 30.05, 71.95)
-with open(STATS_PATH, "r") as file:
-    STATS = json.load(file)
+
+
+def get_vmin_vmax(species_name: str) -> tuple[float, float] | tuple[None, None]:
+    """Retrieves vmin and vmax for one species. Returns None if stats file not found."""
+    if STATS_PATH.exists():
+        with open(STATS_PATH, "r") as file:
+            STATS = json.load(file)
+        vmin = STATS[species_name]["min"]
+        vmax = STATS[species_name]["max"]
+        return vmin, vmax
+    else:
+        warnings.warn(
+            f"Statistics file not found: {STATS_PATH}. "
+            "Please run `scripts/compute_stats.py`. "
+            "Using vmin, vmax = None, None in plots instead."
+        )
+        return None, None
 
 
 def format_axis(ax: Axes, title: str) -> None:
@@ -53,8 +71,7 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     """
     x, y = sample.input_data, sample.target_data
     median = torch.median(x.tensor, dim=0).values
-    vmin = STATS[species_name]["min"]
-    vmax = STATS[species_name]["max"]
+    vmin, vmax = get_vmin_vmax(species_name)
 
     # Create the different subfigures
     scale = 2.5
@@ -105,7 +122,7 @@ def plot_y_vs_yhat(
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(11, 5), subplot_kw=subplot_kw)
     axs = axs.flatten()
 
-    vmin, vmax = STATS["O3"]["min"], STATS["O3"]["max"]
+    vmin, vmax = get_vmin_vmax("O3")
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
 
     axs[0].imshow(y.tensor[0].cpu(), **plot_kwargs)
@@ -117,5 +134,4 @@ def plot_y_vs_yhat(
     cbar.set_label(UNITS["O3"], size=13)
 
     fig.suptitle(title, size=18)
-    # plt.tight_layout()
     plt.savefig(save_path)

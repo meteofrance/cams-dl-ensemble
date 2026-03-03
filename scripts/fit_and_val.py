@@ -53,7 +53,7 @@ def fit_and_val(
     cli.trainer.validate(cli.model, cli.datamodule.val_dataloader(), ckpt_path="best")
 
     if cli.trainer.checkpoint_callback:
-        return Path(cli.trainer.checkpoint_callback.dirpath)
+        return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
 
 
 if __name__ == "__main__":

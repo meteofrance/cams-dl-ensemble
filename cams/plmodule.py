@@ -1,4 +1,5 @@
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any
 
 import torch
@@ -7,6 +8,7 @@ from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
 from mfai.pytorch.namedtensor import NamedTensor
+from mlflow import MlflowClient
 from PIL import Image
 from pytorch_lightning.utilities import rank_zero_only
 from torch import Tensor
@@ -98,17 +100,16 @@ class CAMSLightningModule(LightningModule):
     @override
     def on_train_start(self) -> None:
         """Print log directory at training start"""
-        # TODO : use MLFLOW client with self.logger.experiment
         print("\033[96m-----TRAINING START------\033[0m")
         if isinstance(self.logger, MLFlowLogger):
             print("\033[96mTracking run with MLFlow:\033[0m")
             print(
-                f"-> Experiment: {self.logger._experiment_name} - "
+                f"-> Experiment: {self.logger._experiment_name} - "  # type: ignore[reportPrivateUsage]
                 f"Id: {self.logger.experiment_id}"
             )
-            print(f"-> Run: {self.logger._run_name} - Id: {self.logger.run_id}")
+            print(f"-> Run: {self.logger._run_name} - Id: {self.logger.run_id}")  # type: ignore[reportPrivateUsage]
         if self.trainer.checkpoint_callback:
-            print(f"-> Checkpoint path: {self.trainer.checkpoint_callback.dirpath}")
+            print(f"-> Checkpoint path: {self.trainer.checkpoint_callback.dirpath}")  # type: ignore[reportAttributeAcessIssue]
         print("\033[96m-------------------------\033[0m")
 
     @override
@@ -138,29 +139,29 @@ class CAMSLightningModule(LightningModule):
         y: NamedTensor,
         y_hat: NamedTensor,
     ) -> None:
-        """Plots images on some batches and log them in tensorboard."""
-        if self.logger is None:
+        """Plots images on some batches and log them in mlflow."""
+        if not isinstance(self.logger, MLFlowLogger):
             return
         interesting_batches = [0, 6, 12]
         if batch_idx not in interesting_batches:
             return
-        # TODO : use tmp lib
-        tmp_img_path = Path("img.png")
-        plot_y_vs_yhat(
-            y.select_dim("batch", 0),
-            y_hat.select_dim("batch", 0),
-            tmp_img_path,
-            f"Sample {batch_idx}",
-        )
-        mlf_logger = self.logger.experiment  # type: ignore[reporteAttributeAccessIssue]
-        with Image.open(tmp_img_path) as img:
-            mlf_logger.log_image(
-                self.logger.run_id,
-                image=img,
-                key=f"val_plot_{batch_idx}",
-                step=self.current_epoch,
+        with NamedTemporaryFile(suffix=".png") as fp:
+            # First save the plot in a temporary PNG file
+            plot_y_vs_yhat(
+                y.select_dim("batch", 0),
+                y_hat.select_dim("batch", 0),
+                Path(fp.name),
+                f"Sample {batch_idx}",
             )
-        tmp_img_path.unlink()
+            # Then open the image with PIL and log it in mlflow
+            with Image.open(fp.name) as img:
+                mlf_logger: MlflowClient = self.logger.experiment
+                mlf_logger.log_image(
+                    self.logger.run_id,  # type: ignore[reportArgumentType]
+                    image=img,
+                    key=f"val_plot_{batch_idx}",
+                    step=self.current_epoch,
+                )
 
     @override
     def validation_step(

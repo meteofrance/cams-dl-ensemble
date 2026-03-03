@@ -52,7 +52,20 @@ python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```bash
 python scripts/fit_and_val.py [--trainer.fast_dev_run True] --config configs/dummy.yaml
 ```
+
 Use the `fast_dev_run` option to deactivate checkpointing and logging.
+
+* To visualize the metrics in MFLow:
+
+```bash
+mlflow serve [-p PORT] [-h HOST] [--allowed-hosts "*" --cors-allowed-origins "*"] backend-store-uri PATH_TO_LOGS
+```
+
+At Meteo-France with runai, simply run:
+
+```bash
+runai mlflow --backend-store-uri PATH_TO_LOGS
+```
 
 ## Required data
 Before using this project to train a model, you will need to gather the necessary weather data. A full description of the data required is available in [doc/dataset.md](doc/dataset.md).

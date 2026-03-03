@@ -104,7 +104,7 @@ class CAMSLightningModule(LightningModule):
             print("\033[96mTracking run with MLFlow:\033[0m")
             print(
                 f"-> Experiment: {self.logger._experiment_name} - "
-                "Id: {self.logger.experiment_id}"
+                f"Id: {self.logger.experiment_id}"
             )
             print(f"-> Run: {self.logger._run_name} - Id: {self.logger.run_id}")
         if self.trainer.checkpoint_callback:

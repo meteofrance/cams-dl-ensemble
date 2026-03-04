@@ -3,6 +3,7 @@ from functools import cached_property
 from pathlib import Path
 
 from mfai.pytorch.namedtensor import NamedTensor
+from torch import nn
 from torch.utils.data import Dataset
 from typing_extensions import override
 
@@ -26,6 +27,7 @@ class CAMSDataset(Dataset):
         start_date: dt.datetime,
         end_date: dt.datetime,
         processed_dir: Path = PROCESSED_DATA_DIR,
+        transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:
         """Loads the dataset's sample points for the given split.
         A sample point is a date and a forecast id, used to instantiate a Sample.
@@ -34,10 +36,12 @@ class CAMSDataset(Dataset):
             start_date: The first date of this dataset.
             end_date: The last date of this dataset.
             processed_dir: Path to the CAMS dataset's processed data.
+            transform_sequence: list of transforms to apply to the data after loading.
         """
         self.start_date = start_date
         self.end_date = end_date
         self.processed_dir = processed_dir
+        self.transform_sequence = transform_sequence
 
     @cached_property
     def samples(self) -> list[Sample]:
@@ -60,7 +64,10 @@ class CAMSDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
         sample = self.samples[idx]
-        return sample.input_data, sample.target_data
+        x, y = sample.input_data, sample.target_data
+        for transform in self.transform_sequence:
+            x, y = transform(x, y)
+        return x, y
 
 
 if __name__ == "__main__":

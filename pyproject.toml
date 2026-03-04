@@ -1,3 +1,10 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+cams = "cams"
+
 [project]
 name = "cams-dl-ensemble"
 version = "v0.0.0"
@@ -84,7 +91,10 @@ fail_under = 85
 
 [tool.coverage.report]
 show_missing = true
-
+exclude_also = [
+    'def __repr__',
+    'if __name__ == .__main__.:',
+]
 
 [tool.pyright]
 # https://microsoft.github.io/pyright/#/configuration?id=sample-pyprojecttoml-file

@@ -1,11 +1,13 @@
 import os
-from typing import Literal
+from typing import Sequence
 
 import scipy.stats
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor, nn
 from typing_extensions import override
+
+from cams.types import STATISTICS_NAMES, StatisticsNames
 
 
 class ExtractInputStatisticalFeatures(nn.Module):
@@ -25,14 +27,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
         -> https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html
     """
 
-    def __init__(
-        self,
-        statistic_types: list[
-            Literal[
-                "mean", "amin", "argmin", "amax", "argmax", "median", "skew", "kurtosis"
-            ]
-        ],
-    ):
+    def __init__(self, statistic_types: Sequence[StatisticsNames]):
         """
         Args:
             statistic_types: List of statistical measures to compute.
@@ -91,3 +86,23 @@ class ExtractInputStatisticalFeatures(nn.Module):
             feature_names=self.statistic_types,
         )
         return stat_nt, target
+
+
+if __name__ == "__main__":
+    # This is a simple example of how to instanciate and use a Transform
+    import datetime as dt
+    from pathlib import Path
+
+    from mfai.pytorch.namedtensor import NamedTensor
+
+    from cams.plots import plot_named_tensor
+    from cams.sample import Sample
+    from cams.types import STATISTICS_NAMES
+
+    sample = Sample(dt.datetime(2024, 7, 30), 15)
+    x, y = sample.input_data, sample.target_data
+    transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
+    x_transformed, _ = transform(x, y)
+    nt = NamedTensor.concat([x, x_transformed, y])
+    print(nt)
+    plot_named_tensor(nt, "O3", Path("test_transform.png"))

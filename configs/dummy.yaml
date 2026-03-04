@@ -27,7 +27,7 @@ model:
   model:
     class_path: mfai.pytorch.models.half_unet.HalfUNet
     init_args:
-      in_channels: 11  # 11 CAMS models
+      in_channels: 2  # 2 stats fields computed from 11 CAMS models
       out_channels: 1
       input_shape:
         - 420
@@ -44,3 +44,9 @@ data:
   prefetch_factor: 2
   num_days_in_val_set: 365
   processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
+  transforms:
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - median
+          - amax

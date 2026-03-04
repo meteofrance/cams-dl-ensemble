@@ -4,6 +4,7 @@ from typing import Literal
 
 from lightning.pytorch.core import LightningDataModule
 from mfai.pytorch.namedtensor import NamedTensor
+from torch import nn
 from torch.utils.data import DataLoader
 from typing_extensions import override
 
@@ -27,6 +28,7 @@ class CAMSDataModule(LightningDataModule):
         prefetch_factor: int = 2,
         num_days_in_val_set: int = 365,
         processed_dir: Path = PROCESSED_DATA_DIR,
+        transforms: list[nn.Module] = [],
     ) -> None:
         """_summary_
 
@@ -38,12 +40,14 @@ class CAMSDataModule(LightningDataModule):
             num_days_in_val_set: The number of days of data from the end of the dataset
                 reserved for validation. Defaults to 365 days.
             processed_dir: Path to the CAMS processed dataset.
+            transforms: list of transforms to apply to the data after loading it.
         """
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.prefetch_factor = prefetch_factor
         self.processed_dir = processed_dir
+        self.transform_sequence = nn.Sequential(*transforms)
 
         self.dataloader_kwargs = {
             "batch_size": self.batch_size,
@@ -83,16 +87,20 @@ class CAMSDataModule(LightningDataModule):
             stage: Selects which dataset is loaded,
                 either 'fit', 'val', 'validate' or 'test'.
         """
+        dataset_kwargs = {
+            "processed_dir": self.processed_dir,
+            "transform_sequence": self.transform_sequence,
+        }
         if stage == "fit":
             self.train_dataset = (
-                CAMSDataset(self.train_start, self.train_end, self.processed_dir)
+                CAMSDataset(self.train_start, self.train_end, **dataset_kwargs)
                 if self.train_dataset is None
                 else self.train_dataset
             )
             print("--> Train dataset length: ", len(self.train_dataset))
         if stage in ["fit", "val", "validate"]:
             self.val_dataset = (
-                CAMSDataset(self.val_start, self.val_end, self.processed_dir)
+                CAMSDataset(self.val_start, self.val_end, **dataset_kwargs)
                 if self.val_dataset is None
                 else self.val_dataset
             )

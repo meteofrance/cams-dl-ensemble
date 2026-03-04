@@ -3,7 +3,6 @@ from tempfile import NamedTemporaryFile
 from typing import Any
 
 import torch
-from torchmetrics import MetricCollection, MeanSquaredError, MeanAbsoluteError
 from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
@@ -13,8 +12,10 @@ from PIL import Image
 from pytorch_lightning.utilities import rank_zero_only
 from torch import Tensor
 from torch.optim import AdamW
+from torchmetrics import MetricCollection
 from typing_extensions import override
 
+from cams.metrics import Accuracy, Bias, MeanAbsoluteError, MeanSquaredError
 from cams.plots import plot_y_vs_yhat
 
 
@@ -60,6 +61,11 @@ class CAMSLightningModule(LightningModule):
                 MetricCollection(
                     [MeanSquaredError(squared=False), MeanAbsoluteError()]
                 ),
+                MetricCollection(
+                    [Accuracy("O3", threshold=120), Bias("O3", threshold=120)],
+                    prefix="O3/",
+                    postfix="_120",
+                ),
             ]
         )
         return metrics
@@ -81,7 +87,9 @@ class CAMSLightningModule(LightningModule):
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
         output = self.last_activation(self.model(inputs.tensor))
-        y_hat = NamedTensor(output, names=inputs.names, feature_names=["AI_Forecast"])
+        y_hat = NamedTensor(
+            output, names=inputs.names, feature_names=inputs.feature_names
+        )
         return y_hat
 
     def _shared_forward_step(
@@ -92,7 +100,7 @@ class CAMSLightningModule(LightningModule):
         """
         output = self.last_activation(self.model(x.tensor))
         loss = self.loss(output, y.tensor)
-        y_hat = NamedTensor(output, names=y.names, feature_names=["AI_Forecast"])
+        y_hat = NamedTensor(output, names=y.names, feature_names=y.feature_names)
         return y_hat, loss
 
     ####################################################################################
@@ -173,7 +181,7 @@ class CAMSLightningModule(LightningModule):
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
-        self.metrics.update(y_hat.tensor, y.tensor)
+        self.metrics.update(y_hat, y)
         self.val_plot_step(batch_idx, y, y_hat)
         return loss
 

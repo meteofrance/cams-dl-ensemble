@@ -1,9 +1,25 @@
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor
-from torchmetrics import Metric
+from torchmetrics import MeanAbsoluteError, MeanSquaredError, Metric
 from torchmetrics.classification import BinaryAccuracy
 from typing_extensions import override
+
+
+class MeanSquaredError(MeanSquaredError):
+    """MeanSquaredError wrapper to works with NamedTensor."""
+
+    @override
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
+        super().update(preds.tensor, target.tensor)
+
+
+class MeanAbsoluteError(MeanAbsoluteError):
+    """MeanSquaredError wrapper to works with NamedTensor."""
+
+    @override
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
+        super().update(preds.tensor, target.tensor)
 
 
 class Accuracy(BinaryAccuracy):
@@ -35,7 +51,7 @@ class Accuracy(BinaryAccuracy):
 
 
 class Bias(Metric):
-    """Compute Accuracy over a feature with a specific threshold.
+    """Compute Bias over a feature with a specific threshold.
     https://www.atmos.albany.edu/daes/atmclasses/atm401/spring_2015/Roebber2009.pdf
 
     Bias = (TP + FP) / (TP + FN)
@@ -45,7 +61,7 @@ class Bias(Metric):
         """
         Args:
             feature: Name of the feature on which the score is computed.
-            title: Threshold value used to binarize both predictions and target values.
+            threshold: Threshold value used to binarize both predictions and target values.
         """
         super().__init__()
         full_state_update = True  # noqa

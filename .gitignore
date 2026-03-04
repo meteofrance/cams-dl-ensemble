@@ -216,6 +216,9 @@ matplotlibrc
 # Certificate files
 **/*.crt
 
+# Script output plots
+data/*.png
+
 # Pytorch lightning logs
 lightning_logs/
 mlflow.db

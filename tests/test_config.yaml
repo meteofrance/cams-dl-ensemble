@@ -41,7 +41,7 @@ data:
   prefetch_factor: 2
   num_days_in_val_set: 10
   processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
-  transform_list:
+  transforms:
     - class_path: cams.transforms.ExtractInputStatisticalFeatures
       init_args:
         statistic_types:

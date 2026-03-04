@@ -14,9 +14,9 @@ from cams.sample import Sample
 from cams.settings import STATS_PATH
 
 # Setup cache dir for cartopy to avoid downloading data each time
-cache_cartopy = Path("/scratch/shared/cartopy")
-if cache_cartopy.exists():
-    cartopy.config["data_dir"] = str(cache_cartopy)
+cartopy_cache_dir = Path("/scratch/shared/cartopy")
+if cartopy_cache_dir.exists():
+    cartopy.config["data_dir"] = str(cartopy_cache_dir)
 
 # Constants
 MOSAIC: list[list[str]] = [

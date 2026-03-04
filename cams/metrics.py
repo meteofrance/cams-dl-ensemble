@@ -42,7 +42,7 @@ class Accuracy(BinaryAccuracy):
     @override
     def update(self, preds: NamedTensor, target: NamedTensor) -> None:
         preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = preds[self.feature]
+        target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
 
         binary_preds = torch.where(preds_feature >= self.feature_threshold, 1, 0)
@@ -70,7 +70,7 @@ class F1Score(BinaryF1Score):
     @override
     def update(self, preds: NamedTensor, target: NamedTensor) -> None:
         preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = preds[self.feature]
+        target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
 
         binary_preds = torch.where(preds_feature >= self.feature_threshold, 1, 0)
@@ -98,7 +98,7 @@ class FalseAlarmRate(FAR):
     @override
     def update(self, preds: NamedTensor, target: NamedTensor) -> None:
         preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = preds[self.feature]
+        target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
 
         binary_preds = torch.where(preds_feature >= self.feature_threshold, 1, 0)
@@ -135,7 +135,7 @@ class Bias(Metric):
     @override
     def update(self, preds: NamedTensor, target: NamedTensor) -> None:
         preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = preds[self.feature]
+        target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
 
         binary_preds = torch.where(preds_feature >= self.threshold, 1, 0)
@@ -176,7 +176,7 @@ class FalsePositiveRate(Metric):
     @override
     def update(self, preds: NamedTensor, target: NamedTensor) -> None:
         preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = preds[self.feature]
+        target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
 
         binary_preds = torch.where(preds_feature >= self.threshold, 1, 0)

@@ -37,8 +37,8 @@ class Accuracy(Metric):
         target_feature: Tensor = preds[self.feature]
         assert preds_feature.shape == target_feature.shape
 
-        binary_preds = torch.where(preds >= self.threshold, 1, 0)
-        binary_target = torch.where(target >= self.threshold, 1, 0)
+        binary_preds = torch.where(preds_feature >= self.threshold, 1, 0)
+        binary_target = torch.where(target_feature >= self.threshold, 1, 0)
         self.true_positives += torch.sum((binary_preds == 1) & (binary_target == 1))
         self.true_positives += torch.sum((binary_preds == 0) & (binary_target == 0))
         self.false_positives += torch.sum((binary_preds == 1) & (binary_target == 0))
@@ -85,8 +85,8 @@ class Bias(Metric):
         target_feature: Tensor = preds[self.feature]
         assert preds_feature.shape == target_feature.shape
 
-        binary_preds = torch.where(preds >= self.threshold, 1, 0)
-        binary_target = torch.where(target >= self.threshold, 1, 0)
+        binary_preds = torch.where(preds_feature >= self.threshold, 1, 0)
+        binary_target = torch.where(target_feature >= self.threshold, 1, 0)
         self.true_positives += torch.sum((binary_preds == 1) & (binary_target == 1))
         self.false_positives += torch.sum((binary_preds == 1) & (binary_target == 0))
         self.false_negatives += torch.sum((binary_preds == 0) & (binary_target == 1))

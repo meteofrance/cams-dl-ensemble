@@ -1,8 +1,9 @@
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.transforms import ExtractInputStatisticalFeatures
-
+from cams.transforms import ExtractInputStatisticalFeatures, Normalize
+import pytest
+from pathlib import Path
 
 def test_ExtractInputStatisticalFeatures():
     """Test of ExtractInputStatisticalFeatures tranform."""
@@ -55,3 +56,83 @@ def test_ExtractInputStatisticalFeatures():
 
     assert result_nt.tensor.shape == (0, 2, 2)
     assert target_nt_result == target_nt
+
+@pytest.fixture
+def x_named_tensor() -> NamedTensor:
+    """Fixture used by the transform tests that returns fake input data."""
+    feature = torch.tensor([[float("nan"), 1.0], [2.0, float("nan")]])
+    landsea_mask = torch.tensor([[0, 1], [1, 0]])
+    tensor = torch.stack([feature, landsea_mask], 0)
+    return NamedTensor(
+        tensor=tensor,
+        names=["features", "lat", "lon"],
+        feature_names=["feature0", "landsea_mask"],
+        feature_dim_name="features",
+    )
+
+
+@pytest.fixture
+def y_named_tensor() -> NamedTensor:
+    """Fixture used by the transform tests that returns fake target data."""
+    feature1 = torch.tensor([[float("nan"), 1.0], [2.0, float("nan")]])
+    feature2 = torch.tensor([[float("nan"), 4.0], [3.0, float("nan")]])
+    tensor = torch.stack([feature1, feature2], 0)
+    return NamedTensor(
+        tensor=tensor,
+        names=["features", "lat", "lon"],
+        feature_names=["feature1", "feature2"],
+        feature_dim_name="features",
+    )
+
+@pytest.fixture
+def stats_file_path(tmp_path: Path) -> Path:
+    """Creates a fake file of CAMS data statistics"""
+    stats_dict = {
+        "feature0": {"min": 1.0, "max": 5.0},
+        "feature1": {"min": 0.0, "max": 2.0},
+        "feature2": {"min": -1.0, "max": 3.0},
+    }
+    path_file = tmp_path / "stats.pt"
+    torch.save(stats_dict, path_file)
+    return path_file
+
+
+expected_x = torch.tensor(
+    [[[float("nan"), 0], [0.25, float("nan")]], [[0, 1], [1, 0]]],
+    dtype=torch.float32,
+)
+expected_y = torch.tensor(
+    [
+        [[float("nan"), 0.5], [1.0, float("nan")]],
+        [[float("nan"), 1.25], [1.0, float("nan")]],
+    ],
+    dtype=torch.float32,
+)
+
+def test_normalize(c: NamedTensor, y:NamedTensor, stats_file_path: Path):
+    transform = Normalize(stats_file_path=stats_file_path)
+    x_processed, y_processed = transform(c, y)
+
+    print(x_processed.tensor)
+    print(y_processed.tensor)
+    assert torch.allclose(
+        torch.nan_to_num(x_processed.tensor), torch.nan_to_num(expected_x)
+    )
+    assert torch.allclose(
+        torch.nan_to_num(y_processed.tensor), torch.nan_to_num(expected_y)
+    )
+
+    reversed_transform = transform.reverse_transform()
+    x_reversed, y_reversed = reversed_transform(x_processed, y_processed)
+    assert torch.allclose(
+        torch.isnan(x_reversed.tensor), torch.isnan(c.tensor)
+    )
+    assert torch.allclose(
+        torch.nan_to_num(x_reversed.tensor), torch.nan_to_num(c.tensor)
+    )
+    assert torch.allclose(
+        torch.isnan(y_reversed.tensor), torch.isnan(y.tensor)
+    )
+    assert torch.allclose(
+        torch.nan_to_num(y_reversed.tensor), torch.nan_to_num(y.tensor)
+    )

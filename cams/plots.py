@@ -1,4 +1,5 @@
 import json
+import math
 import warnings
 from pathlib import Path
 
@@ -134,4 +135,32 @@ def plot_y_vs_yhat(
     cbar.set_label(UNITS["O3"], size=13)
 
     fig.suptitle(title, size=18)
+    plt.savefig(save_path)
+
+
+def plot_named_tensor(
+    nt: NamedTensor, species_name: str, save_path: Path, title: str = ""
+) -> None:
+    """Plots a NamedTensor where all features are from the same species."""
+    num_plots = len(nt.feature_names)
+    nrows = int(math.sqrt(num_plots))
+    ncols = math.ceil(num_plots / nrows)
+    subplot_kw = {"projection": PlateCarree()}
+    fig, axs = plt.subplots(
+        nrows=nrows, ncols=ncols, figsize=(5 * ncols, 5 * nrows), subplot_kw=subplot_kw
+    )
+    axs = axs.flatten()
+    vmin, vmax = get_vmin_vmax(species_name)
+
+    for i, ax in enumerate(axs):
+        name = nt.feature_names[i]
+        plot_kwargs = {"cmap": CMAP, "extent": EXTENT}
+        if name not in ["argmin", "argmax", "skew", "kurtosis"]:
+            plot_kwargs["vmin"] = vmin
+            plot_kwargs["vmax"] = vmax
+        ax.imshow(nt[name][0], **plot_kwargs)
+        format_axis(ax, name)
+
+    fig.suptitle(title, size=20)
+    plt.tight_layout()
     plt.savefig(save_path)

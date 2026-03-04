@@ -10,6 +10,7 @@ from typing_extensions import override
 
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.settings import PROCESSED_DATA_DIR
+from cams.transforms import ReversibleTransformMixin
 
 
 class CAMSDataModule(LightningDataModule):
@@ -48,6 +49,13 @@ class CAMSDataModule(LightningDataModule):
         self.prefetch_factor = prefetch_factor
         self.processed_dir = processed_dir
         self.transform_sequence = nn.Sequential(*transforms)
+        self.reverse_transform_sequence = nn.Sequential(
+            [
+                transform.reverse_transform()
+                for transform in reversed(transforms)
+                if isinstance(transform, ReversibleTransformMixin)
+            ]
+        )
 
         self.dataloader_kwargs = {
             "batch_size": self.batch_size,
@@ -90,6 +98,7 @@ class CAMSDataModule(LightningDataModule):
         dataset_kwargs = {
             "processed_dir": self.processed_dir,
             "transform_sequence": self.transform_sequence,
+            "reverse_transform_sequence": self.reverse_transform_sequence,
         }
         if stage == "fit":
             self.train_dataset = (
@@ -135,6 +144,10 @@ class CAMSDataModule(LightningDataModule):
         targets = NamedTensor.collate_fn([item[1] for item in batch])
 
         return inputs, targets
+
+    def undo_transforms(self, x: NamedTensor, y: NamedTensor):
+        """Applies the reverse transforms on the given data."""
+        return self.reverse_transform_sequence(x, y)
 
 
 if __name__ == "__main__":

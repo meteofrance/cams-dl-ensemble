@@ -74,7 +74,7 @@ class Sample:
         tensor = torch.Tensor(data.to_numpy())
         tensor = tensor[0, 0]  # For now, select the first species and level
         tensor = tensor.unsqueeze(dim=0)  # Add feature dimension
-        nt = NamedTensor(tensor, ["features", "lat", "lon"], ["Analysis"])
+        nt = NamedTensor(tensor, ["features", "lat", "lon"], ["O3"])
         return nt
 
 

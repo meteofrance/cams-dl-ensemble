@@ -151,7 +151,7 @@ def _process_input_date(
 
         # Gather informations about which file is being processed
         path = Path(dataset.encoding["source"])
-        model_name: str = path.parent.stem
+        model_name: str = path.parent.stem[5:]  # Remove PMACC from model name
         _, _, _, leadtime, level, species_name = path.stem.split("_")
 
         # Drop unused coordinates
@@ -182,7 +182,7 @@ def _process_input_date(
         # 2 of the CTM models are on slightly different grids.
         # We simply redefine their longitude and latitude to be the
         # same as the other models, creating an accepted imprecision.
-        if model_name in ("PMACCLOTOS", "PMACCSILAM"):
+        if model_name in ("LOTOS", "SILAM"):
             dataset.coords["latitude"] = lat_coordinates.latitude.values
             dataset.coords["longitude"] = lon_coordinates.longitude.values
 
@@ -493,10 +493,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--plot_output",
         type=Path,
-        default=Path("availability_calendar.png"),
+        default=Path("./data/availability_calendar.png"),
         help=(
             "Where the date availability plot will be saved. "
-            "Defaults to `./availability_calendar.png`"
+            "Defaults to `./data/availability_calendar.png`"
         ),
     )
     args = parser.parse_args()

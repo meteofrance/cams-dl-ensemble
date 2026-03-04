@@ -11,6 +11,7 @@ from cams.settings import PROCESSED_DATA_DIR
 
 class Sample:
     """CAMS sample.
+
     Responsibilities:
     - Load a datapoint from the CAMS dataset from a given date and leadtime.
     """

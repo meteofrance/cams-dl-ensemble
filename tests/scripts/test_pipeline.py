@@ -10,8 +10,8 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
     Test the cli interface entry points.
 
     - Training.
-    - Retrain a checkpoint. X TODO
-    - Checkpoint writting. X TODO
+    - Checkpoint writting.
+    - Retrain from a checkpoint. X TODO
     - Predict from checkpoint. X TODO
     - Export to onnx. X TODO
     - Predict from onnx. X TODO
@@ -26,8 +26,8 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
         create_dummy_input_netcdf(input_path, *img_size)
         create_dummy_target_netcdf(target_path, *img_size)
 
-    # Train with a test config.
-    fit_and_val(
+    # Train with a test config
+    ckpt_folder = fit_and_val(
         args=[
             "--config",
             "tests/test_config.yaml",
@@ -35,3 +35,9 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
             str(tmp_dataset_dir),
         ],
     )
+
+    # Check checkpoint writing
+    assert isinstance(ckpt_folder, Path)
+    assert ckpt_folder.exists()
+    ckpt_paths = list(ckpt_folder.glob("*.ckpt"))
+    assert len(ckpt_paths) > 0

@@ -27,7 +27,7 @@ from cams.plmodule import CAMSLightningModule
 def fit_and_val(
     args: list[str] | None = None,
     ckpt_path: Path | None = None,
-) -> None:
+) -> None | Path:
     """Fits a model and runs the validation stage on the best checkpoint.
 
     Args:
@@ -41,6 +41,7 @@ def fit_and_val(
     cli = LightningCLI(
         model_class=CAMSLightningModule,
         datamodule_class=CAMSDataModule,
+        save_config_kwargs={"overwrite": True},
         args=args,
         run=False,
     )
@@ -50,6 +51,9 @@ def fit_and_val(
 
     # Validate on the best checkpoint
     cli.trainer.validate(cli.model, cli.datamodule.val_dataloader(), ckpt_path="best")
+
+    if cli.trainer.checkpoint_callback:
+        return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
 
 
 if __name__ == "__main__":

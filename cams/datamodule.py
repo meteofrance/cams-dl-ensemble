@@ -98,7 +98,6 @@ class CAMSDataModule(LightningDataModule):
         dataset_kwargs = {
             "processed_dir": self.processed_dir,
             "transform_sequence": self.transform_sequence,
-            "reverse_transform_sequence": self.reverse_transform_sequence,
         }
         if stage == "fit":
             self.train_dataset = (

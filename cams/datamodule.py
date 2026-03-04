@@ -50,7 +50,7 @@ class CAMSDataModule(LightningDataModule):
         self.processed_dir = processed_dir
         self.transform_sequence = nn.Sequential(*transforms)
         self.reverse_transform_sequence = nn.Sequential(
-            [
+            *[
                 transform.reverse_transform()
                 for transform in reversed(transforms)
                 if isinstance(transform, ReversibleTransformMixin)

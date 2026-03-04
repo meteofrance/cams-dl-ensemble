@@ -15,7 +15,15 @@ from torch.optim import AdamW
 from torchmetrics import MetricCollection
 from typing_extensions import override
 
-from cams.metrics import Accuracy, Bias, MeanAbsoluteError, MeanSquaredError
+from cams.metrics import (
+    Accuracy,
+    Bias,
+    F1Score,
+    FalseAlarmRate,
+    FalsePositiveRate,
+    MeanAbsoluteError,
+    MeanSquaredError,
+)
 from cams.plots import plot_y_vs_yhat
 
 
@@ -62,12 +70,19 @@ class CAMSLightningModule(LightningModule):
                     [MeanSquaredError(squared=False), MeanAbsoluteError()]
                 ),
                 MetricCollection(
-                    [Accuracy("O3", threshold=120), Bias("O3", threshold=120)],
+                    [
+                        Accuracy("O3", threshold=120),
+                        Bias("O3", threshold=120),
+                        F1Score("O3", threshold=120),
+                        FalseAlarmRate("O3", threshold=120),
+                        FalsePositiveRate("O3", threshold=120),
+                    ],
                     prefix="O3/",
                     postfix="_120",
                 ),
             ]
         )
+        print()
         return metrics
 
     @override

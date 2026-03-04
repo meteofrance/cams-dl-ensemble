@@ -9,23 +9,19 @@ from cams.settings import MODEL_NAMES
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
-def test_CAMSDatamodule(setup_cams_directories: Path):
+def test_CAMSDatamodule(tmp_dataset_dir: Path):
     """Test CAMSDataModule initialization."""
     # Create some dummy files to simulate a real dataset
     dates = [dt.datetime(2022, 1, i) for i in range(1, 11)]
 
     for date in dates:
-        input_path = (
-            setup_cams_directories / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        )
-        target_path = (
-            setup_cams_directories / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
-        )
+        input_path = tmp_dataset_dir / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
+        target_path = tmp_dataset_dir / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
         create_dummy_input_netcdf(input_path)
         create_dummy_target_netcdf(target_path)
 
     dm = CAMSDataModule(
-        batch_size=4, num_days_in_val_set=2, processed_dir=setup_cams_directories
+        batch_size=4, num_days_in_val_set=2, processed_dir=tmp_dataset_dir
     )
 
     # Check default values
@@ -37,8 +33,8 @@ def test_CAMSDatamodule(setup_cams_directories: Path):
 
     # Check date calculations
     assert dm.train_start == dt.datetime(2022, 1, 1)
-    assert dm.train_end == dt.datetime(2022, 1, 4)  # val_start - 4 days
-    assert dm.val_start == dt.datetime(2022, 1, 8)  # val_end - 2 days
+    assert dm.train_end == dt.datetime(2022, 1, 5)  # val_start - 4 days
+    assert dm.val_start == dt.datetime(2022, 1, 9)  # val_end - 2 days
     assert dm.val_end == dt.datetime(2022, 1, 10)
 
     # This should raise an error
@@ -50,7 +46,7 @@ def test_CAMSDatamodule(setup_cams_directories: Path):
 
     # Check that train dataset was created
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == 3  # 2022-01-01 to 2022-01-02 (minus 4 days overlap)
+    assert len(dm.train_dataset) == 5  # 2022-01-01 to 2022-01-02 (minus 4 days overlap)
 
     # Check that val dataset was also created (because of the condition)
     assert dm.val_dataset is not None

@@ -31,14 +31,28 @@ source .venv/bin/activate  # On windows: .venv/Script/Activate.ps1
 pip install .
 ```
 
+### Using `skew` or `kurtosis` statistics
+To use `skew` or `kurtosis` statistics in the `ReplaceEnsembleByStatisctics` transform, you should export:
+```bash
+export SCIPY_ARRAY_API=1
+```
+This enables array API from `scipy`. Please see https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for more details.
+
 
 ## Usage
 
-To plot a sample from the CAMS dataset:
+* To plot a sample from the CAMS dataset:
 
-```
+```bash
 python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```
+
+* To train a very simple model on a few samples of the CAMS dataset:
+
+```bash
+python scripts/fit_and_val.py [--trainer.fast_dev_run True] --config configs/dummy.yaml
+```
+Use the `fast_dev_run` option to deactivate checkpointing and logging.
 
 ## Required data
 Before using this project to train a model, you will need to gather the necessary weather data. A full description of the data required is available in [doc/dataset.md](doc/dataset.md).

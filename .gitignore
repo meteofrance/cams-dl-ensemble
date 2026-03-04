@@ -218,3 +218,4 @@ matplotlibrc
 
 # Pytorch lightning logs
 lightning_logs/
+mlflow.db

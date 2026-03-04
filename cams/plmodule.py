@@ -3,7 +3,7 @@ from tempfile import NamedTemporaryFile
 from typing import Any
 
 import torch
-import torchmetrics as tm
+from torchmetrics import MetricCollection, MeanSquaredError, MeanAbsoluteError
 from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
@@ -53,14 +53,16 @@ class CAMSLightningModule(LightningModule):
     #                                      SETUP                                       #
     ####################################################################################
 
-    def get_metrics(self) -> tm.MetricCollection:
+    def get_metrics(self) -> MetricCollection:
         """Defines the metrics that will be computed during train and valid steps."""
-        metrics_dict = {
-            "MSE": tm.MeanSquaredError(squared=False),
-            "MAE": tm.MeanAbsoluteError(),
-            "MeanAbsPercError": tm.MeanAbsolutePercentageError(),
-        }
-        return tm.MetricCollection(metrics_dict)
+        metrics = MetricCollection(
+            [
+                MetricCollection(
+                    [MeanSquaredError(squared=False), MeanAbsoluteError()]
+                ),
+            ]
+        )
+        return metrics
 
     @override
     def configure_optimizers(self) -> AdamW:

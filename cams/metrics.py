@@ -1,8 +1,8 @@
 import torch
+import torchmetrics as tm
 from mfai.pytorch.metrics import FAR
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor
-import torchmetrics as tm
 from torchmetrics import Metric
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score
 from typing_extensions import override

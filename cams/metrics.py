@@ -181,7 +181,7 @@ class FalsePositiveRate(Metric):
 
         binary_preds = torch.where(preds_feature >= self.threshold, 1, 0)
         binary_target = torch.where(target_feature >= self.threshold, 1, 0)
-        self.true_negatives += torch.sum((binary_preds == 1) & (binary_target == 1))
+        self.true_negatives += torch.sum((binary_preds == 0) & (binary_target == 0))
         self.false_positives += torch.sum((binary_preds == 1) & (binary_target == 0))
 
     @override

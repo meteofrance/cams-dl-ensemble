@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 
 from lightning.pytorch.cli import LightningCLI
+from mfai.pytorch.models import IdentityModel
 
 from cams.datamodule import CAMSDataModule
 from cams.plmodule import CAMSLightningModule
@@ -46,14 +47,22 @@ def fit_and_val(
         run=False,
     )
 
-    # Train
-    cli.trainer.fit(cli.model, datamodule=cli.datamodule)
+    # Do not train the model type is 'IdentityModel'
+    model = cli.model.model._orig_mod  # cli.model.model has type OptimizedModule
+    if isinstance(model, IdentityModel):
+        cli.trainer.validate(cli.model, cli.datamodule)
 
-    # Validate on the best checkpoint
-    cli.trainer.validate(cli.model, cli.datamodule.val_dataloader(), ckpt_path="best")
+    else:
+        # Train
+        cli.trainer.fit(cli.model, datamodule=cli.datamodule)
 
-    if cli.trainer.checkpoint_callback:
-        return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
+        # Validate on the best checkpoint
+        cli.trainer.validate(
+            cli.model, cli.datamodule.val_dataloader(), ckpt_path="best"
+        )
+
+        if cli.trainer.checkpoint_callback:
+            return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
 
 
 if __name__ == "__main__":

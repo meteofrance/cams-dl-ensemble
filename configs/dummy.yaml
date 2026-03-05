@@ -18,6 +18,7 @@ trainer:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
         logging_interval: step
+    - class_path: cams.plmodule.MLFlowSystemMonitorCallback
   max_epochs: 3
   limit_train_batches: 3
   limit_val_batches: 3

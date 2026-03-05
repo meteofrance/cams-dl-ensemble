@@ -33,7 +33,8 @@ class Accuracy(BinaryAccuracy):
         """
         Args:
             feature: Name of the feature on which the score is computed.
-            threshold: Threshold value used to binarize both predictions and target features.
+            threshold: Threshold value used to binarize both predictions
+            and target features.
         """
         super().__init__()
         self.feature = feature
@@ -61,7 +62,8 @@ class F1Score(BinaryF1Score):
         """
         Args:
             feature: Name of the feature on which the score is computed.
-            threshold: Threshold value used to binarize both predictions and target features.
+            threshold: Threshold value used to binarize both predictions
+            and target features.
         """
         super().__init__()
         self.feature = feature
@@ -89,7 +91,8 @@ class FalseAlarmRate(FAR):
         """
         Args:
             feature: Name of the feature on which the score is computed.
-            threshold: Threshold value used to binarize both predictions and target features.
+            threshold: Threshold value used to binarize both predictions
+            and target features.
         """
         super().__init__(task='binary')
         self.feature = feature
@@ -118,7 +121,8 @@ class Bias(Metric):
         """
         Args:
             feature: Name of the feature on which the score is computed.
-            threshold: Threshold value used to binarize both predictions and target values.
+            threshold: Threshold value used to binarize both predictions
+            and target values.
         """
         super().__init__()
         full_state_update = True  # noqa
@@ -161,7 +165,8 @@ class FalsePositiveRate(Metric):
         """
         Args:
             feature: Name of the feature on which the score is computed.
-            threshold: Threshold value used to binarize both predictions and target values.
+            threshold: Threshold value used to binarize both predictions
+            and target values.
         """
         super().__init__()
         full_state_update = True  # noqa

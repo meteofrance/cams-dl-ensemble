@@ -41,7 +41,7 @@ def test_cams_dataset_creation(tmp_dataset_dir: Path):
 
     # Check names
     assert list(x.feature_names) == MODEL_NAMES
-    assert list(y.feature_names) == ["Analysis"]
+    assert list(y.feature_names) == ["O3"]
 
 
 def test_cams_dataset_no_valid_samples(tmp_dataset_dir: Path):

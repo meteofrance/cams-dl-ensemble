@@ -1,20 +1,32 @@
+import json
+from pathlib import Path
+
+import pytest
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.transforms import ExtractInputStatisticalFeatures, Normalize
-import pytest
-import json
-from pathlib import Path
+
 
 def test_ExtractInputStatisticalFeatures():
     """Test of ExtractInputStatisticalFeatures tranform."""
-    input_data = torch.tensor([[[1.0, 2.0], [3.0, 4.0]],
-                              [[5.0, 6.0], [7.0, 8.0]],
-                              [[9.0, 10.0], [11.0, 12.0]]])
-    input_nt = NamedTensor(
-        input_data, names=["features", "lat", "lon"], feature_names=["model_A", "model_B", "model_C"]
+    input_data = torch.tensor(
+        [
+            [[1.0, 2.0], [3.0, 4.0]],
+            [[5.0, 6.0], [7.0, 8.0]],
+            [[9.0, 10.0], [11.0, 12.0]],
+        ]
     )
-    target_nt = NamedTensor(torch.ones(1, 2, 2), names=["features", "lat", "lon"], feature_names=["analysis"])
+    input_nt = NamedTensor(
+        input_data,
+        names=["features", "lat", "lon"],
+        feature_names=["model_A", "model_B", "model_C"],
+    )
+    target_nt = NamedTensor(
+        torch.ones(1, 2, 2),
+        names=["features", "lat", "lon"],
+        feature_names=["analysis"],
+    )
 
     transform = ExtractInputStatisticalFeatures(
         ["mean", "amin", "argmin", "amax", "argmax", "median", "skew", "kurtosis"]
@@ -36,8 +48,8 @@ def test_ExtractInputStatisticalFeatures():
     torch.testing.assert_close(result_nt["amax"], expected_maxs)
 
     # Test 4: Argmin and argmax
-    expected_argmins = torch.tensor([[[0., 0.], [0., 0.]]])
-    expected_argmaxs = torch.tensor([[[2., 2.], [2., 2.]]])
+    expected_argmins = torch.tensor([[[0.0, 0.0], [0.0, 0.0]]])
+    expected_argmaxs = torch.tensor([[[2.0, 2.0], [2.0, 2.0]]])
     torch.testing.assert_close(result_nt["argmin"], expected_argmins)
     torch.testing.assert_close(result_nt["argmax"], expected_argmaxs)
 
@@ -58,6 +70,7 @@ def test_ExtractInputStatisticalFeatures():
     assert result_nt.tensor.shape == (0, 2, 2)
     assert target_nt_result == target_nt
 
+
 @pytest.fixture
 def x_named_tensor() -> NamedTensor:
     """Fixture used by the transform tests that returns fake input data."""
@@ -77,9 +90,12 @@ def y_named_tensor() -> NamedTensor:
     return NamedTensor(
         tensor=tensor,
         names=["features", "lat", "lon"],
-        feature_names=["O3",],
+        feature_names=[
+            "O3",
+        ],
         feature_dim_name="features",
     )
+
 
 @pytest.fixture
 def stats_file_path(tmp_path: Path) -> Path:
@@ -102,7 +118,10 @@ expected_y = torch.tensor(
     dtype=torch.float32,
 )
 
-def test_normalize(x_named_tensor: NamedTensor, y_named_tensor:NamedTensor, stats_file_path: Path):
+
+def test_normalize(
+    x_named_tensor: NamedTensor, y_named_tensor: NamedTensor, stats_file_path: Path
+):
     transform = Normalize(stats_file_path=stats_file_path)
     x_processed, y_processed = transform((x_named_tensor, y_named_tensor))
     assert torch.allclose(

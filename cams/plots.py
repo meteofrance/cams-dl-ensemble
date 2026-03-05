@@ -113,6 +113,7 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     fig.suptitle(title, size=16)
 
     plt.savefig(save_path)
+    plt.close()
 
 
 def plot_y_vs_yhat(
@@ -136,6 +137,7 @@ def plot_y_vs_yhat(
 
     fig.suptitle(title, size=18)
     plt.savefig(save_path)
+    plt.close()
 
 
 def plot_named_tensor(
@@ -164,3 +166,4 @@ def plot_named_tensor(
     fig.suptitle(title, size=20)
     plt.tight_layout()
     plt.savefig(save_path)
+    plt.close()

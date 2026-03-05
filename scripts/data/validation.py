@@ -78,9 +78,8 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         )
 
     # Check that input sample has all the 11 CAMS models
-    if (
-        not set(str(model_name) for model_name in input_sample.model.values)
-        == set(MODEL_NAMES)
+    if not set(str(model_name) for model_name in input_sample.model.values) == set(
+        MODEL_NAMES
     ):
         coords_model_names = set(
             str(model_name) for model_name in input_sample.model.values

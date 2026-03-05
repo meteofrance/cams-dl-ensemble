@@ -94,7 +94,7 @@ class FalseAlarmRate(FAR):
             threshold: Threshold value used to binarize both predictions
             and target features.
         """
-        super().__init__(task='binary')
+        super().__init__(task="binary")
         self.feature = feature
         self.feature_threshold = threshold
 

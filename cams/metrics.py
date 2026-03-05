@@ -2,24 +2,25 @@ import torch
 from mfai.pytorch.metrics import FAR
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor
-from torchmetrics import MeanAbsoluteError, MeanSquaredError, Metric
+import torchmetrics as tm
+from torchmetrics import Metric
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score
 from typing_extensions import override
 
 
-class MeanSquaredError(MeanSquaredError):
+class MeanSquaredError(tm.MeanSquaredError):
     """MeanSquaredError wrapper to works with NamedTensor."""
 
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
         super().update(preds.tensor, target.tensor)
 
 
-class MeanAbsoluteError(MeanAbsoluteError):
+class MeanAbsoluteError(tm.MeanAbsoluteError):
     """MeanSquaredError wrapper to works with NamedTensor."""
 
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
         super().update(preds.tensor, target.tensor)
 
 
@@ -37,11 +38,11 @@ class Accuracy(BinaryAccuracy):
             and target features.
         """
         super().__init__()
-        self.feature = feature
-        self.feature_threshold = threshold
+        self.feature: str = feature
+        self.feature_threshold: Tensor = torch.tensor(threshold)
 
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
         preds_feature: Tensor = preds[self.feature]
         target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
@@ -66,11 +67,11 @@ class F1Score(BinaryF1Score):
             and target features.
         """
         super().__init__()
-        self.feature = feature
-        self.feature_threshold = threshold
+        self.feature: str = feature
+        self.feature_threshold: Tensor = torch.tensor(threshold)
 
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
         preds_feature: Tensor = preds[self.feature]
         target_feature: Tensor = target[self.feature]
         assert preds_feature.shape == target_feature.shape
@@ -117,7 +118,7 @@ class Bias(Metric):
     Bias = (TP + FP) / (TP + FN)
     """
 
-    def __init__(self, feature: str = None, threshold: float = None) -> None:
+    def __init__(self, feature: str, threshold: float) -> None:
         """
         Args:
             feature: Name of the feature on which the score is computed.
@@ -126,8 +127,8 @@ class Bias(Metric):
         """
         super().__init__()
         full_state_update = True  # noqa
-        self.feature = feature
-        self.threshold = threshold
+        self.feature: str = feature
+        self.threshold: Tensor = torch.tensor(threshold)
 
         self.true_positives: Tensor
         self.false_positives: Tensor
@@ -161,7 +162,7 @@ class FalsePositiveRate(Metric):
     FPR = FP / (FP + TN)
     """
 
-    def __init__(self, feature: str = None, threshold: float = None) -> None:
+    def __init__(self, feature: str, threshold: float) -> None:
         """
         Args:
             feature: Name of the feature on which the score is computed.
@@ -170,8 +171,8 @@ class FalsePositiveRate(Metric):
         """
         super().__init__()
         full_state_update = True  # noqa
-        self.feature = feature
-        self.threshold = threshold
+        self.feature: str = feature
+        self.threshold: Tensor = torch.tensor(threshold)
 
         self.true_negatives: Tensor
         self.false_positives: Tensor

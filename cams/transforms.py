@@ -53,13 +53,12 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     @override
     def forward(
-        self, input: NamedTensor, target: NamedTensor
+        self, inputs: tuple[NamedTensor, NamedTensor]
     ) -> tuple[NamedTensor, NamedTensor]:
         """Compute statistical features from input and return them with target.
 
         Args:
-            input: Input NamedTensor containing ensemble data with spatial dimensions.
-            target: Target NamedTensor to be preserved unchanged.
+            inputs: tuple NamedTensor containing ensemble data with spatial dimensions.
 
         Returns:
             NamedTensor: Computed statistics as features.
@@ -69,10 +68,11 @@ class ExtractInputStatisticalFeatures(nn.Module):
             For skew and kurtosis, scipy.stats is used with nan_policy="omit".
             For median, only the values are returned (not indices) from torch.median().
         """
-        input_tensor: Tensor = input.tensor
+        x, y = inputs
+        input_tensor: Tensor = x.tensor
         stat_tensor: Tensor = torch.empty(
             len(self.statistic_types),
-            *[input_tensor.shape[idx] for idx in input.spatial_dim_idx],
+            *[input_tensor.shape[idx] for idx in x.spatial_dim_idx],
         )
         for idx, statistic_type in enumerate(self.statistic_types):
             if statistic_type in ["skew", "kurtosis"]:
@@ -89,7 +89,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
             names=["features", "lat", "lon"],
             feature_names=self.statistic_types,
         )
-        return stat_nt, target
+        return stat_nt, y
 
 
 class ReversibleTransformMixin:
@@ -152,9 +152,10 @@ class Normalize(nn.Module, ReversibleTransformMixin):
 
     @override
     def forward(
-        self, x: NamedTensor, y: NamedTensor
+        self, inputs: tuple[NamedTensor, NamedTensor]
     ) -> tuple[NamedTensor, NamedTensor]:
         """Applies normalization."""
+        x, y = inputs
         return self.normalize_namedtensor(x), self.normalize_namedtensor(y)
 
 
@@ -184,9 +185,10 @@ class ReverseNormalize(nn.Module):
 
     @override
     def forward(
-        self, x: NamedTensor, y: NamedTensor
+        self, inputs: tuple[NamedTensor, NamedTensor]
     ) -> tuple[NamedTensor, NamedTensor]:
         """Applies denormalization."""
+        x, y = inputs
         return self.denormalize_namedtensor(x), self.denormalize_namedtensor(y)
 
 

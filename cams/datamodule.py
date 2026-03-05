@@ -146,7 +146,7 @@ class CAMSDataModule(LightningDataModule):
 
     def undo_transforms(self, x: NamedTensor, y: NamedTensor):
         """Applies the reverse transforms on the given data."""
-        return self.reverse_transform_sequence(x, y)
+        return self.reverse_transform_sequence((x, y))
 
 
 if __name__ == "__main__":

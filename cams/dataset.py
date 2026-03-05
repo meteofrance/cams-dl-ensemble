@@ -65,7 +65,7 @@ class CAMSDataset(Dataset):
         """Returns one sample of training data."""
         sample = self.samples[idx]
         x, y = sample.input_data, sample.target_data
-        x, y = self.transform_sequence(x, y)
+        x, y = self.transform_sequence((x, y))
         return x, y
 
 

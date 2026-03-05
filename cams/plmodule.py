@@ -80,6 +80,7 @@ class CAMSLightningModule(LightningModule):
         """Runs data through the model. Separate from training step."""
         output = self.last_activation(self.model(inputs.tensor))
         y_hat = NamedTensor(output, names=inputs.names, feature_names=["AI_Forecast"])
+        _, y_hat = self.trainer.datamodule.undo_transforms(inputs, y_hat)  # type: ignore[reportAttributeAccessIssue]
         return y_hat
 
     def _shared_forward_step(
@@ -142,7 +143,7 @@ class CAMSLightningModule(LightningModule):
         """Plots images on some batches and log them in mlflow."""
         if not isinstance(self.logger, MLFlowLogger):
             return
-        interesting_batches = [0, 6, 12]
+        interesting_batches = [0]
         if batch_idx not in interesting_batches:
             return
         with NamedTemporaryFile(suffix=".png") as fp:
@@ -171,6 +172,8 @@ class CAMSLightningModule(LightningModule):
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
+        _, y_hat = self.trainer.datamodule.undo_transforms(x, y_hat)  # type: ignore[reportAttributeAccessIssue]
+        x, y = self.trainer.datamodule.undo_transforms(x, y)  # type: ignore[reportAttributeAccessIssue]
         self.metrics.update(y_hat.tensor, y.tensor)
         self.val_plot_step(batch_idx, y, y_hat)
         return loss

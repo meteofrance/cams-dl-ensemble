@@ -36,7 +36,7 @@ class CAMSDataset(Dataset):
             start_date: The first date of this dataset.
             end_date: The last date of this dataset.
             processed_dir: Path to the CAMS dataset's processed data.
-            transform_sequence: list of transforms to apply to the data after loading.
+            transform_sequence: transforms sequence applied to the data after loading.
         """
         self.start_date = start_date
         self.end_date = end_date
@@ -65,8 +65,7 @@ class CAMSDataset(Dataset):
         """Returns one sample of training data."""
         sample = self.samples[idx]
         x, y = sample.input_data, sample.target_data
-        for transform in self.transform_sequence:
-            x, y = transform(x, y)
+        x, y = self.transform_sequence((x, y))
         return x, y
 
 

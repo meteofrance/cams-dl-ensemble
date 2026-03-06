@@ -32,7 +32,7 @@ class CAMSLightningModule(LightningModule):
     Responsibilities:
         - Training loop
         - Model test
-        - Model eval
+        - Model evaluation
         - Logging
     """
 

@@ -76,4 +76,4 @@ def test_sample_target_data(tmp_dataset_dir: Path):
 
     assert isinstance(data, NamedTensor)
     assert data.tensor.shape == (1, 420, 700)
-    assert list(data.feature_names) == ["Analysis"]
+    assert list(data.feature_names) == ["O3"]

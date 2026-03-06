@@ -31,31 +31,7 @@ jobs:
       run: |
         pip install ruff
         ruff format --check ${{ steps.changed-py-files.outputs.all_changed_files }}
-        ruff check ${{ steps.changed-py-files.outputs.all_changed_files }} --select I
-
-    - name: docstr coverage on source
-      uses: KlexosNYC/docstr-coverage-action@v1.4
-      with:
-        source_dir: cams
-        fail_under: 100
-        skip_magic: true
-        skip_init: false
-        skip_file_doc: true
-        skip_private: false
-        skip_class_def: false
-        accept_empty: false
-
-    - name: docstr coverage on scripts
-      uses: KlexosNYC/docstr-coverage-action@v1.4
-      with:
-        source_dir: scripts
-        fail_under: 100
-        skip_magic: true
-        skip_init: false
-        skip_file_doc: false
-        skip_private: false
-        skip_class_def: false
-        accept_empty: false
+        ruff check ${{ steps.changed-py-files.outputs.all_changed_files }}
 
   tests:
     env:

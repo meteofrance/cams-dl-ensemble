@@ -3,7 +3,6 @@ from tempfile import NamedTemporaryFile
 from typing import Any
 
 import torch
-import torchmetrics as tm
 from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
@@ -13,8 +12,18 @@ from PIL import Image
 from pytorch_lightning.utilities import rank_zero_only
 from torch import Tensor
 from torch.optim import AdamW
+from torchmetrics import MetricCollection
 from typing_extensions import override
 
+from cams.metrics import (
+    Accuracy,
+    Bias,
+    F1Score,
+    FalseAlarmRate,
+    FalsePositiveRate,
+    MeanAbsoluteError,
+    MeanSquaredError,
+)
 from cams.plots import plot_y_vs_yhat
 
 
@@ -23,7 +32,7 @@ class CAMSLightningModule(LightningModule):
     Responsibilities:
         - Training loop
         - Model test
-        - Model eval
+        - Model evaluation
         - Logging
     """
 
@@ -53,14 +62,28 @@ class CAMSLightningModule(LightningModule):
     #                                      SETUP                                       #
     ####################################################################################
 
-    def get_metrics(self) -> tm.MetricCollection:
+    def get_metrics(self) -> MetricCollection:
         """Defines the metrics that will be computed during train and valid steps."""
-        metrics_dict = {
-            "MSE": tm.MeanSquaredError(squared=False),
-            "MAE": tm.MeanAbsoluteError(),
-            "MeanAbsPercError": tm.MeanAbsolutePercentageError(),
-        }
-        return tm.MetricCollection(metrics_dict)
+        metrics = MetricCollection(
+            [
+                MetricCollection(
+                    [MeanSquaredError(squared=False), MeanAbsoluteError()]
+                ),
+                MetricCollection(
+                    [
+                        Accuracy("O3", threshold=120),
+                        Bias("O3", threshold=120),
+                        F1Score("O3", threshold=120),
+                        FalseAlarmRate("O3", threshold=120),
+                        FalsePositiveRate("O3", threshold=120),
+                    ],
+                    prefix="O3/",
+                    postfix="_120",
+                ),
+            ]
+        )
+        print()
+        return metrics
 
     @override
     def configure_optimizers(self) -> AdamW:
@@ -79,7 +102,9 @@ class CAMSLightningModule(LightningModule):
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
         output = self.last_activation(self.model(inputs.tensor))
-        y_hat = NamedTensor(output, names=inputs.names, feature_names=["AI_Forecast"])
+        y_hat = NamedTensor(
+            output, names=inputs.names, feature_names=inputs.feature_names
+        )
         _, y_hat = self.trainer.datamodule.undo_transforms(inputs, y_hat)  # type: ignore[reportAttributeAccessIssue]
         return y_hat
 
@@ -91,7 +116,7 @@ class CAMSLightningModule(LightningModule):
         """
         output = self.last_activation(self.model(x.tensor))
         loss = self.loss(output, y.tensor)
-        y_hat = NamedTensor(output, names=y.names, feature_names=["AI_Forecast"])
+        y_hat = NamedTensor(output, names=y.names, feature_names=y.feature_names)
         return y_hat, loss
 
     ####################################################################################
@@ -174,7 +199,7 @@ class CAMSLightningModule(LightningModule):
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
         _, y_hat = self.trainer.datamodule.undo_transforms(x, y_hat)  # type: ignore[reportAttributeAccessIssue]
         x, y = self.trainer.datamodule.undo_transforms(x, y)  # type: ignore[reportAttributeAccessIssue]
-        self.metrics.update(y_hat.tensor, y.tensor)
+        self.metrics.update(y_hat, y)
         self.val_plot_step(batch_idx, y, y_hat)
         return loss
 

@@ -83,4 +83,4 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
 
     # Check names
     assert list(inputs.feature_names) == MODEL_NAMES
-    assert list(targets.feature_names) == ["Analysis"]
+    assert list(targets.feature_names) == ["O3"]

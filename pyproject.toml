@@ -17,12 +17,14 @@ dependencies = [
   "xarray>=2026.1.0",
   "torch==2.10.*",
   "mfai>=6.3.0",
-  "earthkit",
+  "earthkit==0.13.2",
   "joblib==1.5.3",
   "cfgrib==0.9.15.1",
   "lightning==2.6.1",
   "jsonargparse[signatures]<=4.41.0",
   "mlflow==3.10.*",
+
+  # Dev dependencies
   "pyright[nodejs]",
   "ruff",
   "pytest",

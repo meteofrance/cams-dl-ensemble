@@ -9,7 +9,7 @@ from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
 def fit_model(args: list[str] | None = None) -> None | Path:
-    """Fits a model and runs the validation stage on the best checkpoint.
+    """Fits a model, with the same arguments as in command line, and returns ckpt path.
 
     Args:
         args: arguments givent to the LightningCLI object.

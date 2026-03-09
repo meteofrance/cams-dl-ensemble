@@ -44,7 +44,7 @@ class MLFlowSystemMonitorCallback(L.Callback):
                 "MLFlowSystemMonitorCallback requires MLFlowLogger"
             )
 
-        self.system_monitor = SystemMetricsMonitor(
+        self.system_monitor = SystemMetricsMonitor(  # type: ignore[reportUninitializedInstanceVariable]
             run_id=trainer.logger.run_id,
         )
         self.system_monitor.start()

@@ -44,9 +44,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        pip install . --break-system-packages
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install
+
+    - name: Install the project
+      run: uv sync --locked --all-extras --dev
 
     - name: Install git  # necessary for the tj-action/changed-py-files
       run: apt-get update && apt-get install -y git
@@ -62,9 +69,9 @@ jobs:
     - name: Type hinting with pyright on changed files
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
+        uv run pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
 
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        pytest --cov=cams --cov=scripts --cov-fail-under=95 tests/
+        uv run pytest --cov=cams --cov=scripts --cov-fail-under=95 tests/

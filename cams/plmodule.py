@@ -1,6 +1,6 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any
+from typing import Any, Literal
 
 import torch
 from lightning import LightningModule
@@ -25,6 +25,7 @@ from cams.metrics import (
     MeanSquaredError,
 )
 from cams.plots import plot_y_vs_yhat
+from cams.transforms import ExtractInputStatisticalFeatures
 
 
 class CAMSLightningModule(LightningModule):
@@ -41,6 +42,7 @@ class CAMSLightningModule(LightningModule):
         model: BaseModel,
         loss: torch.nn.Module,
         learning_rate: float = 0.0001,
+        training_mode: Literal["residual", "classic"] = "classic",
     ) -> None:
         """CAMS lightning module
 
@@ -48,12 +50,14 @@ class CAMSLightningModule(LightningModule):
             model: A model inheriting from mfai.BaseModel
             loss: The loss function.
             learning_rate: The optimizer's learning rate. Defaults to 0.0001.
+            training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
         """
         super().__init__()
         self.model = model
         self.model = torch.compile(self.model)
         self.loss = loss
         self.learning_rate = learning_rate
+        self.training_mode = training_mode
 
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
@@ -61,6 +65,23 @@ class CAMSLightningModule(LightningModule):
     ####################################################################################
     #                                      SETUP                                       #
     ####################################################################################
+
+    @override
+    def setup(self, stage: str):
+        """Setup lightning module and check that arguments are compatible."""
+        if self.training_mode == "residual":
+            check_median = False
+            for transform in self.trainer.datamodule.transform_sequence:  # type: ignore[reportAttributeAccessIssue]
+                if isinstance(transform, ExtractInputStatisticalFeatures):
+                    if "median" in transform.statistic_types:
+                        check_median = True
+                        break
+            if not check_median:
+                raise Exception(
+                    "Model is in residual training mode but datamodule does not "
+                    "contain an ExtractInputStatisticalFeatures transform with median "
+                    "as statistic_type. Please add it in your data configuration."
+                )
 
     def get_metrics(self) -> MetricCollection:
         """Defines the metrics that will be computed during train and valid steps."""
@@ -102,8 +123,12 @@ class CAMSLightningModule(LightningModule):
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
         output = self.last_activation(self.model(inputs.tensor))
+        if self.training_mode == "residual":
+            y_hat_tensor = inputs["median"] + output
+        else:
+            y_hat_tensor = output
         y_hat = NamedTensor(
-            output, names=inputs.names, feature_names=inputs.feature_names
+            y_hat_tensor, names=inputs.names, feature_names=inputs.feature_names
         )
         _, y_hat = self.trainer.datamodule.undo_transforms(inputs, y_hat)  # type: ignore[reportAttributeAccessIssue]
         return y_hat
@@ -115,8 +140,12 @@ class CAMSLightningModule(LightningModule):
         Step shared by training, validation and test steps.
         """
         output = self.last_activation(self.model(x.tensor))
-        loss = self.loss(output, y.tensor)
-        y_hat = NamedTensor(output, names=y.names, feature_names=y.feature_names)
+        if self.training_mode == "residual":
+            y_hat_tensor = x["median"] + output
+        else:
+            y_hat_tensor = output
+        loss = self.loss(y_hat_tensor, y.tensor)
+        y_hat = NamedTensor(y_hat_tensor, names=y.names, feature_names=y.feature_names)
         return y_hat, loss
 
     ####################################################################################

@@ -1,0 +1,52 @@
+# lightning.pytorch==2.6.1
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      save_dir: /scratch/shared/cams/logs/
+      experiment_name: basic
+      run_name: median_correction
+      log_model: True
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        filename: "{epoch:02d}-{val_loss:.2f}"
+        monitor: val_loss
+        mode: min
+        save_top_k: 1    # Save the best model
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
+  max_epochs: 20
+  log_every_n_steps: 10
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.half_unet.HalfUNet
+    init_args:
+      in_channels: 1  # only median
+      out_channels: 1
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.MSELoss
+  training_mode: residual  # y = f(x) + x
+
+data:
+  batch_size: 16
+  num_workers: 10
+  prefetch_factor: 2
+  num_days_in_val_set: 365
+  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
+  transforms:
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - median
+    - class_path: cams.transforms.Normalize

@@ -24,14 +24,20 @@ import numpy as np
 import xarray as xr
 from tqdm import tqdm
 
-from cams.settings import RAW_DATA_DIR, PROCESSED_DATA_DIR, MODEL_NAMES
+from cams.settings import (
+    CAMS_DATASET_DIR,
+    MODEL_NAMES,
+    PROCESSED_DATA_DIR,
+    RAW_DATA_DIR,
+)
 
 
 def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
     """Validates a CAMS dataset.
 
     Args:
-        dataset_dir: Path to the dir containing the unprocessed downloaded files.
+        raw_dir: Path to the dir containing the unprocessed downloaded files.
+        processed_dir: Path to the dir containing the processed data.
         plot_save_path: Path where the dataset calendar plot will be saved.
     """
 
@@ -51,7 +57,8 @@ def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
         ]
     ):
         raise FileNotFoundError(
-            f"Dataset directory hierarchy not respected at dataset path {dataset_dir}."
+            "Dataset directory hierarchy not respected at "
+            f"dataset path {CAMS_DATASET_DIR}."
         )
 
     input_dir: Path = processed_dir / "input"
@@ -126,7 +133,12 @@ def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
         if not all(
             (
                 len(input_dataarray.coords[coord]) == len(input_sample.coords[coord])
-                and (input_dataarray.coords[coord].to_index() == input_sample.coords[coord].to_index()).all().item()
+                and (
+                    input_dataarray.coords[coord].to_index()
+                    == input_sample.coords[coord].to_index()
+                )
+                .all()
+                .item()
                 for coord in (
                     "model",
                     "species",
@@ -141,7 +153,7 @@ def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
                 "Target file coordinates does not match input coordinates."
                 f"sample input:\n{input_sample}\n\nother input: {input_dataarray}"
             )
-        
+
         if not len(input_dataarray.model) == 11:
             breakpoint()
             raise ValueError("22222 asdfasdfasdf")

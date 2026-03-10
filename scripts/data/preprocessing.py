@@ -40,8 +40,10 @@ from cams.settings import (
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
+
 class CAMSCoordinateError(Exception):
     """Exception raised when encountering a data point with missing coordinates."""
+
     pass
 
 
@@ -224,12 +226,10 @@ def _process_input_date(
         )
 
         # Check coordinate contents
-        model_coord_names = set(
-            str(name) for name in output_dataset.model.values
-        )
+        model_coord_names = set(str(name) for name in output_dataset.model.values)
         if not model_coord_names == set(MODEL_NAMES):
             missing = model_coord_names | set(MODEL_NAMES)  # Union
-            missing -= model_coord_names & set(MODEL_NAMES) # -= Intersection
+            missing -= model_coord_names & set(MODEL_NAMES)  # -= Intersection
             raise CAMSCoordinateError(f"Missing {missing} model.")
 
         # Save
@@ -260,7 +260,9 @@ def _process_target_month(
 
     # Find the netcdf files for the given month
     file_paths: list[Path] = list(
-        RAW_DATA_DIR.glob(f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf")
+        RAW_DATA_DIR.glob(
+            f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf"
+        )
     )
     if file_paths == []:
         return
@@ -324,7 +326,9 @@ def _process_target_month(
     # Save a target file for each dates required
     for date in required_dates:
         # Check if output path exists
-        save_path = PROCESSED_DATA_DIR / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+        save_path = (
+            PROCESSED_DATA_DIR / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+        )
         if save_path.exists():
             continue
 
@@ -373,7 +377,8 @@ def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
 
     # Verify the input dir hierarchy
     if not all(
-        dir in list(PMACC_MODEL_NAMES) + ["ensemble"] for dir in os.listdir(RAW_DATA_DIR)
+        dir in list(PMACC_MODEL_NAMES) + ["ensemble"]
+        for dir in os.listdir(RAW_DATA_DIR)
     ):
         raise ValueError("The dir given to process has an unknown file structure.")
 

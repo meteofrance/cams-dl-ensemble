@@ -1,0 +1,29 @@
+# lightning.pytorch==2.6.1
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      save_dir: /scratch/shared/cams/logs/
+      experiment_name: baseline
+      run_name: mean
+  max_steps: 1
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.IdentityModel
+  loss:
+    class_path: torch.nn.MSELoss
+
+data:
+  batch_size: 2
+  num_workers: 3
+  prefetch_factor: 2
+  num_days_in_val_set: 365
+  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
+  transforms:
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - mean

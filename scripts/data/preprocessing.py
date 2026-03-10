@@ -34,30 +34,36 @@ from cams.settings import (
     ECMWF_MF_PARAMETER_NAME_MAPPING,
     KILOGRAM_TO_MICROGRAM,
     MODEL_NAMES,
+    PROCESSED_DATA_DIR,
+    RAW_DATA_DIR,
 )
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
 
+class CAMSCoordinateError(Exception):
+    """Exception raised when encountering a data point with missing coordinates."""
+
+    pass
+
+
 def report_available_data(
-    raw_dir: Path,
     plot_save_path: Path,
 ) -> None:
     """Prints what data is available in the raw dir.
     Informs on what will be processed
 
     Args:
-        raw_dir: Path to the raw data dir.
         plot_save_path: Path where the availability calendar
             plot will be saved.
     """
 
     # Gather file names
     input_file_stems: set[str] = set(
-        path.stem for path in raw_dir.glob("PMACC*/*.grib")
+        path.stem for path in RAW_DATA_DIR.glob("PMACC*/*.grib")
     )
     target_file_stems: set[str] = set(
-        path.stem for path in raw_dir.glob("ensemble/**/*.netcdf")
+        path.stem for path in RAW_DATA_DIR.glob("ensemble/**/*.netcdf")
     )
 
     # Gather available dates
@@ -79,7 +85,7 @@ def report_available_data(
         stem.split("_")[-1] for stem in input_file_stems
     ) | set(
         ECMWF_MF_PARAMETER_NAME_MAPPING[path.stem]
-        for path in raw_dir.glob("ensemble/*")
+        for path in RAW_DATA_DIR.glob("ensemble/*")
     )
 
     # Gather available levels
@@ -89,7 +95,7 @@ def report_available_data(
 
     # Gather available models
     available_models: set[str] = set(
-        path.stem for path in raw_dir.iterdir() if path.stem in PMACC_MODEL_NAMES
+        path.stem for path in RAW_DATA_DIR.iterdir() if path.stem in PMACC_MODEL_NAMES
     )
 
     # Print report
@@ -118,8 +124,6 @@ def report_available_data(
 
 def _process_input_date(
     run_date_string: str,
-    raw_dir: Path,
-    processed_dir: Path,
     lat_coordinates: xr.DataArray,
     lon_coordinates: xr.DataArray,
 ) -> None:
@@ -130,14 +134,12 @@ def _process_input_date(
 
     Args:
         run_date_string: The run date string, written as YYYY_MM_DD.
-        raw_dir: Path to the raw dir.
-        processed_dir: Path to the processed dir.
         lat_coordinates: Latitude coordinates to normalize data to.
         lon_coordinates: Longitude coordinates to normalize data to.
     """
 
     # Check if the processed file exists
-    save_path = processed_dir / "input" / f"{run_date_string}.netcdf"
+    save_path = PROCESSED_DATA_DIR / "input" / f"{run_date_string}.netcdf"
     if save_path.exists():
         return
 
@@ -211,7 +213,7 @@ def _process_input_date(
         # Open grib files as xr.Dataset and classify them based on the weather
         # parameter they represent.
         output_dataset = xr.open_mfdataset(
-            paths=list(raw_dir.glob(f"**/{run_date_string}*.grib")),
+            paths=list(RAW_DATA_DIR.glob(f"**/{run_date_string}*.grib")),
             preprocess=preprocess_input,
             coords="minimal",  # type: ignore[reportArgumentType]
             compat="equals",
@@ -223,19 +225,23 @@ def _process_input_date(
             run_date=np.datetime64(run_date_string.replace("_", "-"))
         )
 
+        # Check coordinate contents
+        model_coord_names = set(str(name) for name in output_dataset.model.values)
+        if not model_coord_names == set(MODEL_NAMES):
+            missing = model_coord_names | set(MODEL_NAMES)  # Union
+            missing -= model_coord_names & set(MODEL_NAMES)  # -= Intersection
+            raise CAMSCoordinateError(f"Missing {missing} model.")
+
         # Save
         output_dataset.to_netcdf(save_path)
 
-    except gribapi.errors.WrongGridError as error:
+    except (gribapi.errors.WrongGridError, CAMSCoordinateError) as error:
         # Catch in consistent input data, and log it
-        print(f"Error on {run_date_string}")
-        print(error)
+        print(f"Error on {run_date_string}: {error}")
 
 
 def _process_target_month(
     required_dates: list[dt.datetime],
-    raw_dir: Path,
-    processed_dir: Path,
     levels: list[str],
 ) -> None:
     """Processes some raw netcdf files of monthly target (reanalysis) data.
@@ -245,8 +251,6 @@ def _process_target_month(
     Args:
         required_dates: List of dates expected to be extracted
             from one month of reanalysis.
-        raw_dir: Path to the dir containing the downloaded dataset.
-        processed_dir: Path to the dir where the processed dataset
             will be written.
         levels: List of levels to extract from raw data.
     """
@@ -256,7 +260,9 @@ def _process_target_month(
 
     # Find the netcdf files for the given month
     file_paths: list[Path] = list(
-        raw_dir.glob(f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf")
+        RAW_DATA_DIR.glob(
+            f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf"
+        )
     )
     if file_paths == []:
         return
@@ -320,7 +326,9 @@ def _process_target_month(
     # Save a target file for each dates required
     for date in required_dates:
         # Check if output path exists
-        save_path = processed_dir / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+        save_path = (
+            PROCESSED_DATA_DIR / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+        )
         if save_path.exists():
             continue
 
@@ -352,7 +360,7 @@ def _process_target_month(
         hour_dataarray.to_netcdf(save_path)
 
 
-def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> None:
+def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
     """Prepares a CAMS dataset for use in training.
 
     Args:
@@ -362,28 +370,25 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
         overwrite: If True, will remove existing files in the output dir.
     """
 
-    # Create paths
-    raw_dir: Path = dataset_dir / "raw"
-    processed_dir: Path = dataset_dir / "processed"
-
     # Overwrite
     if overwrite:
-        for file_path in processed_dir.glob("**/*.netcdf"):
+        for file_path in PROCESSED_DATA_DIR.glob("**/*.netcdf"):
             file_path.unlink()
 
     # Verify the input dir hierarchy
     if not all(
-        dir in list(PMACC_MODEL_NAMES) + ["ensemble"] for dir in os.listdir(raw_dir)
+        dir in list(PMACC_MODEL_NAMES) + ["ensemble"]
+        for dir in os.listdir(RAW_DATA_DIR)
     ):
         raise ValueError("The dir given to process has an unknown file structure.")
 
     # Create dirs
-    (processed_dir / "input").mkdir(exist_ok=True, parents=True)
-    (processed_dir / "target").mkdir(exist_ok=True, parents=True)
+    (PROCESSED_DATA_DIR / "input").mkdir(exist_ok=True, parents=True)
+    (PROCESSED_DATA_DIR / "target").mkdir(exist_ok=True, parents=True)
 
     # Gather dates
     run_date_strings: set[str] = set(
-        file_path.stem[:10] for file_path in raw_dir.glob(r"**/*.grib")
+        file_path.stem[:10] for file_path in RAW_DATA_DIR.glob(r"**/*.grib")
     )
 
     # ---------------------------------------------------------------------
@@ -398,8 +403,6 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
     joblib.Parallel(n_jobs=nb_jobs)(
         joblib.delayed(_process_input_date)(
             run_date_string,
-            raw_dir,
-            processed_dir,
             lat,
             lon,
         )
@@ -407,7 +410,7 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
     )
 
     # Extract leadtimes from the input file just processed
-    input_sample_path = list((processed_dir / "input").glob("*.netcdf"))[0]
+    input_sample_path = list((PROCESSED_DATA_DIR / "input").glob("*.netcdf"))[0]
     input_sample = xr.load_dataarray(input_sample_path)
     leadtimes = [int(leadtime) for leadtime in input_sample.coords["leadtime"].values]
 
@@ -419,11 +422,11 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
     required_dates: set[dt.datetime] = set(
         dt.datetime.strptime(path.stem[:10], r"%Y_%m_%d") + dt.timedelta(hours=leadtime)
         for leadtime in leadtimes
-        for path in processed_dir.glob(r"input/*.netcdf")
+        for path in PROCESSED_DATA_DIR.glob(r"input/*.netcdf")
     )
     required_months: set[dt.datetime] = set(
         dt.datetime.strptime(path.stem[:7], r"%Y_%m")
-        for path in processed_dir.glob(r"input/*.netcdf")
+        for path in PROCESSED_DATA_DIR.glob(r"input/*.netcdf")
     )
 
     # Process the target with parallel jobs.
@@ -434,8 +437,6 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
                 for date in required_dates
                 if (date.year == date_month.year and date.month == date_month.month)
             ],
-            raw_dir=raw_dir,
-            processed_dir=processed_dir,
             levels=input_sample.coords["level"].values,
         )
         for date_month in tqdm(required_months, desc="Target processing")
@@ -447,12 +448,12 @@ def process(dataset_dir: Path, nb_jobs: int = 15, overwrite: bool = False) -> No
 
     # Delete processed input files that do not have an associated target file
     for input_path in tqdm(
-        list((processed_dir / "input").glob("*.netcdf")), desc="Cleanup"
+        list((PROCESSED_DATA_DIR / "input").glob("*.netcdf")), desc="Cleanup"
     ):
         date = dt.datetime.strptime(input_path.stem, r"%Y_%m_%d")
         if not all(
             (
-                processed_dir
+                PROCESSED_DATA_DIR
                 / "target"
                 / (date + dt.timedelta(hours=leadtime)).strftime(r"%Y_%m_%d_%H.netcdf")
             ).exists()
@@ -509,13 +510,11 @@ if __name__ == "__main__":
 
     # Report data availability
     report_available_data(
-        raw_dir=dataset_dir / "raw",
         plot_save_path=plot_save_path,
     )
 
     # Process raw dataset
     process(
-        dataset_dir=dataset_dir,
         nb_jobs=nb_jobs,
         overwrite=overwrite,
     )

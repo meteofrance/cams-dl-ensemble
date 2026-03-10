@@ -241,10 +241,3 @@ class CAMSLightningModule(LightningModule):
             self.metrics.compute(), logger=True, sync_dist=True, on_epoch=True
         )
         self.metrics.reset()
-
-
-def load_model(last_ckpt: Path) -> CAMSLightningModule:
-    """Loads a trained model, ready for inference."""
-    model = CAMSLightningModule.load_from_checkpoint(last_ckpt)
-    model.eval()  # disable randomness, dropout, etc...
-    return model

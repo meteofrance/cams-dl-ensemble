@@ -39,6 +39,7 @@ model:
         autopad_enabled: True
   loss:
     class_path: torch.nn.MSELoss
+  training_mode: residual  # y = f(x) + x
 
 data:
   batch_size: 2

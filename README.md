@@ -58,7 +58,7 @@ Use the `fast_dev_run` option to deactivate checkpointing and logging.
 * To compare the AI model to a baseline, you could also launch a script that compute metrics over the validation dataset:
 
 ```bash
-python scripts/fit_and_val.py --config configs/baseline.yaml
+python scripts/main.py validate --config configs/baseline.yaml
 ```
 
 * To visualize the metrics in MFLow:

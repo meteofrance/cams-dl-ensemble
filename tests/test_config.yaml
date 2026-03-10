@@ -7,6 +7,7 @@ trainer:
       save_dir: /tmp/cams_tests/
       experiment_name: dummy
       run_name: seed_666
+      log_model: True
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
@@ -14,6 +15,10 @@ trainer:
         monitor: val_loss
         mode: min
         save_top_k: 1    # Save the best model
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
   max_epochs: 1
   limit_train_batches: 2
   limit_val_batches: 2

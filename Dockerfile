@@ -16,7 +16,8 @@ ENV MY_APT='apt-get -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowIns
 
 # Install the necessary libraries to use the image as a ssh server host
 RUN $MY_APT update \
-    && $MY_APT install -y curl gcc g++ nano sudo libgeos-dev libeccodes-dev libeccodes-tools git vim openssh-server wget
+    && $MY_APT install -y curl gcc g++ nano sudo git vim git-lfs openssh-server wget \
+    && $MY_APT install -y libgeos-dev libeccodes-dev libeccodes-tools
 
 RUN mkdir -p /run/sshd \
     && curl -fsSL https://code-server.dev/install.sh | sh

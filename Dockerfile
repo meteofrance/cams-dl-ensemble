@@ -18,7 +18,6 @@ ENV MY_APT='apt-get -o "Acquire::https::Verify-Peer=false" -o "Acquire::AllowIns
 RUN $MY_APT update \
     && $MY_APT install -y curl gcc g++ nano sudo git vim git-lfs openssh-server wget \
     && $MY_APT install -y libgeos-dev libeccodes-dev libeccodes-tools
-    # && $MY_APT upgrade - y libeccodes-dev libeccodes-tools  # UserWarning: ecCodes 2.42.0 or higher is recommended. You are running version 2.34.1
 
 RUN mkdir -p /run/sshd \
     && curl -fsSL https://code-server.dev/install.sh | sh

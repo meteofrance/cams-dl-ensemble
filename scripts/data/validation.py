@@ -17,17 +17,17 @@ The script `scripts/data/2_compute_stats.py` should be executed after this one.
 import datetime as dt
 import math
 from pathlib import Path
+from typing import cast
 
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from pyparsing import cast
 from tqdm import tqdm
 
-from cams.settings import CAMS_DATASET_DIR, MODEL_NAMES
+from cams.settings import RAW_DATA_DIR, PROCESSED_DATA_DIR, MODEL_NAMES
 
 
-def validate(dataset_dir: Path, plot_save_path: Path) -> None:
+def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
     """Validates a CAMS dataset.
 
     Args:
@@ -43,19 +43,19 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
     if not all(
         path.exists() and len(list(path.iterdir())) > 0
         for path in [
-            dataset_dir / "raw",
-            dataset_dir / "raw" / "ensemble",
-            dataset_dir / "processed",
-            dataset_dir / "processed" / "input",
-            dataset_dir / "processed" / "target",
+            raw_dir,
+            raw_dir / "ensemble",
+            processed_dir,
+            processed_dir / "input",
+            processed_dir / "target",
         ]
     ):
         raise FileNotFoundError(
             f"Dataset directory hierarchy not respected at dataset path {dataset_dir}."
         )
 
-    input_dir: Path = dataset_dir / "processed" / "input"
-    target_dir: Path = dataset_dir / "processed" / "target"
+    input_dir: Path = processed_dir / "input"
+    target_dir: Path = processed_dir / "target"
     input_file_paths: list[Path] = list(input_dir.glob("*.netcdf"))
     target_file_paths: list[Path] = list(target_dir.glob("*.netcdf"))
 
@@ -78,6 +78,8 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         )
 
     # Check that input sample has all the 11 CAMS models
+    if not len(input_sample.model) == 11:
+        raise ValueError("asdfasdfasdf")
     if not set(str(model_name) for model_name in input_sample.model.values) == set(
         MODEL_NAMES
     ):
@@ -120,22 +122,29 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
                 "latitude, longitude, valid_date] is expected."
             )
 
-        # Check that the input and input sample coordinates match
+        # Check that the input and output sample coordinates match
         if not all(
-            (input_dataarray.coords[coord] == input_sample.coords[coord]).all().item()
-            for coord in (
-                "model",
-                "species",
-                "level",
-                "leadtime",
-                "latitude",
-                "longitude",
+            (
+                len(input_dataarray.coords[coord]) == len(input_sample.coords[coord])
+                and (input_dataarray.coords[coord].to_index() == input_sample.coords[coord].to_index()).all().item()
+                for coord in (
+                    "model",
+                    "species",
+                    "level",
+                    "leadtime",
+                    "latitude",
+                    "longitude",
+                )
             )
         ):
             raise ValueError(
                 "Target file coordinates does not match input coordinates."
-                f"sample input:\n{input_sample}\nother input: {input_dataarray}"
+                f"sample input:\n{input_sample}\n\nother input: {input_dataarray}"
             )
+        
+        if not len(input_dataarray.model) == 11:
+            breakpoint()
+            raise ValueError("22222 asdfasdfasdf")
 
         # Check run_date coordinate
         file_name_date = np.datetime64(input_path.stem.replace("_", "-"))
@@ -247,7 +256,7 @@ def validate(dataset_dir: Path, plot_save_path: Path) -> None:
         x=months,
         height=[len(list(target_dir.glob(f"{month}_*"))) for month in months],
     )
-    ax.set_title(f"Validation calendar for dataset {dataset_dir.stem}")
+    ax.set_title(f"Validation calendar for dataset {processed_dir.parents[-2].stem}")
     ax.set_ylabel("Number of leadtime available")
     ax.tick_params("x", rotation=30)
     plt.xticks(
@@ -262,13 +271,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-d",
-        "--dataset_dir",
-        type=Path,
-        default=CAMS_DATASET_DIR,
-        help="Path to the dataset dir. Defaults to value in settings.py",
-    )
-    parser.add_argument(
         "-o",
         "--output",
         type=Path,
@@ -276,8 +278,7 @@ if __name__ == "__main__":
         help="Path where the validation plot is saved.",
     )
     args = parser.parse_args()
-    dataset_dir: Path = args.dataset_dir
     plot_save_path: Path = args.output
 
     # Validation
-    validate(dataset_dir, plot_save_path)
+    validate(RAW_DATA_DIR, PROCESSED_DATA_DIR, plot_save_path)

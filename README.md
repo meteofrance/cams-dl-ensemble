@@ -50,7 +50,7 @@ python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 * To train a very simple model on a few samples of the CAMS dataset:
 
 ```bash
-python scripts/fit_and_val.py [--trainer.fast_dev_run True] --config configs/dummy.yaml
+python scripts/main.py fit [--trainer.fast_dev_run True] --config configs/dummy.yaml
 ```
 
 Use the `fast_dev_run` option to deactivate checkpointing and logging.
@@ -72,6 +72,14 @@ At Meteo-France with runai, simply run:
 ```bash
 runai mlflow --backend-store-uri PATH_TO_LOGS
 ```
+
+* To continue training a model from a chekpoint:
+
+```bash
+python scripts/main.py fit --config configs/dummy.yaml --ckpt_path PATH_TO_CKPT --trainer.max_epochs N
+```
+
+Don't forget to increase the maximum number of epochs (or steps), or the model will not train more than before.
 
 ## Required data
 Before using this project to train a model, you will need to gather the necessary weather data. A full description of the data required is available in [doc/dataset.md](doc/dataset.md).

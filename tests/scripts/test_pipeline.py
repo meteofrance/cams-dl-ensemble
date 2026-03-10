@@ -1,8 +1,36 @@
 import datetime as dt
 from pathlib import Path
 
-from scripts.fit_and_val import fit_and_val
+from lightning.pytorch.cli import LightningCLI
+
+from cams.datamodule import CAMSDataModule
+from cams.plmodule import CAMSLightningModule
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+
+
+def fit_model(args: list[str] | None = None) -> None | Path:
+    """Fits a model, with the same arguments as in command line, and returns ckpt path.
+
+    Args:
+        args: arguments givent to the LightningCLI object.
+            Allows configuration arguments such as:
+                ['--config', 'config/file/path.yaml']
+    """
+    # Create cli object with `run=False` to parse and instantiate
+    # LightningModule and DataModule, but not run subcommands
+    cli = LightningCLI(
+        model_class=CAMSLightningModule,
+        datamodule_class=CAMSDataModule,
+        save_config_kwargs={"overwrite": True},
+        args=args,
+        run=False,
+    )
+
+    # Train
+    cli.trainer.fit(cli.model, datamodule=cli.datamodule)
+
+    if cli.trainer.checkpoint_callback:
+        return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
 
 
 def test_full_pipeline(tmp_dataset_dir: Path) -> None:
@@ -27,7 +55,7 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
         create_dummy_target_netcdf(target_path, *img_size)
 
     # Train with a test config
-    ckpt_folder = fit_and_val(
+    ckpt_folder = fit_model(
         args=[
             "--config",
             "tests/test_config.yaml",

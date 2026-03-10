@@ -86,7 +86,7 @@ def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
 
     # Check that input sample has all the 11 CAMS models
     if not len(input_sample.model) == 11:
-        raise ValueError("asdfasdfasdf")
+        raise ValueError(f"Missing model in input for {input_sample.time}")
     if not set(str(model_name) for model_name in input_sample.model.values) == set(
         MODEL_NAMES
     ):

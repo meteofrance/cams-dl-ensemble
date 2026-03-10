@@ -154,10 +154,6 @@ def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
                 f"sample input:\n{input_sample}\n\nother input: {input_dataarray}"
             )
 
-        if not len(input_dataarray.model) == 11:
-            breakpoint()
-            raise ValueError("22222 asdfasdfasdf")
-
         # Check run_date coordinate
         file_name_date = np.datetime64(input_path.stem.replace("_", "-"))
         if file_name_date != input_dataarray.run_date:

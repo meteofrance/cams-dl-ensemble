@@ -2,15 +2,12 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
 
-import lightning as L
 import torch
 from lightning import LightningModule
-from lightning.fabric.utilities.exceptions import MisconfigurationException
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
 from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient
-from mlflow.system_metrics.system_metrics_monitor import SystemMetricsMonitor
 from PIL import Image
 from pytorch_lightning.utilities import rank_zero_only
 from torch import Tensor
@@ -28,30 +25,6 @@ from cams.metrics import (
     MeanSquaredError,
 )
 from cams.plots import plot_y_vs_yhat
-
-
-class MLFlowSystemMonitorCallback(L.Callback):
-    """Callback to log system metrics (GPU usage etc.) in MLFlow.
-    We use this callback because the default MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING
-    option from mlflow doesn't work with lightning.
-    See this issue: https://github.com/Lightning-AI/pytorch-lightning/issues/20563
-    """
-
-    @override
-    def on_fit_start(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
-        if not isinstance(trainer.logger, MLFlowLogger):
-            raise MisconfigurationException(
-                "MLFlowSystemMonitorCallback requires MLFlowLogger"
-            )
-
-        self.system_monitor = SystemMetricsMonitor(  # type: ignore[reportUninitializedInstanceVariable]
-            run_id=trainer.logger.run_id,
-        )
-        self.system_monitor.start()
-
-    @override
-    def on_fit_end(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
-        self.system_monitor.finish()
 
 
 class CAMSLightningModule(LightningModule):

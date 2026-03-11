@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Literal
@@ -43,6 +44,7 @@ class CAMSLightningModule(LightningModule):
         loss: torch.nn.Module,
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
+        last_activation: Callable = torch.nn.functional.relu,
     ) -> None:
         """CAMS lightning module
 
@@ -51,6 +53,7 @@ class CAMSLightningModule(LightningModule):
             loss: The loss function.
             learning_rate: The optimizer's learning rate. Defaults to 0.0001.
             training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
+            last_activation: Last activation function, after the model.
         """
         super().__init__()
         self.model = model
@@ -58,6 +61,7 @@ class CAMSLightningModule(LightningModule):
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
+        self.last_activation = last_activation
 
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
@@ -115,14 +119,14 @@ class CAMSLightningModule(LightningModule):
     #                                      SHARED STEPS                                #
     ####################################################################################
 
-    def last_activation(self, y_hat: Tensor) -> Tensor:
-        """Applies appropriate activation according to task."""
-        return torch.nn.functional.relu(y_hat)  # Appropriate for O3 but not for others?
+    def apply_last_activation(self, y_hat: Tensor) -> Tensor:
+        """Applies the last activation function."""
+        return self.last_activation(y_hat)
 
     @override
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
-        output = self.last_activation(self.model(inputs.tensor))
+        output = self.apply_last_activation(self.model(inputs.tensor))
         if self.training_mode == "residual":
             y_hat_tensor = inputs["median"] + output
         else:
@@ -139,7 +143,7 @@ class CAMSLightningModule(LightningModule):
         """Computes forward pass and loss for a batch.
         Step shared by training, validation and test steps.
         """
-        output = self.last_activation(self.model(x.tensor))
+        output = self.apply_last_activation(self.model(x.tensor))
         if self.training_mode == "residual":
             y_hat_tensor = x["median"] + output
         else:

@@ -4,9 +4,9 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      save_dir: /tmp/cams_tests/
-      experiment_name: dummy
-      run_name: seed_666
+      save_dir: /scratch/shared/cams/logs/
+      experiment_name: basic
+      run_name: median_correction
       log_model: True
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
@@ -19,37 +19,34 @@ trainer:
       init_args:
         logging_interval: step
     - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
-  max_epochs: 1
-  limit_train_batches: 2
-  limit_val_batches: 2
-  log_every_n_steps: 1
+  max_epochs: 25
+  log_every_n_steps: 10
 
 model:
   learning_rate: 0.0001
   model:
     class_path: mfai.pytorch.models.half_unet.HalfUNet
     init_args:
-      in_channels: 2  # 2 stats fields computed from 11 CAMS models
+      in_channels: 1  # only median
       out_channels: 1
       input_shape:
-        - 64
-        - 64
+        - 420
+        - 700
       settings:
-        num_filters: 8
         autopad_enabled: True
   loss:
     class_path: torch.nn.MSELoss
   training_mode: residual  # y = f(x) + x
 
 data:
-  batch_size: 2
-  num_workers: 1
+  batch_size: 16
+  num_workers: 10
   prefetch_factor: 2
-  num_days_in_val_set: 10
+  num_days_in_val_set: 365
   processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
   transforms:
     - class_path: cams.transforms.ExtractInputStatisticalFeatures
       init_args:
         statistic_types:
           - median
-          - amax
+    - class_path: cams.transforms.Normalize

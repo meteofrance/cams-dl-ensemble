@@ -121,19 +121,27 @@ def plot_y_vs_yhat(
 ) -> None:
     """Plots the ground truth VS the prediction from a model."""
     subplot_kw = {"projection": PlateCarree()}
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(11, 5), subplot_kw=subplot_kw)
-    axs = axs.flatten()
+    fig = plt.figure(constrained_layout=True, figsize=(9, 8))
+    subfig = fig.subfigures(nrows=2, ncols=1)
 
+    # Plot maps of species
+    axes = subfig[0].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
+    axs = axes.flat
     vmin, vmax = get_vmin_vmax("O3")
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
-
     axs[0].imshow(y.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[0], "Ground Truth = Analysis")
     img = axs[1].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[1], "Prediction")
-
-    cbar = fig.colorbar(img, ax=axs, fraction=0.023)
+    cbar = subfig[0].colorbar(img, ax=axes, fraction=0.023)
     cbar.set_label(UNITS["O3"], size=13)
+
+    # Plot difference btw y and y_hat
+    ax = subfig[1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    diff = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
+    img = ax.imshow(diff, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
+    format_axis(ax, "Difference")
+    cbar = subfig[1].colorbar(img, ax=ax, fraction=0.023)
 
     fig.suptitle(title, size=18)
     plt.savefig(save_path)

@@ -1,5 +1,4 @@
 import datetime as dt
-from collections.abc import Generator
 from functools import cached_property
 from pathlib import Path
 

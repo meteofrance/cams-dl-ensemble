@@ -1,4 +1,5 @@
 import datetime as dt
+from collections.abc import Generator
 from functools import cached_property
 from pathlib import Path
 
@@ -24,8 +25,8 @@ class CAMSDataset(Dataset):
 
     def __init__(
         self,
-        start_date: dt.datetime,
-        end_date: dt.datetime,
+        start_date: dt.datetime | None = None,
+        end_date: dt.datetime | None = None,
         processed_dir: Path = PROCESSED_DATA_DIR,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:
@@ -34,14 +35,19 @@ class CAMSDataset(Dataset):
 
         Args:
             start_date: The first date of this dataset.
+                Defaults to the fist date in the processed directory.
             end_date: The last date of this dataset.
+                Defaults to the last date in the processed directory.
             processed_dir: Path to the CAMS dataset's processed data.
             transform_sequence: transforms sequence applied to the data after loading.
         """
-        self.start_date = start_date
-        self.end_date = end_date
         self.processed_dir = processed_dir
         self.transform_sequence = transform_sequence
+
+        # Define start and end dates if not given
+        availabe_dates = get_run_dates(processed_dir)
+        self.start_date = start_date if start_date else availabe_dates[0]
+        self.end_date = end_date if end_date else availabe_dates[-1]
 
     @cached_property
     def samples(self) -> list[Sample]:
@@ -63,10 +69,13 @@ class CAMSDataset(Dataset):
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
-        sample = self.samples[idx]
-        x, y = sample.input_data, sample.target_data
-        x, y = self.transform_sequence((x, y))
-        return x, y
+        return self.transform_sequence(
+            (self.samples[idx].input_data, self.samples[idx].target_data)
+        )
+
+    def sample_iterator(self) -> Generator[Sample, None, None]:
+        """Iterator on the dataset's samples"""
+        return (sample for sample in self.samples)
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
         create_dummy_target_netcdf(target_path)
 
     dm = CAMSDataModule(
-        batch_size=4, num_days_in_val_set=2, processed_dir=tmp_dataset_dir
+        batch_size=4, processed_dir=tmp_dataset_dir
     )
 
     # Check default values
@@ -32,10 +32,10 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert dm.val_dataset is None
 
     # Check date calculations
-    assert dm.train_start == dt.datetime(2022, 1, 1)
-    assert dm.train_end == dt.datetime(2022, 1, 5)  # val_start - 4 days
-    assert dm.val_start == dt.datetime(2022, 1, 9)  # val_end - 2 days
-    assert dm.val_end == dt.datetime(2022, 1, 10)
+    assert dm.train_start == dt.datetime(2022, 1, 1)  # first date
+    assert dm.train_end == dt.datetime(2022, 1, 3)  # val_start - 4 days
+    assert dm.val_start == dt.datetime(2022, 1, 7)  # 70%
+    assert dm.val_end == dt.datetime(2022, 1, 10)  # last date
 
     # This should raise an error
     with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
@@ -46,11 +46,11 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
 
     # Check that train dataset was created
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == 5  # 2022-01-01 to 2022-01-02 (minus 4 days overlap)
+    assert len(dm.train_dataset) == 3  # 2022-01-01 to 2022-01-04
 
     # Check that val dataset was also created (because of the condition)
     assert dm.val_dataset is not None
-    assert len(dm.val_dataset) == 2  # 2022-01-3 to 2022-01-05
+    assert len(dm.val_dataset) == 4  # 2022-01-07 to 2022-01-10
 
     # Get train dataloader
     train_loader = dm.train_dataloader()
@@ -84,3 +84,20 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     # Check names
     assert list(inputs.feature_names) == MODEL_NAMES
     assert list(targets.feature_names) == ["O3"]
+
+    # Check custom start and end dates
+    dm = CAMSDataModule(
+        processed_dir=tmp_dataset_dir,
+        start_date=dt.datetime(2022, 1, 2),
+        val_date=dt.datetime(2022, 1, 7),
+        end_date=dt.datetime(2022, 1, 9),
+    )
+    assert dm.train_start == dt.datetime(2022, 1, 2)
+    assert dm.train_end == dt.datetime(2022, 1, 3)
+    assert dm.val_start == dt.datetime(2022, 1, 7)
+    assert dm.val_end == dt.datetime(2022, 1, 9)
+    dm.setup("fit")
+    assert dm.train_dataset is not None
+    assert len(dm.train_dataset) == 2  # 2022-01-02 to 2022-01-03
+    assert dm.val_dataset is not None
+    assert len(dm.val_dataset) == 3  # 2022-01-07 to 2022-01-09

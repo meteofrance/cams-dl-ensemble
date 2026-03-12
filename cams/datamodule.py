@@ -27,19 +27,25 @@ class CAMSDataModule(LightningDataModule):
         batch_size: int = 2,
         num_workers: int = 1,
         prefetch_factor: int = 2,
-        num_days_in_val_set: int = 365,
+        start_date: dt.datetime | None = None,
+        val_date: dt.datetime | None = None,
+        end_date: dt.datetime | None = None,
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
     ) -> None:
-        """_summary_
-
+        """
         Args:
             batch_size: The batch size. Defaults to 2.
             num_workers: Num of processes to load data from disk. Defaults to 1.
             prefetch_factor: Num of batches loaded in advance by each worker.
                 Defaults to 2.
-            num_days_in_val_set: The number of days of data from the end of the dataset
-                reserved for validation. Defaults to 365 days.
+            start_date: Dataset start date, inclusive. If None, earliest date
+                is selected. Defaults to None.
+            val_date: Date after which the data is reserved for validation,
+                inclusive. If None, is defined to be the date afte which there
+                are 30% of the available data. Defaults to None
+            end_date: Dataset end date, inclusive. If None, latest date is
+                selected. Defaults to None.
             processed_dir: Path to the CAMS processed dataset.
             transforms: list of transforms to apply to the data after loading it.
         """
@@ -48,6 +54,8 @@ class CAMSDataModule(LightningDataModule):
         self.num_workers = num_workers
         self.prefetch_factor = prefetch_factor
         self.processed_dir = processed_dir
+
+        # Define a transform and reverse transform sequences
         self.transform_sequence = nn.Sequential(*transforms)
         self.reverse_transform_sequence = nn.Sequential(
             *[
@@ -57,6 +65,7 @@ class CAMSDataModule(LightningDataModule):
             ]
         )
 
+        # Define kwargs given to the dataloader class for all datasets
         self.dataloader_kwargs = {
             "batch_size": self.batch_size,
             "collate_fn": self.collate_batch,
@@ -65,25 +74,67 @@ class CAMSDataModule(LightningDataModule):
             "prefetch_factor": self.prefetch_factor,
         }
 
-        run_dates = get_run_dates(self.processed_dir)
+        # Gather run dates available
+        run_dates: list[dt.datetime] = get_run_dates(self.processed_dir)
         if len(run_dates) == 0:
             raise FileNotFoundError(
                 f"CAMS dataset empty: {self.processed_dir / 'input'}"
             )
-        print(f"--> {len(run_dates)} runs available in whole dataset.")
 
-        # The val dataset spans 'num_days_in_val_set' days a the end of the period
-        self.val_end = run_dates[-1]
-        # The last date is included, so the first date is `num_days - 1` days ago:
-        self.val_start = self.val_end - dt.timedelta(days=num_days_in_val_set - 1)
+        # Set dates if they are not defined
+        start_date = start_date if start_date else run_dates[0]
+        end_date = end_date if end_date else run_dates[-1]
+        val_date = (
+            val_date
+            if val_date
+            else (
+                start_date + dt.timedelta(days=int((end_date - start_date).days * 0.7))
+            )
+        )
+        if not (start_date < val_date < end_date):
+            raise ValueError(
+                "Given start, val or end values are invalid:\n"
+                f"start {start_date} - val {val_date} - end {end_date}"
+            )
 
-        # The train dataset spans the rest of the period, starting at the begining
-        self.train_start = run_dates[0]
+        # Define training set start and end date
         # To avoid overlap in train/val sets, we remove the last 4 days from train set
-        self.train_end = self.val_start - dt.timedelta(days=4)
+        self.train_start = start_date
+        self.train_end = val_date - dt.timedelta(days=4)
 
-        print(f"--> Train dataset: from {self.train_start} to {self.train_end}")
-        print(f"--> Val dataset: from {self.val_start} to {self.val_end}")
+        # Define validation set start and end date
+        self.val_start = val_date
+        self.val_end = end_date
+
+        # Sanity checks on the train and validation dates
+        train_dates = [
+            date for date in run_dates if self.train_start <= date <= self.train_end
+        ]
+        val_dates = [
+            date for date in run_dates if self.val_start <= date <= self.val_end
+        ]
+        if (
+            any(date in val_dates for date in train_dates)
+            or any(date in train_dates for date in val_dates)
+            or len(train_dates) == 0
+            or len(val_dates) == 0
+        ):
+            raise ValueError(
+                "Start and end dates given for CAMS "
+                f"dataset {self.processed_dir.parent} are invalid and "
+                "produce an empty dataset."
+            )
+
+        # Display reports
+        print(f"--> {len(run_dates)} runs available in whole dataset.")
+        print(f"--> {len(run_dates)} runs available in selected dataset.")
+        print(
+            f"--> {len(train_dates)} train dates: "
+            f"from {self.train_start} to {self.train_end}"
+        )
+        print(
+            f"--> {len(val_dates)} val dates: from {self.val_start} to {self.val_end}"
+        )
 
         self.save_hyperparameters()
 

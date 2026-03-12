@@ -42,8 +42,10 @@ class CAMSDataModule(LightningDataModule):
             start_date: Dataset start date, inclusive. If None, earliest date
                 is selected. Defaults to None.
             val_date: Date after which the data is reserved for validation,
-                inclusive. If None, is defined to be the date afte which there
-                are 30% of the available data. Defaults to None
+                inclusive. If None, is defined to be 365 days before the end 
+                date or the date after which there are 30% of the available data
+                if there are less than 365 days of data available.
+                Defaults to None.
             end_date: Dataset end date, inclusive. If None, latest date is
                 selected. Defaults to None.
             processed_dir: Path to the CAMS processed dataset.
@@ -84,13 +86,12 @@ class CAMSDataModule(LightningDataModule):
         # Set dates if they are not defined
         start_date = start_date if start_date else run_dates[0]
         end_date = end_date if end_date else run_dates[-1]
-        val_date = (
-            val_date
-            if val_date
-            else (
-                start_date + dt.timedelta(days=int((end_date - start_date).days * 0.7))
+        if val_date is None and end_date - dt.timedelta(days=365) <= start_date:
+            val_date = start_date + dt.timedelta(
+                days=int((end_date - start_date).days * 0.7)
             )
-        )
+        elif val_date is None:
+            val_date = end_date - dt.timedelta(days=365)
         if not (start_date < val_date < end_date):
             raise ValueError(
                 "Given start, val or end values are invalid:\n"

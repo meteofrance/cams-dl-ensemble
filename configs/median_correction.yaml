@@ -43,7 +43,6 @@ data:
   batch_size: 16
   num_workers: 10
   prefetch_factor: 2
-  num_days_in_val_set: 365
   processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
   transforms:
     - class_path: cams.transforms.ExtractInputStatisticalFeatures

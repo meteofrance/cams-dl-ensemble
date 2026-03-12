@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Literal
@@ -11,7 +10,6 @@ from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient
 from PIL import Image
 from pytorch_lightning.utilities import rank_zero_only
-from torch import Tensor
 from torch.optim import AdamW
 from torchmetrics import MetricCollection
 from typing_extensions import override

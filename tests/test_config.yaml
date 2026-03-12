@@ -37,6 +37,7 @@ model:
       settings:
         num_filters: 8
         autopad_enabled: True
+        last_activation: ReLU
   loss:
     class_path: torch.nn.MSELoss
   training_mode: residual  # y = f(x) + x

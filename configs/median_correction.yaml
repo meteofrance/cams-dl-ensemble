@@ -34,12 +34,10 @@ model:
         - 700
       settings:
         autopad_enabled: True
+        last_activation: Identity
   loss:
     class_path: torch.nn.MSELoss
   training_mode: residual  # y = f(x) + x
-  # last_activation: torch.tanh | torch.functional.relu | class_path: torch.nn.Identity
-  last_activation:
-    class_path: torch.nn.Identity
 
 data:
   batch_size: 16

@@ -73,10 +73,6 @@ class CAMSDataset(Dataset):
             (self.samples[idx].input_data, self.samples[idx].target_data)
         )
 
-    def sample_iterator(self) -> Generator[Sample, None, None]:
-        """Iterator on the dataset's samples"""
-        return (sample for sample in self.samples)
-
 
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a CAMSDataset

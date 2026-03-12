@@ -33,8 +33,8 @@ class CAMSDataset(Dataset):
         A sample point is a date and a forecast id, used to instantiate a Sample.
 
         Args:
-            start_date: The first date of this dataset.
-            end_date: The last date of this dataset.
+            start_date: The first date of this dataset, inclusive.
+            end_date: The last date of this dataset, inclusive.
             processed_dir: Path to the CAMS dataset's processed data.
             transform_sequence: transforms sequence applied to the data after loading.
         """

@@ -42,7 +42,7 @@ class CAMSDataModule(LightningDataModule):
             start_date: Dataset start date, inclusive. If None, earliest date
                 is selected. Defaults to None.
             val_date: Date after which the data is reserved for validation,
-                inclusive. If None, is defined to be 365 days before the end 
+                inclusive. If None, is defined to be 365 days before the end
                 date or the date after which there are 30% of the available data
                 if there are less than 365 days of data available.
                 Defaults to None.

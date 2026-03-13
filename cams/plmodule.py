@@ -10,7 +10,6 @@ from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient
 from PIL import Image
 from pytorch_lightning.utilities import rank_zero_only
-from torch import Tensor
 from torch.optim import AdamW
 from torchmetrics import MetricCollection
 from typing_extensions import override
@@ -58,7 +57,6 @@ class CAMSLightningModule(LightningModule):
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
-
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
 
@@ -103,7 +101,6 @@ class CAMSLightningModule(LightningModule):
                 ),
             ]
         )
-        print()
         return metrics
 
     @override
@@ -115,14 +112,10 @@ class CAMSLightningModule(LightningModule):
     #                                      SHARED STEPS                                #
     ####################################################################################
 
-    def last_activation(self, y_hat: Tensor) -> Tensor:
-        """Applies appropriate activation according to task."""
-        return torch.nn.functional.relu(y_hat)  # Appropriate for O3 but not for others?
-
     @override
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
-        output = self.last_activation(self.model(inputs.tensor))
+        output = self.model(inputs.tensor)
         if self.training_mode == "residual":
             y_hat_tensor = inputs["median"] + output
         else:
@@ -139,7 +132,7 @@ class CAMSLightningModule(LightningModule):
         """Computes forward pass and loss for a batch.
         Step shared by training, validation and test steps.
         """
-        output = self.last_activation(self.model(x.tensor))
+        output = self.model(x.tensor)
         if self.training_mode == "residual":
             y_hat_tensor = x["median"] + output
         else:

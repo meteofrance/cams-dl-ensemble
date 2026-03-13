@@ -5,8 +5,8 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       save_dir: /scratch/shared/cams/logs/
-      experiment_name: basic
-      run_name: median_correction
+      experiment_name: stats_correction
+      run_name: median_norm_identity
       log_model: True
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
@@ -34,6 +34,7 @@ model:
         - 700
       settings:
         autopad_enabled: True
+        last_activation: Identity
   loss:
     class_path: torch.nn.MSELoss
   training_mode: residual  # y = f(x) + x

@@ -44,9 +44,9 @@ class CAMSDataset(Dataset):
         self.transform_sequence = transform_sequence
 
         # Define start and end dates if not given
-        availabe_dates = get_run_dates(processed_dir)
-        self.start_date = start_date if start_date else availabe_dates[0]
-        self.end_date = end_date if end_date else availabe_dates[-1]
+        available_dates = get_run_dates(processed_dir)
+        self.start_date = start_date if start_date else available_dates[0]
+        self.end_date = end_date if end_date else available_dates[-1]
 
     @cached_property
     def samples(self) -> list[Sample]:

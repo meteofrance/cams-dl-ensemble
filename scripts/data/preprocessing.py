@@ -15,11 +15,13 @@ python scripts/data/0_preprocessing.py \
 The script `scripts/data/validation.py` should be executed after this one.
 """
 
+from collections import defaultdict
 import datetime as dt
 import os
 import pickle as pkl
 from pathlib import Path
 from warnings import warn
+from dataclasses import dataclass
 
 import earthkit.data as ekd
 import gribapi
@@ -40,12 +42,62 @@ from cams.settings import (
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
+class CAMSError(Exception):
+    """Base class for all CAMS preprocessing errors."""
 
-class CAMSCoordinateError(Exception):
+class CAMSCoordinateError(CAMSError):
     """Exception raised when encountering a data point with missing coordinates."""
 
-    pass
+class CAMSGridError(CAMSError):
+    """A GRIB file has an unexpected grid layout (wraps gribapi.WrongGridError)."""
 
+class CAMSFileNotFoundError(CAMSError):
+    """Expected raw input or target files are missing."""
+
+class CAMSIOError(CAMSError):
+    """Low-level I/O failure (disk full, permission denied, etc.)."""
+
+class CAMSUnexpectedError(CAMSError):
+    """Catch-all for any other unexpected error during processing."""
+
+
+@dataclass
+class ProcessingError:
+    """Structured record of a single processing failure.
+
+    Attributes :
+        date: Identifier of the failing item.
+        stage: Pipeline stage: "input" or "target".
+        error_type: Short class name of the exception.
+        message: Human-readable description of the failure.
+    """
+    date: str
+    stage: str
+    error_type: str
+    message: str
+
+    @property
+    def month(self) -> str:
+        return self.date.replace("_", "-")[:7]
+
+def _wrap_exception(exc: Exception) -> CAMSError:
+    """Map any exception to the appropriate CAMSError subclass.
+
+    Args:
+        exc: The original exception
+
+    Returns:
+        A CAMSError instance wrapping the original message.
+    """
+    if isinstance(exc, CAMSError):
+        return exc
+    if isinstance(exc, gribapi.errors.WrongGridError):
+        return CAMSGridError(str(exc))
+    if isinstance(exc, FileNotFoundError):
+        return CAMSFileNotFoundError(str(exc))
+    if isinstance(exc, OSError):
+        return CAMSIOError(str(exc))
+    return CAMSUnexpectedError(f"{type(exc).__name__}: {exc}")
 
 # --------------------------- #
 #   Availability reporting    #
@@ -290,8 +342,9 @@ def _process_input_date(
     run_date_string: str,
     lat_coordinates: xr.DataArray,
     lon_coordinates: xr.DataArray,
-) -> None:
+) -> ProcessingError | None:
     """Process input data for a run date.
+
     Some of the input data are not on the same grid as the others.
     The difference is by a very small distance, so we normalize them
     all on the same latitude and longitude.
@@ -306,7 +359,7 @@ def _process_input_date(
     save_path = PROCESSED_DATA_DIR / "input" / f"{run_date_string}.netcdf"
     if save_path.exists():
         return
-
+    
     def preprocess_input(dataset: xr.Dataset) -> xr.Dataset:
         """Function called by xr.open_mfdataset to preprocess the
         `.netcdf` files before merging them.
@@ -332,10 +385,16 @@ def _process_input_date(
         return dataset
 
     try:
+        grib_paths = list(RAW_DATA_DIR.glob(f"**/{run_date_string}*.grib"))
+        if not grib_paths:
+            raise CAMSFileNotFoundError(
+                f"No .grib files found for run date {run_date_string}."
+            )
+        
         # Open grib files as xr.Dataset and classify them based on the weather
         # parameter they represent.
         output_dataset = xr.open_mfdataset(
-            paths=list(RAW_DATA_DIR.glob(f"**/{run_date_string}*.grib")),
+            paths=grib_paths,
             preprocess=preprocess_input,
             coords="minimal",  # type: ignore[reportArgumentType]
             compat="equals",
@@ -351,9 +410,14 @@ def _process_input_date(
         # Save
         output_dataset.to_netcdf(save_path)
 
-    except (gribapi.errors.WrongGridError, CAMSCoordinateError) as error:
-        # Catch in consistent input data, and log it
-        print(f"Error on {run_date_string}: {error}")
+    except Exception as exc:
+        wrapped = _wrap_exception(exc)
+        return ProcessingError(
+            date=run_date_string,
+            stage="input",
+            error_type=type(wrapped).__name__,
+            message=str(wrapped)
+        )
 
     return None
 
@@ -461,7 +525,7 @@ def _extract_hour_dataarray(
 def _process_target_month(
     required_dates: list[dt.datetime],
     levels: list[str],
-) -> None:
+) -> ProcessingError | None:
     """Processes some raw netcdf files of monthly target (reanalysis) data.
     Split the reanalysis monthly files into one file for each hour of the month
     they contain.
@@ -475,44 +539,50 @@ def _process_target_month(
 
     # Define the date month
     date_month = dt.date(required_dates[0].year, required_dates[0].month, 1)
+    month_str = date_month.strftime("%Y-%m")
 
-    # Find the netcdf files for the given month
-    file_paths: list[Path] = list(
-        RAW_DATA_DIR.glob(
-            f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf"
+    try:
+        # Find the netcdf files for the given month
+        file_paths: list[Path] = list(
+            RAW_DATA_DIR.glob(
+                f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf"
+            )
         )
-    )
-    if file_paths == []:
-        return
+        if not file_paths:
+            return None
 
-    # Open all the month's netcdf files, one for each weather parameter
-    month_dataarrays: list[xr.DataArray] = []
-    for file_path in file_paths:
-        # Load data array
-        data_array = _load_target_dataarray(file_path)
+        # Open all the month's netcdf files, one for each weather parameter
+        month_dataarrays: list[xr.DataArray] = [_load_target_dataarray(file_path) for file_path in file_paths]
 
-        # Concat to month dataaray
-        month_dataarrays.append(data_array)
+        # Validate        
+        if not month_dataarrays:
+            raise CAMSFileNotFoundError(f"No data arrays loaded for month {date_month}.")
 
-    # Validate
-    if len(month_dataarrays) == 0:
-        raise FileNotFoundError(f"File not founds for input {date_month}.")
+        # Save a target file for each dates required
+        for date in required_dates:
+            # Check if output path exists
+            save_path = (
+                PROCESSED_DATA_DIR / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+            )
+            if save_path.exists():
+                continue
 
-    # Save a target file for each dates required
-    for date in required_dates:
-        # Check if output path exists
-        save_path = (
-            PROCESSED_DATA_DIR / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+            # Select the right date for each dataaray
+            hour_dataarray = _extract_hour_dataarray(month_dataarrays, date, levels)
+
+            # Save
+            hour_dataarray.name = date.strftime(r"%Y_%m_%d_%H reanalisis")
+            hour_dataarray.to_netcdf(save_path)
+
+    except Exception as exc:
+        wrapped = _wrap_exception(exc)
+        return ProcessingError(
+            date=month_str,
+            stage="target",
+            error_type=type(wrapped).__name__,
+            message=str(wrapped)
         )
-        if save_path.exists():
-            continue
 
-        # Select the right date for each dataaray
-        hour_dataarray = _extract_hour_dataarray(month_dataarrays, date, levels)
-
-        # Save
-        hour_dataarray.name = date.strftime(r"%Y_%m_%d_%H reanalisis")
-        hour_dataarray.to_netcdf(save_path)
 
 
 # ------------ #
@@ -546,22 +616,71 @@ def _cleanup_orphan_inputs(leadtimes: list[int]) -> int:
             deleted += 1
     return deleted
 
-def _print_error_summary(errors: dict[str, str]) -> None:
-    """
+def _print_error_summary(errors: list[ProcessingError]) -> None:
+    """Print a structured terminal summary of all processing errors.
+    
+    Args:
+        errors: List of ProcessingError records collected during the run.
     """
     if not errors:
         print(" NO ERRORS")
         return
     
+    by_type: dict[str, int] = defaultdict(int)
+    for e in errors:
+        by_type[e.error_type] += 1
+    
     bar = '-' * 60
-    print(f"\nWARNING: {len(errors)} error(s) occurred during processing:")
+    print(f"\nWARNING: {len(errors)} error(s) across {len(by_type)} type(s)")
+    for etype, count in sorted(by_type.items(), key=lambda x: -x[1]):
+        print(f"  {etype:<28} {count:>4} occurence(s)")
     print(bar)
-    for key, message in errors:
-        print(f"  {key}")
-        print(f"   {message}")
+    for e in sorted(errors, key=lambda x: (x.stage, x.date)):
+        print(f"  [{e.stage:>6}] {e.date} -> {e.error_type}")
+        print(f"    {e.message}")
     print(bar)
 
-def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
+def _plot_error_report(
+        errors: list[ProcessingError],
+        plot_save_path: Path,
+    ) -> None:
+    """Save a grouped bar chart of errors per month and per type.
+
+    Args:
+        errors: List of ProcessingError records.
+        plot_save_month: Destination path for the PNG.
+    """
+    if not errors:
+        return
+
+    data: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for e in errors:
+        data[e.month][e.error_type] += 1
+
+    months = sorted(data.keys())
+    error_types = sorted({e.error_type for e in errors})
+    x = np.arange(len(months))
+    bar_width = 0.8 / max(len(error_types), 1)
+
+    _, ax = plt.subplots()
+    for i, etype in enumerate(error_types):
+        counts = [data[m].get(etype, 0) for m in months]
+        offset = (i - len(error_types) / 2 + 0.5) * bar_width
+        ax.bar(x + offset, counts, width=bar_width, label=etype)
+
+    ax.set_title("Processing errors per month")
+    ax.set_ylabel("Number of errors")
+    ax.set_xticks(x)
+    ax.set_xticklabels(months, rotation=30, ha="right")
+    ax.legend(title="Error type")
+    plt.savefig(plot_save_path)
+
+
+def process(
+        nb_jobs: int = 15, 
+        overwrite: bool = False, 
+        plot_error_path: Path = Path("./data/error_report.png"),
+    ) -> None:
     """Prepares a CAMS dataset for use in training.
 
     Args:
@@ -570,7 +689,7 @@ def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
             Defaults to 15.
         overwrite: If True, will remove existing files in the output dir.
     """
-    errors: dict[str, str] = {}
+    errors: list[ProcessingError] = []
 
     # Overwrite
     if overwrite:
@@ -619,10 +738,7 @@ def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
         )
         for run_date_string in tqdm(run_date_strings, desc="Input processing")
     )
-    for result in input_results:
-        if result is not None:
-            date_str, err_msg = result
-            errors[f"input/{date_str}"] = err_msg
+    errors.extend(r for r in input_results if r is not None)
 
     # Extract leadtimes from the input file just processed
     input_sample_path = list((PROCESSED_DATA_DIR / "input").glob("*.netcdf"))[0]
@@ -659,10 +775,7 @@ def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
         for date_month in tqdm(required_months, desc="Target processing")
     )
 
-    for result in target_results:
-        if result is not None:
-            date_str, err_msg = result
-            errors[f"target/{date_str}"] = err_msg
+    errors.extend(r for r in target_results if r is not None)
 
     # ---------------------------------------------------------------------
     # -------                   cleanup                            --------
@@ -675,6 +788,7 @@ def process(nb_jobs: int = 15, overwrite: bool = False) -> None:
 
     # Error summary
     _print_error_summary(errors)
+    _plot_error_report(errors, plot_error_path)
 
 
 if __name__ == "__main__":
@@ -715,6 +829,15 @@ if __name__ == "__main__":
             "Defaults to `./data/availability_calendar.png`"
         ),
     )
+    parser.add_argument(
+        "--plot_error",
+        type=Path,
+        default=Path("./data/error_report.png"),
+        help=(
+            "Where the error plot will be saved. "
+            "Defaults to `./data/error_report.png`"
+        ),
+    )
     args = parser.parse_args()
 
     # Validate command line arguments
@@ -722,6 +845,7 @@ if __name__ == "__main__":
     nb_jobs: int = args.nb_jobs
     overwrite: bool = args.overwrite
     plot_save_path: Path = args.plot_output
+    plot_error_path: Path = args.plot_error
 
     # Report data availability
     report_available_data(
@@ -732,4 +856,5 @@ if __name__ == "__main__":
     process(
         nb_jobs=nb_jobs,
         overwrite=overwrite,
+        plot_error_path=plot_error_path
     )

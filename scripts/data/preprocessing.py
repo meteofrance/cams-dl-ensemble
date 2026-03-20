@@ -19,15 +19,7 @@ import datetime as dt
 import os
 import pickle as pkl
 from pathlib import Path
-from warnings import warn, filterwarnings
-import atexit
-import shutil
-
-SCRATCH_TMP = '/scratch/shared/cams/tmp_lespilettec'
-os.makedirs(SCRATCH_TMP, exist_ok=True)
-
-atexit.register(shutil.rmtree, SCRATCH_TMP, ignore_errors=True)
-
+from warnings import warn
 
 import earthkit.data as ekd
 import gribapi
@@ -45,10 +37,6 @@ from cams.settings import (
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
 )
-
-os.environ["EARTHKIT_DATA_HOME"] = "/tmp/earthkit_cache"
-
-filterwarnings("ignore", message="ecCodes.*recommended")
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 

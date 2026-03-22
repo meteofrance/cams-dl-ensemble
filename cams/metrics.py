@@ -9,22 +9,6 @@ from torchmetrics import Metric
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score
 from typing_extensions import override
 
-# class NamedTensorMetricABC(ABC):
-#     """Abstract class for a wrapper around an existing metric to allow passing
-#     it a NamedTensor.
-#     """
-
-#     metric: Metric
-
-#     @abstractmethod
-#     def unpack_namedtensor(nt: NamedTensor) -> Tensor:
-#         raise NotImplementedError(
-#             "NamedTensorMetric should implement the unpack_namedtensor method."
-#         )
-
-
-# class NTMeanSquaredError(NamedTensorMetricABC, tm.MeanSquaredError):
-
 
 class MeanSquaredError(tm.MeanSquaredError):
     """MeanSquaredError wrapper to works with NamedTensor."""

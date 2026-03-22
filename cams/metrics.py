@@ -1,3 +1,5 @@
+from typing import overload
+
 import torch
 import torchmetrics as tm
 from mfai.pytorch.metrics import FAR
@@ -7,21 +9,49 @@ from torchmetrics import Metric
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score
 from typing_extensions import override
 
+# class NamedTensorMetricABC(ABC):
+#     """Abstract class for a wrapper around an existing metric to allow passing
+#     it a NamedTensor.
+#     """
+
+#     metric: Metric
+
+#     @abstractmethod
+#     def unpack_namedtensor(nt: NamedTensor) -> Tensor:
+#         raise NotImplementedError(
+#             "NamedTensorMetric should implement the unpack_namedtensor method."
+#         )
+
+
+# class NTMeanSquaredError(NamedTensorMetricABC, tm.MeanSquaredError):
+
 
 class MeanSquaredError(tm.MeanSquaredError):
     """MeanSquaredError wrapper to works with NamedTensor."""
 
+    @overload
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None: ...
+    @overload
+    def update(self, preds: Tensor, target: Tensor) -> None: ...
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
-        super().update(preds.tensor, target.tensor)
+    def update(self, preds: NamedTensor | Tensor, target: NamedTensor | Tensor) -> None:
+        preds = preds.tensor if isinstance(preds, NamedTensor) else preds
+        target = target.tensor if isinstance(target, NamedTensor) else target
+        super().update(preds, target)
 
 
 class MeanAbsoluteError(tm.MeanAbsoluteError):
     """MeanSquaredError wrapper to works with NamedTensor."""
 
+    @overload
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None: ...
+    @overload
+    def update(self, preds: Tensor, target: Tensor) -> None: ...
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
-        super().update(preds.tensor, target.tensor)
+    def update(self, preds: NamedTensor | Tensor, target: NamedTensor | Tensor) -> None:
+        preds = preds.tensor if isinstance(preds, NamedTensor) else preds
+        target = target.tensor if isinstance(target, NamedTensor) else target
+        super().update(preds, target)
 
 
 class Accuracy(BinaryAccuracy):
@@ -41,14 +71,19 @@ class Accuracy(BinaryAccuracy):
         self.feature: str = feature
         self.feature_threshold: Tensor = torch.tensor(threshold)
 
+    @overload
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None: ...
+    @overload
+    def update(self, preds: Tensor, target: Tensor) -> None: ...
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
-        preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = target[self.feature]
-        assert preds_feature.shape == target_feature.shape
+    def update(self, preds: NamedTensor | Tensor, target: NamedTensor | Tensor) -> None:
+        preds = preds[self.feature] if isinstance(preds, NamedTensor) else preds
+        target = target[self.feature] if isinstance(target, NamedTensor) else target
 
-        binary_preds = torch.where(preds_feature >= self.feature_threshold, 1, 0)
-        binary_target = torch.where(target_feature >= self.feature_threshold, 1, 0)
+        assert preds.shape == target.shape
+
+        binary_preds = torch.where(preds >= self.feature_threshold, 1, 0)
+        binary_target = torch.where(target >= self.feature_threshold, 1, 0)
 
         super().update(binary_preds, binary_target)
 
@@ -70,14 +105,19 @@ class F1Score(BinaryF1Score):
         self.feature: str = feature
         self.feature_threshold: Tensor = torch.tensor(threshold)
 
+    @overload
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None: ...
+    @overload
+    def update(self, preds: Tensor, target: Tensor) -> None: ...
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:  # type: ignore[reportIncompatibleMethodOverride]
-        preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = target[self.feature]
-        assert preds_feature.shape == target_feature.shape
+    def update(self, preds: NamedTensor | Tensor, target: NamedTensor | Tensor) -> None:
+        preds = preds[self.feature] if isinstance(preds, NamedTensor) else preds
+        target = target[self.feature] if isinstance(target, NamedTensor) else target
 
-        binary_preds = torch.where(preds_feature >= self.feature_threshold, 1, 0)
-        binary_target = torch.where(target_feature >= self.feature_threshold, 1, 0)
+        assert preds.shape == target.shape
+
+        binary_preds = torch.where(preds >= self.feature_threshold, 1, 0)
+        binary_target = torch.where(target >= self.feature_threshold, 1, 0)
 
         super().update(binary_preds, binary_target)
 
@@ -99,14 +139,18 @@ class FalseAlarmRate(FAR):
         self.feature = feature
         self.feature_threshold = threshold
 
+    @overload
+    def update(self, preds: NamedTensor, target: NamedTensor) -> None: ...
+    @overload
+    def update(self, preds: Tensor, target: Tensor) -> None: ...
     @override
-    def update(self, preds: NamedTensor, target: NamedTensor) -> None:
-        preds_feature: Tensor = preds[self.feature]
-        target_feature: Tensor = target[self.feature]
-        assert preds_feature.shape == target_feature.shape
+    def update(self, preds: NamedTensor | Tensor, target: NamedTensor | Tensor) -> None:
+        preds = preds[self.feature] if isinstance(preds, NamedTensor) else preds
+        target = target[self.feature] if isinstance(target, NamedTensor) else target
+        assert preds.shape == target.shape
 
-        binary_preds = torch.where(preds_feature >= self.feature_threshold, 1, 0)
-        binary_target = torch.where(target_feature >= self.feature_threshold, 1, 0)
+        binary_preds = torch.where(preds >= self.feature_threshold, 1, 0)
+        binary_target = torch.where(target >= self.feature_threshold, 1, 0)
 
         super().update(binary_preds, binary_target)
 

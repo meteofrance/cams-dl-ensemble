@@ -4,8 +4,8 @@ from typing import Any, Literal, cast
 
 import torch
 from lightning import LightningModule
-from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from lightning.pytorch.callbacks import Checkpoint, ModelCheckpoint
+from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
 from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient

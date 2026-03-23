@@ -45,6 +45,8 @@ PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 class CAMSCoordinateError(Exception):
     """Exception raised when encountering a data point with missing coordinates."""
 
+class CAMSOrphanFileError(Exception):
+    """Exception raised when cleaning orphan files"""
 
 @dataclass
 class ProcessingError:
@@ -583,20 +585,21 @@ def _process_target_month(
 # ------------ #
 
 
-def _cleanup_orphan_inputs(leadtimes: list[int]) -> int:
+def _cleanup_orphan_inputs(leadtimes: list[int]) -> list[ProcessingError] :
     """Remove input files that have no matching target files.
 
     Args:
         leadtimes: List of integer forecast leadtimes to check.
 
-    Returns:
-        Number of file deleted.
+    Raises:
+        CAMSOrphanFileError when a file is removed.
     """
-    deleted = 0
+    errors: list[ProcessingError] = []
     for input_path in tqdm(
         list((PROCESSED_DATA_DIR / "input").glob("*.netcdf")), desc="Cleanup"
     ):
         date = dt.datetime.strptime(input_path.stem, r"%Y_%m_%d")
+        month_str = date.strftime("%Y-%m")
         all_target_exist = all(
             (
                 PROCESSED_DATA_DIR
@@ -607,8 +610,16 @@ def _cleanup_orphan_inputs(leadtimes: list[int]) -> int:
         )
         if not all_target_exist:
             input_path.unlink()
-            deleted += 1
-    return deleted
+            errors.append(
+                ProcessingError(
+            date=month_str,
+            stage="input",
+            error_type=CAMSOrphanFileError.__name__,
+            message="Orphan file cleaned at: {input_path}",
+        )
+            )
+
+    return errors
 
 
 def _print_error_summary(errors: list[ProcessingError]) -> None:
@@ -667,7 +678,7 @@ def _plot_error_report(
     ax.set_title("Processing errors per month")
     ax.set_ylabel("Number of errors")
     ax.set_xticks(x)
-    ax.set_xticklabels(months, rotation=30, ha="right")
+    ax.set_xticklabels([m if i % 2 == 0 else "" for i, m in enumerate(months)], rotation=30, ha="right")
     ax.legend(title="Error type")
     plt.savefig(plot_save_path)
 
@@ -779,8 +790,9 @@ def process(
 
     # Delete processed input files that do not have an associated target file
     print("\nINFO Cleaning orphan input files...")
-    deleted = _cleanup_orphan_inputs(leadtimes)
-    print(f" Deleted {deleted} ophan input file(s).")
+    cleanup_errors = _cleanup_orphan_inputs(leadtimes)
+    errors.extend(cleanup_errors)
+    print(f" Deleted {len(cleanup_errors)} ophan input file(s).")
 
     # Error summary
     _print_error_summary(errors)

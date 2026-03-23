@@ -1,10 +1,9 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 import torch
 from lightning import LightningModule
-from lightning.pytorch.callbacks import Checkpoint, ModelCheckpoint
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel
 from mfai.pytorch.namedtensor import NamedTensor
@@ -15,7 +14,6 @@ from torch.optim import AdamW
 from torchmetrics import MetricCollection
 from typing_extensions import override
 
-from cams.datamodule import CAMSDataModule
 from cams.metrics import (
     Accuracy,
     Bias,
@@ -62,11 +60,6 @@ class CAMSLightningModule(LightningModule):
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
 
-        # Functionment variables
-        self.datamodule: CAMSDataModule = self.trainer.datamodule  # type: ignore[reportAttributeAccessIssue]
-        self.experiment_name: str = self.logger._experiment_name  # type: ignore[reportPrivateUsage]
-        self.run_name: str = self.logger._run_name  # type: ignore[reportPrivateUsage]
-
     ####################################################################################
     #                                      SETUP                                       #
     ####################################################################################
@@ -76,7 +69,7 @@ class CAMSLightningModule(LightningModule):
         """Setup lightning module and check that arguments are compatible."""
         if self.training_mode == "residual":
             check_median = False
-            for transform in self.datamodule.transform_sequence:
+            for transform in self.trainer.datamodule.transform_sequence:  # type: ignore[reportAttributeAccessIssue]
                 if isinstance(transform, ExtractInputStatisticalFeatures):
                     if "median" in transform.statistic_types:
                         check_median = True
@@ -130,7 +123,7 @@ class CAMSLightningModule(LightningModule):
         y_hat = NamedTensor(
             y_hat_tensor, names=inputs.names, feature_names=inputs.feature_names
         )
-        _, y_hat = self.datamodule.undo_transforms(inputs, y_hat)
+        _, y_hat = self.trainer.datamodule.undo_transforms(inputs, y_hat)  # type: ignore[reportAttributeAccessIssue]
         return y_hat
 
     def _shared_forward_step(
@@ -159,13 +152,12 @@ class CAMSLightningModule(LightningModule):
         if isinstance(self.logger, MLFlowLogger):
             print("\033[96mTracking run with MLFlow:\033[0m")
             print(
-                f"-> Experiment: {self._experiment_name} - "
+                f"-> Experiment: {self.logger._experiment_name} - "  # type: ignore[reportPrivateUsage]
                 f"Id: {self.logger.experiment_id}"
             )
-            print(f"-> Run: {self.run_name} - Id: {self.logger.run_id}")
-        checkpoint_callback: Checkpoint | None = self.trainer.checkpoint_callback
-        if checkpoint_callback and isinstance(checkpoint_callback, ModelCheckpoint):
-            print(f"-> Checkpoint path: {checkpoint_callback.dirpath}")
+            print(f"-> Run: {self.logger._run_name} - Id: {self.logger.run_id}")  # type: ignore[reportPrivateUsage]
+        if self.trainer.checkpoint_callback:
+            print(f"-> Checkpoint path: {self.trainer.checkpoint_callback.dirpath}")  # type: ignore[reportAttributeAcessIssue]
         print("\033[96m-------------------------\033[0m")
 
     @override
@@ -213,7 +205,7 @@ class CAMSLightningModule(LightningModule):
             with Image.open(fp.name) as img:
                 mlf_logger: MlflowClient = self.logger.experiment
                 mlf_logger.log_image(
-                    cast(str, self.logger.run_id),
+                    self.logger.run_id,  # type: ignore[reportArgumentType]
                     image=img,
                     key=f"val_plot_{batch_idx}",
                     step=self.current_epoch,
@@ -227,8 +219,8 @@ class CAMSLightningModule(LightningModule):
         x, y = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
-        _, y_hat = self.datamodule.undo_transforms(x, y_hat)
-        x, y = self.datamodule.undo_transforms(x, y)
+        _, y_hat = self.trainer.datamodule.undo_transforms(x, y_hat)  # type: ignore[reportAttributeAccessIssue]
+        x, y = self.trainer.datamodule.undo_transforms(x, y)  # type: ignore[reportAttributeAccessIssue]
         self.metrics.update(y_hat, y)
         self.val_plot_step(batch_idx, y, y_hat)
         return loss

@@ -15,16 +15,15 @@ python scripts/data/0_preprocessing.py \
 The script `scripts/data/validation.py` should be executed after this one.
 """
 
-from collections import defaultdict
 import datetime as dt
 import os
 import pickle as pkl
+from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from warnings import warn
-from dataclasses import dataclass
 
 import earthkit.data as ekd
-import gribapi
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -42,23 +41,9 @@ from cams.settings import (
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
-class CAMSError(Exception):
-    """Base class for all CAMS preprocessing errors."""
 
-class CAMSCoordinateError(CAMSError):
+class CAMSCoordinateError(Exception):
     """Exception raised when encountering a data point with missing coordinates."""
-
-class CAMSGridError(CAMSError):
-    """A GRIB file has an unexpected grid layout (wraps gribapi.WrongGridError)."""
-
-class CAMSFileNotFoundError(CAMSError):
-    """Expected raw input or target files are missing."""
-
-class CAMSIOError(CAMSError):
-    """Low-level I/O failure (disk full, permission denied, etc.)."""
-
-class CAMSUnexpectedError(CAMSError):
-    """Catch-all for any other unexpected error during processing."""
 
 
 @dataclass
@@ -71,6 +56,7 @@ class ProcessingError:
         error_type: Short class name of the exception.
         message: Human-readable description of the failure.
     """
+
     date: str
     stage: str
     error_type: str
@@ -78,26 +64,10 @@ class ProcessingError:
 
     @property
     def month(self) -> str:
+        """Returns the month from the date"""
+
         return self.date.replace("_", "-")[:7]
 
-def _wrap_exception(exc: Exception) -> CAMSError:
-    """Map any exception to the appropriate CAMSError subclass.
-
-    Args:
-        exc: The original exception
-
-    Returns:
-        A CAMSError instance wrapping the original message.
-    """
-    if isinstance(exc, CAMSError):
-        return exc
-    if isinstance(exc, gribapi.errors.WrongGridError):
-        return CAMSGridError(str(exc))
-    if isinstance(exc, FileNotFoundError):
-        return CAMSFileNotFoundError(str(exc))
-    if isinstance(exc, OSError):
-        return CAMSIOError(str(exc))
-    return CAMSUnexpectedError(f"{type(exc).__name__}: {exc}")
 
 # --------------------------- #
 #   Availability reporting    #
@@ -156,19 +126,26 @@ def _gather_availability_info() -> dict:
     return {
         "input_file_stems": input_file_stems,
         "target_file_stems": target_file_stems,
-        "available_dates" : available_dates,
-        "available_species" : available_species,
-        "available_levels" : available_levels,
-        "available_models" : available_models,
+        "available_dates": available_dates,
+        "available_species": available_species,
+        "available_levels": available_levels,
+        "available_models": available_models,
     }
 
+
 def _plot_availability(
-        target_file_stems: set[str],
-        available_levels: set[str],
-        plot_save_path: Path,
-        dataset_dir: Path,
+    target_file_stems: set[str],
+    available_levels: set[str],
+    plot_save_path: Path,
+    dataset_dir: Path,
 ) -> None:
-    """
+    """Plot an availability report from the files
+
+    Args:
+        target_file_stems: A dict of all the target files.
+        available_levels: List of available vertical levels.
+        plot_save_path: Destination path for the PNG.
+        dataset_dir: Dataset path.
     """
     months = sorted(list(set(target_stem[:7] for target_stem in target_file_stems)))
 
@@ -186,6 +163,7 @@ def _plot_availability(
     )
     plt.savefig(plot_save_path)
     print(f"Availability plot saved in {plot_save_path}")
+
 
 def report_available_data(
     plot_save_path: Path,
@@ -218,7 +196,7 @@ def report_available_data(
 
 
 def _drop_unused_coords(dataset: xr.Dataset) -> xr.Dataset:
-    """ Drop coordinated that are not needed after merging.
+    """Drop coordinated that are not needed after merging.
 
     Args:
         dataset: Input xarray Dataset
@@ -226,21 +204,29 @@ def _drop_unused_coords(dataset: xr.Dataset) -> xr.Dataset:
     Returns:
         Dataset with unused coordinates removed.
     """
-    unused = ["valid_time", "step", "valid_time", "heightAboveGround", "time", "surface",]
+    unused = [
+        "valid_time",
+        "step",
+        "valid_time",
+        "heightAboveGround",
+        "time",
+        "surface",
+    ]
     for var in unused:
         if var in list(dataset.coords.keys()):
             dataset.drop_vars(var)
     return dataset
 
+
 def _add_merge_dimensions(
-        dataset: xr.Dataset,
-        model_name: str,
-        species_name: str,
-        level: str,
-        leadtime: str,
-    ) -> xr.Dataset:
+    dataset: xr.Dataset,
+    model_name: str,
+    species_name: str,
+    level: str,
+    leadtime: str,
+) -> xr.Dataset:
     """Expand and assign merge dimensions to an input dataset.
-    
+
     Args:
         dataset: Input xarray Dataset.
         model_name: Name of the CTM model.
@@ -252,8 +238,8 @@ def _add_merge_dimensions(
         Dataset with expanded dimensions and assigned coordinates.
     """
     dataset = dataset.expand_dims(
-            dim=["model", "species", "level", "leadtime"], axis=[0, 1, 2, 3]
-        )
+        dim=["model", "species", "level", "leadtime"], axis=[0, 1, 2, 3]
+    )
     return dataset.assign_coords(
         {
             "model": [model_name],
@@ -263,15 +249,16 @@ def _add_merge_dimensions(
         }
     )
 
+
 def _normalize_grid(
-        dataset: xr.Dataset,
-        model_name: str,
-        lat_coordinates: xr.DataArray,
-        lon_coordinates: xr.DataArray,
-    ) -> xr.Dataset:
+    dataset: xr.Dataset,
+    model_name: str,
+    lat_coordinates: xr.DataArray,
+    lon_coordinates: xr.DataArray,
+) -> xr.Dataset:
     """Redefine lat/lon for models known to be slightly different grid.
 
-    
+
     LOTOS and SILAM are on slightly different grids.
     We simply redefine their longitude and latitude to be the
     same as the other models, creating an accepted imprecision.
@@ -291,10 +278,11 @@ def _normalize_grid(
 
     return dataset
 
+
 def _round_coordinates(
-        dataset: xr.Dataset,
-        source_path: Path,
-    ) -> xr.Dataset:
+    dataset: xr.Dataset,
+    source_path: Path,
+) -> xr.Dataset:
     """Round latitude and longitude coordinates to 2 decimal places.
 
     Emits a warning if rounding introduces a significant deviation.
@@ -302,12 +290,12 @@ def _round_coordinates(
     Args:
         dataset: Input xarray Dataset.
         source_path: Path of the source file (used in warning message).
-    
+
     Returns:
         Dataset with rounded coordinates
-    
+
     """
-    
+
     rounded_lat = np.round(dataset.latitude.values, decimals=2)
     rounded_lon = np.round(dataset.longitude.values, decimals=2)
     if not np.allclose(dataset.latitude, rounded_lat) or not np.allclose(
@@ -322,6 +310,7 @@ def _round_coordinates(
         longitude=np.round(dataset.coords["longitude"].values, decimals=2),
     )
 
+
 def _validate_model_coords(dataset: xr.Dataset) -> None:
     """Ensure all expected CTM models are present in the merged dataset.
 
@@ -330,13 +319,14 @@ def _validate_model_coords(dataset: xr.Dataset) -> None:
 
     Raises:
         CAMSCoordinateError: If one or more expected models are missing
-    
+
     """
     present = set(str(name) for name in dataset.model.values)
     expected = set(MODEL_NAMES)
     missing = (present | expected) - (present & expected)
     if missing:
         raise CAMSCoordinateError(f"Missing model(s): {missing}")
+
 
 def _process_input_date(
     run_date_string: str,
@@ -359,7 +349,7 @@ def _process_input_date(
     save_path = PROCESSED_DATA_DIR / "input" / f"{run_date_string}.netcdf"
     if save_path.exists():
         return
-    
+
     def preprocess_input(dataset: xr.Dataset) -> xr.Dataset:
         """Function called by xr.open_mfdataset to preprocess the
         `.netcdf` files before merging them.
@@ -374,7 +364,9 @@ def _process_input_date(
         _, _, _, leadtime, level, species_name = path.stem.split("_")
 
         dataset = _drop_unused_coords(dataset=dataset)
-        dataset = _add_merge_dimensions(dataset, model_name, species_name, level, leadtime)
+        dataset = _add_merge_dimensions(
+            dataset, model_name, species_name, level, leadtime
+        )
         dataset = _normalize_grid(dataset, model_name, lat_coordinates, lon_coordinates)
         dataset = _round_coordinates(dataset, source_path=path)
 
@@ -387,10 +379,10 @@ def _process_input_date(
     try:
         grib_paths = list(RAW_DATA_DIR.glob(f"**/{run_date_string}*.grib"))
         if not grib_paths:
-            raise CAMSFileNotFoundError(
+            raise FileNotFoundError(
                 f"No .grib files found for run date {run_date_string}."
             )
-        
+
         # Open grib files as xr.Dataset and classify them based on the weather
         # parameter they represent.
         output_dataset = xr.open_mfdataset(
@@ -411,12 +403,11 @@ def _process_input_date(
         output_dataset.to_netcdf(save_path)
 
     except Exception as exc:
-        wrapped = _wrap_exception(exc)
         return ProcessingError(
             date=run_date_string,
             stage="input",
-            error_type=type(wrapped).__name__,
-            message=str(wrapped)
+            error_type=type(exc).__name__,
+            message=str(exc),
         )
 
     return None
@@ -478,20 +469,19 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
     data_array = data_array.assign_coords(
         {
             "latitude": np.round(data_array.coords["latitude"].values, decimals=2),
-            "longitude": np.round(
-                data_array.coords["longitude"].values, decimals=2
-            ),
+            "longitude": np.round(data_array.coords["longitude"].values, decimals=2),
         }
     )
     return data_array
 
+
 def _extract_hour_dataarray(
-        month_dataarrays: list[xr.DataArray],
-        date: dt.date,
-        levels: list[str],
-    ) -> xr.DataArray:
+    month_dataarrays: list[xr.DataArray],
+    date: dt.date,
+    levels: list[str],
+) -> xr.DataArray:
     """Slice and concatenate monthly dataarrays to a single-hour DataArray.
-    
+
     Args:
         month_dataarrays: List of DataArrays coverring the full month.
         date: The specific date to extract.
@@ -501,26 +491,27 @@ def _extract_hour_dataarray(
         DataArray for the requested hour, concatenated over species and levels.
     """
     return xr.concat(
-            objs=(
-                xr.concat(
-                    objs=(
-                        dataarray.sel(
-                            valid_date=date,
-                            level=level,
-                        )
-                        .expand_dims("level", 1)
-                        .assign_coords(level=[level])
-                        for dataarray in month_dataarrays
-                        if level in dataarray.coords["level"].values
-                    ),
-                    dim="species",
-                    join="outer",
-                )
-                for level in levels
-            ),
-            dim="level",
-            join="outer",
-        )
+        objs=(
+            xr.concat(
+                objs=(
+                    dataarray.sel(
+                        valid_date=date,
+                        level=level,
+                    )
+                    .expand_dims("level", 1)
+                    .assign_coords(level=[level])
+                    for dataarray in month_dataarrays
+                    if level in dataarray.coords["level"].values
+                ),
+                dim="species",
+                join="outer",
+            )
+            for level in levels
+        ),
+        dim="level",
+        join="outer",
+    )
+
 
 def _process_target_month(
     required_dates: list[dt.datetime],
@@ -552,17 +543,21 @@ def _process_target_month(
             return None
 
         # Open all the month's netcdf files, one for each weather parameter
-        month_dataarrays: list[xr.DataArray] = [_load_target_dataarray(file_path) for file_path in file_paths]
+        month_dataarrays: list[xr.DataArray] = [
+            _load_target_dataarray(file_path) for file_path in file_paths
+        ]
 
-        # Validate        
+        # Validate
         if not month_dataarrays:
-            raise CAMSFileNotFoundError(f"No data arrays loaded for month {date_month}.")
+            raise FileNotFoundError(f"No data arrays loaded for month {date_month}.")
 
         # Save a target file for each dates required
         for date in required_dates:
             # Check if output path exists
             save_path = (
-                PROCESSED_DATA_DIR / "target" / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
+                PROCESSED_DATA_DIR
+                / "target"
+                / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
             )
             if save_path.exists():
                 continue
@@ -575,19 +570,18 @@ def _process_target_month(
             hour_dataarray.to_netcdf(save_path)
 
     except Exception as exc:
-        wrapped = _wrap_exception(exc)
         return ProcessingError(
             date=month_str,
             stage="target",
-            error_type=type(wrapped).__name__,
-            message=str(wrapped)
+            error_type=type(exc).__name__,
+            message=str(exc),
         )
-
 
 
 # ------------ #
 #   Cleanup    #
 # ------------ #
+
 
 def _cleanup_orphan_inputs(leadtimes: list[int]) -> int:
     """Remove input files that have no matching target files.
@@ -600,7 +594,7 @@ def _cleanup_orphan_inputs(leadtimes: list[int]) -> int:
     """
     deleted = 0
     for input_path in tqdm(
-    list((PROCESSED_DATA_DIR / "input").glob("*.netcdf")), desc="Cleanup"
+        list((PROCESSED_DATA_DIR / "input").glob("*.netcdf")), desc="Cleanup"
     ):
         date = dt.datetime.strptime(input_path.stem, r"%Y_%m_%d")
         all_target_exist = all(
@@ -616,21 +610,22 @@ def _cleanup_orphan_inputs(leadtimes: list[int]) -> int:
             deleted += 1
     return deleted
 
+
 def _print_error_summary(errors: list[ProcessingError]) -> None:
     """Print a structured terminal summary of all processing errors.
-    
+
     Args:
         errors: List of ProcessingError records collected during the run.
     """
     if not errors:
         print(" NO ERRORS")
         return
-    
+
     by_type: dict[str, int] = defaultdict(int)
     for e in errors:
         by_type[e.error_type] += 1
-    
-    bar = '-' * 60
+
+    bar = "-" * 60
     print(f"\nWARNING: {len(errors)} error(s) across {len(by_type)} type(s)")
     for etype, count in sorted(by_type.items(), key=lambda x: -x[1]):
         print(f"  {etype:<28} {count:>4} occurence(s)")
@@ -640,15 +635,16 @@ def _print_error_summary(errors: list[ProcessingError]) -> None:
         print(f"    {e.message}")
     print(bar)
 
+
 def _plot_error_report(
-        errors: list[ProcessingError],
-        plot_save_path: Path,
-    ) -> None:
+    errors: list[ProcessingError],
+    plot_save_path: Path,
+) -> None:
     """Save a grouped bar chart of errors per month and per type.
 
     Args:
         errors: List of ProcessingError records.
-        plot_save_month: Destination path for the PNG.
+        plot_save_path: Destination path for the PNG.
     """
     if not errors:
         return
@@ -677,17 +673,17 @@ def _plot_error_report(
 
 
 def process(
-        nb_jobs: int = 15, 
-        overwrite: bool = False, 
-        plot_error_path: Path = Path("./data/error_report.png"),
-    ) -> None:
+    nb_jobs: int = 15,
+    overwrite: bool = False,
+    plot_error_path: Path = Path("./data/error_report.png"),
+) -> None:
     """Prepares a CAMS dataset for use in training.
 
     Args:
-        dataset_dir: Path to the dataset dir.
         nb_jobs: Number of parallel jobs to use for preprocessing.
             Defaults to 15.
         overwrite: If True, will remove existing files in the output dir.
+        plot_error_path: Path to the error report folder.
     """
     errors: list[ProcessingError] = []
 
@@ -700,7 +696,7 @@ def process(
 
     # Validate directory structure
     print("\nINFO: Validating raw directory structure...")
-    expected_dirs = set(PMACC_MODEL_NAMES) | {'ensemble'}
+    expected_dirs = set(PMACC_MODEL_NAMES) | {"ensemble"}
     actual_dirs = set(os.listdir(RAW_DATA_DIR))
     unknown = actual_dirs - expected_dirs
     if unknown:
@@ -724,12 +720,12 @@ def process(
     # ---------------------------------------------------------------------
 
     # Open reference MACCGE01 grid.
-    print('INFO: Loading reference MACCGE01 grid...')
+    print("INFO: Loading reference MACCGE01 grid...")
     with open("data/MACCGE01.pkl", "br") as file:
         lat, lon = pkl.load(file)
 
     # Process the input with parallel jobs.
-    print('\nINFO: Processing input files...')
+    print("\nINFO: Processing input files...")
     input_results = joblib.Parallel(n_jobs=nb_jobs)(
         joblib.delayed(_process_input_date)(
             run_date_string,
@@ -745,7 +741,7 @@ def process(
     input_sample = xr.load_dataarray(input_sample_path)
     leadtimes = [int(leadtime) for leadtime in input_sample.coords["leadtime"].values]
     print(f"INFO: Detected {len(leadtimes)} leadtime(s): {leadtimes}")
-    
+
     # ---------------------------------------------------------------------
     # -------                    target                            --------
     # ---------------------------------------------------------------------
@@ -760,8 +756,8 @@ def process(
         dt.datetime.strptime(path.stem[:7], r"%Y_%m")
         for path in PROCESSED_DATA_DIR.glob(r"input/*.netcdf")
     )
-    print(f'\nINFO: Processing {len(required_months)} target month(s)...')
-    
+    print(f"\nINFO: Processing {len(required_months)} target month(s)...")
+
     # Process the target with parallel jobs.
     target_results = joblib.Parallel(n_jobs=nb_jobs)(
         joblib.delayed(_process_target_month)(
@@ -834,8 +830,7 @@ if __name__ == "__main__":
         type=Path,
         default=Path("./data/error_report.png"),
         help=(
-            "Where the error plot will be saved. "
-            "Defaults to `./data/error_report.png`"
+            "Where the error plot will be saved. Defaults to `./data/error_report.png`"
         ),
     )
     args = parser.parse_args()
@@ -853,8 +848,4 @@ if __name__ == "__main__":
     )
 
     # Process raw dataset
-    process(
-        nb_jobs=nb_jobs,
-        overwrite=overwrite,
-        plot_error_path=plot_error_path
-    )
+    process(nb_jobs=nb_jobs, overwrite=overwrite, plot_error_path=plot_error_path)

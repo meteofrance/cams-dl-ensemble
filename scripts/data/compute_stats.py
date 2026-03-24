@@ -1,47 +1,44 @@
 """Computes min/max of the different species on the Analysis data."""
 
 import json
-from pathlib import Path
 from typing import Any
 
 import numpy as np
 from tqdm import tqdm
 
-from cams.dataset import get_run_dates
+from cams.dataset import CAMSDataset
 from cams.sample import Sample
-from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
+from cams.settings import STATS_PATH
 
 
-def get_list_samples(processed_dir: Path) -> list[Sample]:
-    """Returns the list of valid samples available in data_dir."""
-    run_dates = get_run_dates(processed_dir)
-    samples = [Sample(date, 15, processed_dir) for date in run_dates]
-    samples = [sample for sample in samples if sample.is_valid]
-    return samples
-
-
-def compute_stats(samples: list[Sample]) -> dict[str, Any]:
+def compute_stats(dataset: CAMSDataset) -> dict[str, Any]:
     """Computes min/max over the reanalysis data.
 
     Args:
-        samples (list[Sample]): A list of valid Samples
+        dataset: A cams dataset.
 
     Returns:
-        dict: A dict of the statistics
+        dict: Statistics dict of shape {species: {min: min, max: max}}.
     """
-    vmin, vmax = np.inf, -np.inf  # Init min and max
-    for sample in tqdm(samples, desc="Computing statistics"):
-        data = sample.target_data.tensor[0].numpy()
-        new_min, new_max = np.min(data), np.max(data)
+    # Init min and max
+    vmin, vmax = np.inf, -np.inf
+
+    # Update min and max
+    sample: Sample
+    for sample in tqdm(dataset.samples, desc="Computing statistics"):
+        target_data = sample.target_data.tensor[0].numpy()
+        new_min, new_max = np.min(target_data), np.max(target_data)
         vmin = min(vmin, new_min)
         vmax = max(vmax, new_max)
+
+    # Return values
     stats = {"O3": {"min": float(vmin), "max": float(vmax)}}
     return stats
 
 
 if __name__ == "__main__":
-    samples = get_list_samples(PROCESSED_DATA_DIR)
-    stats = compute_stats(samples)
+    # Compute stats
+    stats = compute_stats(dataset=CAMSDataset())
 
     # Save stats as json
     with open(STATS_PATH, "w") as f:

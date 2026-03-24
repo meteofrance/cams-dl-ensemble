@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import torch
 from cartopy.crs import PlateCarree
 from matplotlib.axes import Axes
+from matplotlib.typing import HashableList
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.sample import Sample
@@ -20,7 +21,7 @@ if cartopy_cache_dir.exists():
     cartopy.config["data_dir"] = str(cartopy_cache_dir)
 
 # Constants
-MOSAIC: list[list[str]] = [
+MOSAIC: list[HashableList[str]] = [
     ["MATCH", "MINNI", "CHIMERE", "MEDIAN", "MEDIAN", "TARGET", "TARGET", "TARGET"],
     ["MOCAGE", "MONARCH", "EURADIM", "MEDIAN", "MEDIAN", "TARGET", "TARGET", "TARGET"],
     ["EMEP", "GEMAQ", "SILAM", "DEHM", "LOTOS", "TARGET", "TARGET", "TARGET"],
@@ -78,7 +79,7 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
     scale = 2.5
     subplot_kw = {"projection": PlateCarree()}
     fig, axs = plt.subplot_mosaic(
-        mosaic=MOSAIC,  # type: ignore[reportArgumentType]
+        mosaic=MOSAIC,
         layout="constrained",
         figsize=(8 * scale, 3.2 * scale),
         subplot_kw=subplot_kw,

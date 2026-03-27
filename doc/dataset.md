@@ -27,7 +27,7 @@ following naming conventions:
 - **`YYYY_MM_DD`** specifies a date ordered with year, month then day,
     spearated with `_` characters and zero padded on the left.
 - **`LT`** = leadtime, a zero paded number between 0 and 96.
-- **`LVL`** = level, either 'SOL' if the file contains data fol altitude 9,
+- **`LVL`** = level, either 'SOL' if the file contains ground data (altitude 0m),
     or 'HAUTEUR' if it contains all of the higher altitudes.
     Otherwise, it can be a string composed of one of the hight altitudes,
     (one of 0, 50, 100, 250, 500, 750, 1000, 2000, 3000, 5000), separated

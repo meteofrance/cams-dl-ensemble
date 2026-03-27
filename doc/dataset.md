@@ -26,7 +26,7 @@ This project's preprocessing script expects data organized like so, with the
 following naming conventions:
 - **`YYYY_MM_DD`** specifies a date ordered with year, month then day,
     spearated with `_` characters and zero padded on the left.
-- **`LT`** = leadtime, a zero paded number between 0 and 96.
+- **`LT`** = leadtime, a zero paded number between 0 and 96, followd by an `h` (eg. 15h).
 - **`LVL`** = level, either 'SOL' if the file contains ground data (altitude 0m),
     or 'HAUTEUR' if it contains all of the higher altitudes.
     Otherwise, it can be a string composed of one of the hight altitudes,

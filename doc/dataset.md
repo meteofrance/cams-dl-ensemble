@@ -27,38 +27,44 @@ following naming conventions:
 - **`YYYY_MM_DD`** specifies a date ordered with year, month then day,
     spearated with `_` characters and zero padded on the left.
 - **`LT`** = leadtime, a zero paded number between 0 and 96.
-- **`LVL`** = level, one of 0, 50, 100, 250, 500, 750, 1000, 2000, 3000, 5000.
+- **`LVL`** = level, either 'SOL' if the file contains data fol altitude 9,
+    or 'HAUTEUR' if it contains all of the higher altitudes.
+    Otherwise, it can be a string composed of one of the hight altitudes,
+    (one of 0, 50, 100, 250, 500, 750, 1000, 2000, 3000, 5000), separated
+    with a dash and a `m` at the end. For exemple, `50-250-1000m`.
 - **`SPECIESID`** = a species MF database id such as specified [here](data.md),
     without the suffix `_USI`.
-- **`SPECIESNAME`** = a species ECMWF ADS id such as specified [here](data.md),
+- **`SPECIESNAME`** = a species ECMWF ADS id such as specified [here](data.md).
+- **`TYPE`** = either `vra` or `ira`, if the data comes from the intermediary
+    reanalysis or the validated one.
 ```txt
 .
 └── raw
     ├── ensemble
     │   └── SPECIESNAME
-    │       └── YYYY_MM_LVLm.netcdf
+    │       └── YYYY_MM_LVLm_TYPE.netcdf
     ├── PMACCCHIMERE
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCDEHM
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCEMEP
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCEURADIM
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCGEMAQ
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCLOTOS
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCMATCH
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCMINNI
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCMOCAGE
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     ├── PMACCMONARCH
-    │   └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+    │   └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
     └── PMACCSILAM
-        └── YYYY_MM_DD_LT_LVL_SPECIESID.grib
+        └── YYYY_MM_DD_SPECIESID_LT_LVL.grib
 ```
 
 Files in folders named with a CTM model name contain input data for 1 model

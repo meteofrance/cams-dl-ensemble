@@ -18,6 +18,7 @@ The script `scripts/data/validation.py` should be executed after this one.
 import datetime as dt
 import os
 import pickle as pkl
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,12 +42,24 @@ from cams.settings import (
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
+INPUT_RE = re.compile(
+    r"^(?P<year>\d{4})_(?P<month>\d{2})_(?P<day>\d{2})"
+    r"_(?P<species>[A-Z0-9_]+?)_(?P<leadtime>\d{2})h_(?P<level>[A-Z0-9_m]+)(\.grib)?$"
+)
+
+TARGET_RE = re.compile(
+    r"^(?P<year>\d{4})_(?P<month>\d{2})_(?P<species>[a-z0-9_.]+?)"
+    r"_(?P<level>\d+)m_(?P<analysis_type>ira|vra)(\.netcdf)?$"
+)
+
 
 class CAMSCoordinateError(Exception):
     """Exception raised when encountering a data point with missing coordinates."""
 
+
 class CAMSOrphanFileError(Exception):
     """Exception raised when cleaning orphan files"""
+
 
 @dataclass
 class ProcessingError:
@@ -93,10 +106,36 @@ def _gather_availability_info() -> dict:
         path.stem for path in RAW_DATA_DIR.glob("ensemble/**/*.netcdf")
     )
 
-    # Gather available dates
-    available_input_leadtimes: set[str] = set(
-        stem.split("_")[-3] for stem in input_file_stems
-    )
+    if input_file_stems.__len__ == 0:
+        raise FileNotFoundError(f"No file PMACC*/*.grib found in {RAW_DATA_DIR}")
+
+    available_input_leadtimes: set[str] = set()
+    available_input_species: set[str] = set()
+    available_input_levels: set[str] = set()
+
+    for input_file in input_file_stems:
+        match = INPUT_RE.match(input_file)
+        if not match:
+            raise ValueError(f"Inconsistant file name : {input_file}")
+
+        available_input_species.add(match.group("species"))
+        available_input_levels.add(match.group("level"))
+        available_input_leadtimes.add(match.group("leadtime"))
+
+    available_target_months: set[str] = set()
+    available_target_species: set[str] = set()
+    available_target_levels: set[str] = set()
+
+    for target_file in target_file_stems:
+        match = TARGET_RE.match(target_file)
+        if not match:
+            raise ValueError(f"Inconsistant file name : {target_file}")
+
+        available_target_months.add(match.group("month"))
+        available_target_species.add(
+            ECMWF_MF_PARAMETER_NAME_MAPPING[match.group("species")]
+        )
+        available_target_levels.add(match.group("level"))
 
     available_target_months: set[str] = set(stem[:7] for stem in target_file_stems)
 
@@ -108,17 +147,12 @@ def _gather_availability_info() -> dict:
     )
 
     # Gather available species
-    available_species: set[str] = set(
-        stem.split("_")[-1] for stem in input_file_stems
-    ) | set(
-        ECMWF_MF_PARAMETER_NAME_MAPPING[path.stem]
-        for path in RAW_DATA_DIR.glob("ensemble/*")
-    )
+    available_species: set[str] = available_input_species | available_target_species
 
     # Gather available levels
-    available_levels: set[str] = set(
-        stem.split("_")[-2] for stem in input_file_stems
-    ) | set(stem.split("_")[-1] for stem in target_file_stems)
+    available_levels: set[str] = available_input_levels | set(
+        stem.split("_")[-1] for stem in target_file_stems
+    )
 
     # Gather available models
     available_models: set[str] = set(
@@ -224,7 +258,7 @@ def _add_merge_dimensions(
     dataset: xr.Dataset,
     model_name: str,
     species_name: str,
-    level: str,
+    levels: list[int],
     leadtime: str,
 ) -> xr.Dataset:
     """Expand and assign merge dimensions to an input dataset.
@@ -233,20 +267,20 @@ def _add_merge_dimensions(
         dataset: Input xarray Dataset.
         model_name: Name of the CTM model.
         species_name: Atmospheric species name.
-        level: Vertical level identifier.
+        levels: List of vertical levels identifier.
         leadtime: Forecast leadtime string.
 
     Returns:
         Dataset with expanded dimensions and assigned coordinates.
     """
     dataset = dataset.expand_dims(
-        dim=["model", "species", "level", "leadtime"], axis=[0, 1, 2, 3]
+        dim=["model", "species", "levels", "leadtime"], axis=[0, 1, 2, 3]
     )
     return dataset.assign_coords(
         {
             "model": [model_name],
             "species": [species_name],
-            "level": [level],
+            "levels": levels,
             "leadtime": [leadtime],
         }
     )
@@ -363,11 +397,22 @@ def _process_input_date(
         # Gather informations about which file is being processed
         path = Path(dataset.encoding["source"])
         model_name: str = path.parent.stem[5:]  # Remove PMACC from model name
-        _, _, _, leadtime, level, species_name = path.stem.split("_")
+        match = INPUT_RE.match(path.name)
+        if not match:
+            raise ValueError(f"Inconsistant file name : {path.name}")
+        species_name = match.group("species")
+        level_name = match.group("level")
+        if level_name == "SOL":
+            levels = [0]
+        elif level_name == "HAUTEUR":
+            levels = [50, 100, 250, 500, 750, 1000, 2000, 3000, 5000]
+        else:
+            levels = [int(num) for num in re.findall(r"\d+", level_name)]
+        leadtime = match.group("leadtime")
 
         dataset = _drop_unused_coords(dataset=dataset)
         dataset = _add_merge_dimensions(
-            dataset, model_name, species_name, level, leadtime
+            dataset, model_name, species_name, levels, leadtime
         )
         dataset = _normalize_grid(dataset, model_name, lat_coordinates, lon_coordinates)
         dataset = _round_coordinates(dataset, source_path=path)
@@ -394,7 +439,6 @@ def _process_input_date(
             compat="equals",
             join="outer",
         )
-
         # Add run_date coordinate
         output_dataset = output_dataset.assign_coords(
             run_date=np.datetime64(run_date_string.replace("_", "-"))
@@ -440,10 +484,14 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
         .to_xarray()
         .to_dataarray()[0]
     )
+    filename = file_path.name
+    match = TARGET_RE.match(filename)
+    if not match:
+        raise ValueError(f"Inconsistant file name : {filename}")
 
     # Add species dimension and coordinates
-    species_name: str = ECMWF_MF_PARAMETER_NAME_MAPPING[file_path.parent.stem]
-    level: int = int(file_path.stem.split("_")[-1].rstrip("m"))
+    species_name: str = ECMWF_MF_PARAMETER_NAME_MAPPING[match.group("species")]
+    level: int = int(match.group("level"))
     data_array = data_array.expand_dims(dim=["species", "level"], axis=[0, 1])
     data_array = data_array.assign_coords(
         {"species": [species_name], "level": [str(level)]}
@@ -480,7 +528,7 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
 def _extract_hour_dataarray(
     month_dataarrays: list[xr.DataArray],
     date: dt.date,
-    levels: list[str],
+    levels: list[int],
 ) -> xr.DataArray:
     """Slice and concatenate monthly dataarrays to a single-hour DataArray.
 
@@ -498,12 +546,12 @@ def _extract_hour_dataarray(
                 objs=(
                     dataarray.sel(
                         valid_date=date,
-                        level=level,
+                        level=str(level),
                     )
                     .expand_dims("level", 1)
                     .assign_coords(level=[level])
                     for dataarray in month_dataarrays
-                    if level in dataarray.coords["level"].values
+                    if str(level) in dataarray.level.values
                 ),
                 dim="species",
                 join="outer",
@@ -517,7 +565,7 @@ def _extract_hour_dataarray(
 
 def _process_target_month(
     required_dates: list[dt.datetime],
-    levels: list[str],
+    levels: list[int],
 ) -> ProcessingError | None:
     """Processes some raw netcdf files of monthly target (reanalysis) data.
     Split the reanalysis monthly files into one file for each hour of the month
@@ -531,19 +579,26 @@ def _process_target_month(
     """
 
     # Define the date month
-    date_month = dt.date(required_dates[0].year, required_dates[0].month, 1)
-    month_str = date_month.strftime("%Y-%m")
+    target_date = dt.date(required_dates[0].year, required_dates[0].month, 1)
+    month_str = target_date.strftime("%Y-%m")
 
     try:
         # Find the netcdf files for the given month
-        file_paths: list[Path] = list(
-            RAW_DATA_DIR.glob(
-                f"ensemble/**/{date_month.year}_{date_month.month:02}_*m.netcdf"
-            )
-        )
+        all_files = RAW_DATA_DIR.glob("ensemble/*.netcdf")
+        file_paths: list[Path] = []
+        for target_file in all_files:
+            match = TARGET_RE.match(target_file.name)
+            if not match:
+                raise ValueError(f"Inconsistant file name : {target_file.name}")
+            if (
+                match.group("year") == month_str.split("-")[0]
+                and match.group("month") == month_str.split("-")[1]
+                and match.group("level") in list(map(str, levels))
+            ):
+                file_paths.append(target_file)
+
         if not file_paths:
             return None
-
         # Open all the month's netcdf files, one for each weather parameter
         month_dataarrays: list[xr.DataArray] = [
             _load_target_dataarray(file_path) for file_path in file_paths
@@ -551,8 +606,7 @@ def _process_target_month(
 
         # Validate
         if not month_dataarrays:
-            raise FileNotFoundError(f"No data arrays loaded for month {date_month}.")
-
+            raise FileNotFoundError(f"No data arrays loaded for month {target_date}.")
         # Save a target file for each dates required
         for date in required_dates:
             # Check if output path exists
@@ -585,7 +639,7 @@ def _process_target_month(
 # ------------ #
 
 
-def _cleanup_orphan_inputs(leadtimes: list[int]) -> list[ProcessingError] :
+def _cleanup_orphan_inputs(leadtimes: list[int]) -> list[ProcessingError]:
     """Remove input files that have no matching target files.
 
     Args:
@@ -612,11 +666,11 @@ def _cleanup_orphan_inputs(leadtimes: list[int]) -> list[ProcessingError] :
             input_path.unlink()
             errors.append(
                 ProcessingError(
-            date=month_str,
-            stage="input",
-            error_type=CAMSOrphanFileError.__name__,
-            message="Orphan file cleaned at: {input_path}",
-        )
+                    date=month_str,
+                    stage="input",
+                    error_type=CAMSOrphanFileError.__name__,
+                    message="Orphan file cleaned at: {input_path}",
+                )
             )
 
     return errors
@@ -645,6 +699,8 @@ def _print_error_summary(errors: list[ProcessingError]) -> None:
         print(f"  [{e.stage:>6}] {e.date} -> {e.error_type}")
         print(f"    {e.message}")
     print(bar)
+    for etype, count in sorted(by_type.items(), key=lambda x: -x[1]):
+        print(f"  {etype:<28} {count:>4} occurence(s)")
 
 
 def _plot_error_report(
@@ -678,7 +734,9 @@ def _plot_error_report(
     ax.set_title("Processing errors per month")
     ax.set_ylabel("Number of errors")
     ax.set_xticks(x)
-    ax.set_xticklabels([m if i % 2 == 0 else "" for i, m in enumerate(months)], rotation=30, ha="right")
+    ax.set_xticklabels(
+        [m if i % 2 == 0 else "" for i, m in enumerate(months)], rotation=30, ha="right"
+    )
     ax.legend(title="Error type")
     plt.savefig(plot_save_path)
 
@@ -768,7 +826,6 @@ def process(
         for path in PROCESSED_DATA_DIR.glob(r"input/*.netcdf")
     )
     print(f"\nINFO: Processing {len(required_months)} target month(s)...")
-
     # Process the target with parallel jobs.
     target_results = joblib.Parallel(n_jobs=nb_jobs)(
         joblib.delayed(_process_target_month)(
@@ -777,7 +834,7 @@ def process(
                 for date in required_dates
                 if (date.year == date_month.year and date.month == date_month.month)
             ],
-            levels=input_sample.coords["level"].values,
+            levels=input_sample.levels.values,
         )
         for date_month in tqdm(required_months, desc="Target processing")
     )

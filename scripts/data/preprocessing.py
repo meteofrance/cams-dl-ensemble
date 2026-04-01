@@ -3,7 +3,6 @@
 Usage:
 ```bash
 python scripts/data/0_preprocessing.py \
-    --dataset-dir  # Path to the dataset dir. Defaults to value in settings.py
     -n --nb-jobs   # Number of parallel processes used. Defaults to 15.
                      Choose one to be able to catch error effectively.
     --overwrite    # If given, will delete the processed data folder before
@@ -24,7 +23,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from warnings import warn
 
-import earthkit.data as ekd
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,7 +30,6 @@ import xarray as xr
 from tqdm import tqdm
 
 from cams.settings import (
-    CAMS_DATASET_DIR,
     ECMWF_MF_PARAMETER_NAME_MAPPING,
     KILOGRAM_TO_MICROGRAM,
     MODEL_NAMES,
@@ -173,7 +170,6 @@ def _plot_availability(
     target_file_stems: set[str],
     available_levels: set[str],
     plot_save_path: Path,
-    dataset_dir: Path,
 ) -> None:
     """Plot an availability report from the files
 
@@ -181,7 +177,6 @@ def _plot_availability(
         target_file_stems: A dict of all the target files.
         available_levels: List of available vertical levels.
         plot_save_path: Destination path for the PNG.
-        dataset_dir: Dataset path.
     """
     months = sorted(list(set(target_stem[:7] for target_stem in target_file_stems)))
 
@@ -190,7 +185,7 @@ def _plot_availability(
         x=months,
         height=[len(available_levels)] * len(months),
     )
-    ax.set_title(f"What raw data seems available for dataset {dataset_dir.stem}")
+    ax.set_title(f"What raw data seems available for dataset {RAW_DATA_DIR.stem}")
     ax.set_ylabel("Number of leadtime available")
     ax.tick_params("x", rotation=30)
     plt.xticks(
@@ -208,7 +203,6 @@ def report_available_data(
 
     Args:
         plot_save_path: Path where the availability calendar plot will be saved.
-        dataset_dir: Path to the dataset directory(for plot title).
     """
     print("\n Gathering data availability...")
     info = _gather_availability_info()
@@ -222,7 +216,6 @@ def report_available_data(
         target_file_stems=info["available_models"],
         available_levels=info["available_levels"],
         plot_save_path=plot_save_path,
-        dataset_dir=dataset_dir,
     )
 
 
@@ -476,13 +469,8 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
     Returns:
         Prepared DataArray ready for concatenation.
     """
-    data_array: xr.DataArray = (
-        ekd.from_source(
-            "file",
-            file_path,
-        )
-        .to_xarray()
-        .to_dataarray()[0]
+    data_array: xr.DataArray = xr.open_dataarray(
+        file_path
     )
     filename = file_path.name
     match = TARGET_RE.match(filename)
@@ -507,7 +495,8 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
     )
 
     # Remove variable coordinate (replaced by species)
-    data_array = data_array.drop_vars("variable")
+    if "variable" in data_array.attrs :
+        data_array = data_array.drop_vars("variable")
 
     # Add units attributes
     data_array = data_array.assign_attrs(units="µg/m3")
@@ -834,7 +823,7 @@ def process(
                 for date in required_dates
                 if (date.year == date_month.year and date.month == date_month.month)
             ],
-            levels=input_sample.levels.values,
+            levels=input_sample.level.values,
         )
         for date_month in tqdm(required_months, desc="Target processing")
     )
@@ -862,13 +851,6 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description="Processes a CAMS dataset raw folder into processed folder.",
-    )
-    parser.add_argument(
-        "--dataset-dir",
-        "-i",
-        type=Path,
-        default=CAMS_DATASET_DIR,
-        help="Path to the dataset dir. Defaults to value in settings.py",
     )
     parser.add_argument(
         "--nb-jobs",
@@ -905,7 +887,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Validate command line arguments
-    dataset_dir: Path = args.dataset_dir
     nb_jobs: int = args.nb_jobs
     overwrite: bool = args.overwrite
     plot_save_path: Path = args.plot_output

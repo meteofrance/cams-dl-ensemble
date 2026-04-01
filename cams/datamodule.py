@@ -140,7 +140,7 @@ class CAMSDataModule(LightningDataModule):
         self.save_hyperparameters()
 
     @override
-    def setup(self, stage: Literal["fit", "val", "validate"]) -> None:  # type: ignore[reportIncompatibleMethodOverride]
+    def setup(self, stage: Literal["fit", "val", "validate"] | str) -> None:
         """Called by lightning, at the start of a stage.
 
         Args:
@@ -172,18 +172,28 @@ class CAMSDataModule(LightningDataModule):
             )
 
     @override
-    def train_dataloader(self) -> DataLoader:
+    def train_dataloader(self) -> DataLoader[CAMSDataset]:
         """Returns the train dataloader"""
         if self.train_dataset is None:
             self.setup("fit")
-        return DataLoader(self.train_dataset, shuffle=True, **self.dataloader_kwargs)  # type: ignore[reportArgumentType]
+        if self.train_dataset is None:
+            raise RuntimeError(
+                "Datamodule setup function failed to instantiate a train dataset"
+            )
+
+        return DataLoader(self.train_dataset, shuffle=True, **self.dataloader_kwargs)
 
     @override
-    def val_dataloader(self) -> DataLoader:
+    def val_dataloader(self) -> DataLoader[CAMSDataset]:
         """Returns the validation dataloader"""
         if self.val_dataset is None:
             self.setup("val")
-        return DataLoader(self.val_dataset, shuffle=False, **self.dataloader_kwargs)  # type: ignore[reportArgumentType]
+        if self.val_dataset is None:
+            raise RuntimeError(
+                "Datamodule setup function failed to instantiate a validation dataset"
+            )
+
+        return DataLoader(self.val_dataset, shuffle=False, **self.dataloader_kwargs)
 
     def collate_batch(
         self,

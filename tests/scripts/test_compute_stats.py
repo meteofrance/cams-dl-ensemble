@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from scripts.data.compute_stats import compute_stats, get_list_samples
+from cams.dataset import CAMSDataset
+from scripts.data.compute_stats import compute_stats
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
@@ -16,10 +17,10 @@ def test_compute_stats(tmp_dataset_dir: Path):
     create_dummy_target_netcdf(target_path1)
     create_dummy_target_netcdf(target_path2)
 
-    samples = get_list_samples(tmp_dataset_dir)
+    dataset = CAMSDataset(processed_dir=tmp_dataset_dir)
 
-    assert len(samples) == 2
+    assert len(dataset.samples) == 2
 
-    stats = compute_stats(samples)
+    stats = compute_stats(dataset)
 
     assert stats == {"O3": {"min": 0, "max": 0}}

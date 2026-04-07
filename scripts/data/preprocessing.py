@@ -110,7 +110,9 @@ def _gather_availability_info() -> dict:
         raise FileNotFoundError(f"No file like PMACC*/*.grib found in {RAW_DATA_DIR}")
 
     if len(target_file_stems) == 0:
-        raise FileNotFoundError(f"No file like ensemble/**/*.netcdf found in {RAW_DATA_DIR}")
+        raise FileNotFoundError(
+            f"No file like ensemble/**/*.netcdf found in {RAW_DATA_DIR}"
+        )
 
     required_input_leadtimes: set[int] = set()
     required_input_species: set[str] = set()
@@ -126,13 +128,18 @@ def _gather_availability_info() -> dict:
         required_input_species.add(match.group("species"))
         required_input_leadtimes.add(int(match.group("leadtime")))
 
-        if 'SOL' == match.group("level"):
+        if "SOL" == match.group("level"):
             required_input_levels.add(0)
-        elif 'HAUTEUR' == match.group("level"):
+        elif "HAUTEUR" == match.group("level"):
             for level in HAUTEUR_LEVELS:
                 required_input_levels.add(level)
-        date_str = match.group("year") + "_" + match.group("month") + "_" + match.group("day")
-        required_input_dates.add(dt.datetime.strptime(date_str, r"%Y_%m_%d") + dt.timedelta(hours=int(match.group("leadtime"))))
+        date_str = (
+            match.group("year") + "_" + match.group("month") + "_" + match.group("day")
+        )
+        required_input_dates.add(
+            dt.datetime.strptime(date_str, r"%Y_%m_%d")
+            + dt.timedelta(hours=int(match.group("leadtime")))
+        )
         month_str = match.group("year") + "_" + match.group("month")
         required_input_months.add(dt.datetime.strptime(month_str, r"%Y_%m"))
 
@@ -143,7 +150,7 @@ def _gather_availability_info() -> dict:
         match = TARGET_RE.match(target_file)
         if not match:
             raise ValueError(f"Inconsistant file name : {target_file}")
-        
+
         date_str = match.group("year") + "_" + match.group("month")
         available_target_species.add(
             ECMWF_MF_PARAMETER_NAME_MAPPING[match.group("species")]
@@ -167,7 +174,7 @@ def _gather_availability_info() -> dict:
         "required_dates": required_input_dates,
         "required_months": required_input_months,
         "required_levels": required_input_levels,
-        "available_target_type_reanalysis": available_target_type_reanalysis
+        "available_target_type_reanalysis": available_target_type_reanalysis,
     }
 
 
@@ -180,36 +187,38 @@ def report_available_data() -> None:
     print("\n Gathering data availability...")
     info = _gather_availability_info()
 
-    print(f"  Models                           : {info['available_models']}")
-    print(f"  Species                          : {info['available_species']}")
-    print(f"  Required Leadtimes               : {info['required_leadtimes']}")
-    print(f"  Required Levels                  : {info['required_levels']}")
-    print(f"  Required Dates                   : {len(info['required_dates'])} date(s) found")
-    print(f"  Required Months                  : {len(info['required_months'])} month(s) found")
-    print(f"  Target Reanalysis Type Available : {info['available_target_type_reanalysis']}")
+    print(f"  Models : {info['available_models']}")
+    print(f"  Species : {info['available_species']}")
+    print(f"  Required Leadtimes : {info['required_leadtimes']}")
+    print(f"  Required Levels : {info['required_levels']}")
+    print(f"  Required Dates : {len(info['required_dates'])} date(s) found")
+    print(f"  Required Months : {len(info['required_months'])} month(s) found")
+    print(f"  Target Reanalysis Available : {info['available_target_type_reanalysis']}")
 
 
 # ----------------------------- #
 #   Input processing helpers    #
 # ----------------------------- #
 
+
 def _assign_levels_dimension(dataset: xr.Dataset) -> xr.Dataset:
-    """ Rename or create levels dimension
+    """Rename or create levels dimension
     Args:
         dataset: dataset to process
-    
+
     Returns:
         dataset with levels dimension
     """
     # Dataset containing SOL values have surface coordinates
-    if 'surface' in list(dataset.coords.keys()):
-        dataset = dataset.drop_vars('surface')
-        dataset = dataset.expand_dims({'levels': [0]})
+    if "surface" in list(dataset.coords.keys()):
+        dataset = dataset.drop_vars("surface")
+        dataset = dataset.expand_dims({"levels": [0]})
     # Dataset containing HAUTEUR values have heightAboveGround dimension
-    elif 'heightAboveGround' in list(dataset.coords.keys()):
-        dataset = dataset.rename({'heightAboveGround': 'levels'})
+    elif "heightAboveGround" in list(dataset.coords.keys()):
+        dataset = dataset.rename({"heightAboveGround": "levels"})
 
     return dataset
+
 
 def _drop_unused_coords(dataset: xr.Dataset) -> xr.Dataset:
     """Drop coordinated that are not needed after merging.
@@ -251,9 +260,7 @@ def _add_merge_dimensions(
     Returns:
         Dataset with expanded dimensions and assigned coordinates.
     """
-    dataset = dataset.expand_dims(
-        dim=["model", "species", "leadtime"], axis=[0, 1, 2]
-    )
+    dataset = dataset.expand_dims(dim=["model", "species", "leadtime"], axis=[0, 1, 2])
     return dataset.assign_coords(
         {
             "model": [model_name],
@@ -380,9 +387,7 @@ def _process_input_date(
         leadtime = match.group("leadtime")
         dataset = _assign_levels_dimension(dataset)
         dataset = _drop_unused_coords(dataset)
-        dataset = _add_merge_dimensions(
-            dataset, model_name, species_name, leadtime
-        )
+        dataset = _add_merge_dimensions(dataset, model_name, species_name, leadtime)
         dataset = _normalize_grid(dataset, model_name, lat_coordinates, lon_coordinates)
         dataset = _round_coordinates(dataset, source_path=path)
 
@@ -407,7 +412,7 @@ def _process_input_date(
             coords="minimal",
             compat="equals",
             join="outer",
-            errors="warn"
+            errors="warn",
         )
         # Add run_date coordinate
         output_dataset = output_dataset.assign_coords(
@@ -781,12 +786,12 @@ def process(
         joblib.delayed(_process_target_month)(
             required_dates=[
                 date
-                for date in info['required_dates']
+                for date in info["required_dates"]
                 if (date.year == date_month.year and date.month == date_month.month)
             ],
-            levels=info['required_levels'],
+            levels=info["required_levels"],
         )
-        for date_month in tqdm(info['required_months'], desc="Target processing")
+        for date_month in tqdm(info["required_months"], desc="Target processing")
     )
 
     errors.extend(r for r in target_results if r is not None)

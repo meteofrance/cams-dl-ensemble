@@ -74,19 +74,19 @@ def iter_grib_files(model_dir: Path):
         yield date_key, path.name
 
 
-def scan_model_presence(model_dir: Path) -> dict[str, int]:
-    """Return {date: 1} for every day that has at least one .grib file.
+def scan_model_presence(model_dir: Path) -> set[str]:
+    """Return a set of dates that contains at least one .grib file.
 
     Args:
         model_dir: Path to the model directory.
 
     Returns:
-        A dictionary with every date that contains at least 1 .grib file.
+        set[str]: Set of every date that contains at least 1 .grib file.
     """
     dates_seen: set[str] = set()
     for date_key, _ in iter_grib_files(model_dir):
         dates_seen.add(date_key)
-    return {d: 1 for d in dates_seen}
+    return dates_seen
 
 
 def scan_model_count_per_day(dataset_dir: Path) -> dict[str, int]:

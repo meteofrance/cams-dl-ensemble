@@ -127,9 +127,9 @@ def _gather_availability_info() -> dict:
         required_input_species.add(match.group("species"))
         required_input_leadtimes.add(int(match.group("leadtime")))
 
-        if "SOL" == match.group("level"):
+        if match.group("level") == "SOL":
             required_input_levels.add(0)
-        elif "HAUTEUR" == match.group("level"):
+        elif match.group("level") == "HAUTEUR":
             for level in HAUTEUR_LEVELS:
                 required_input_levels.add(level)
         date_str = (

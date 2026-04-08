@@ -49,7 +49,6 @@ def make_status_cmap(vmax: int):
 
     boundaries = [round(i / (n - 2) * (vmax)) for i in range(n - 1)] + [vmax]
     boundaries = sorted(set(boundaries))
-    print(boundaries)
     cmap = LinearSegmentedColormap.from_list(
         "status", base_colors, N=len(boundaries) - 1
     )
@@ -66,12 +65,12 @@ def iter_grib_files(model_dir: Path):
     Yields:
         Tuple of (date_key, filename) where date_key is YYYY-MM-DD.
     """
-    for f in model_dir.glob("*.grib"):
-        m = FILENAME_RE.match(f.name)
-        if not m:
+    for path in model_dir.glob("*.grib"):
+        match = FILENAME_RE.match(path.name)
+        if not match:
             continue
-        date_key = f"{m.group('year')}-{m.group('month')}-{m.group('day')}"
-        yield date_key, f.name
+        date_key = f"{match.group('year')}-{match.group('month')}-{match.group('day')}"
+        yield date_key, path.name
 
 
 def scan_model_presence(model_dir: Path) -> dict[str, int]:
@@ -96,7 +95,8 @@ def scan_model_count_per_day(dataset_dir: Path) -> dict[str, int]:
         dataset_dir: Path to the dataset directory.
 
     Returns:
-        A dictionary with the count of models that have at least 1 file per date.
+        dict[str, int]: Dictionary with the count of models
+        that have at least 1 file per date.
     """
     model_counts: dict[str, int] = defaultdict(int)
     for model in MODEL_NAMES:
@@ -115,7 +115,8 @@ def scan_total_counts(dataset_dir: Path) -> dict[str, int]:
         dataset_dir: Path to the dataset directory.
 
     Returns:
-        A dictionary with the count of .grib files from every model for a date.
+        dict[str, int]: Dictionary with the count of .grib files
+        from every model for a date.
     """
     total: dict[str, int] = defaultdict(int)
     for model in MODEL_NAMES:
@@ -135,7 +136,7 @@ def scan_species_per_day(dataset_dir: Path) -> dict[str, int]:
         dataset_dir: Path to the dataset directory.
 
     Returns:
-        A dictionary with the count of distinct species per date.
+        dict[str, int]: Dictionary with the count of distinct species per date.
     """
     species_per_day: dict[str, set[str]] = defaultdict(set)
     for model in MODEL_NAMES:
@@ -167,7 +168,8 @@ def split_by_year(counts: dict[str, int]) -> dict[str, dict[str, int]]:
         counts: A dictionary with dates as YYYY-MM-DD keys.
 
     Returns:
-        A dictionary with years as keys and {date: value} as values.
+        dict[str, dict[str, int]]: Dictionary with years as keys
+        and {date: value} as values.
     """
     by_year: dict[str, dict[str, int]] = defaultdict(dict)
     for date, value in counts.items():
@@ -334,7 +336,8 @@ def scan_netcdf_input(processed_dir: Path) -> dict[str, int]:
         processed_dir: Path to the processed data directory.
 
     Returns:
-        A dictionary mapping each date found to its file count (should be 1).
+        dict[str, int]: Dictionary mapping each date found to
+        its file count (should be 1).
     """
     input_dir = processed_dir / "input"
     counts: dict[str, int] = defaultdict(int)
@@ -356,7 +359,8 @@ def scan_netcdf_target(processed_dir: Path) -> dict[str, int]:
         processed_dir: Path to the processed data directory.
 
     Returns:
-        A dictionary mapping each date to its hourly file count (expected 24).
+        dict[str, int]: Dictionary mapping each date to
+        its hourly file count (expected 24).
     """
     target_dir = processed_dir / "target"
     counts: dict[str, int] = defaultdict(int)

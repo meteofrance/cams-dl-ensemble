@@ -107,6 +107,7 @@ def load_stats(stats_path: Path) -> dict[str, Any]:
         stats = json.load(file)
     return stats
 
+
 class FillMissingModels(nn.Module):
     """Add missing models at the right index with values of zeros"""
 
@@ -114,10 +115,10 @@ class FillMissingModels(nn.Module):
     def forward(
         self, inputs: tuple[NamedTensor, NamedTensor]
     ) -> tuple[NamedTensor, NamedTensor]:
-        """
+        """Create a new NamedTensor that have the 11 models.
 
         Args:
-            input: NamedTensor containing missing models
+            inputs: NamedTensor containing missing models
 
         Returns:
             NamedTensor: NamedTensor containing all the 11 models
@@ -126,16 +127,17 @@ class FillMissingModels(nn.Module):
         x, y = inputs
         model_names_sorted = sorted(MODEL_NAMES)
         t_final = torch.zeros(
-            len(model_names_sorted), 
-            x.tensor.shape[1], 
-            x.tensor.shape[2], 
-            dtype=x.tensor.dtype, 
-            device=x.tensor.device
+            len(model_names_sorted),
+            x.tensor.shape[1],
+            x.tensor.shape[2],
+            dtype=x.tensor.dtype,
+            device=x.tensor.device,
         )
         for idx, model in enumerate(model_names_sorted):
             if model in x.feature_names:
                 t_final[idx] = x[model]
         return NamedTensor(t_final, x.names, model_names_sorted), y
+
 
 class Normalize(nn.Module, ReversibleTransformMixin):
     """Normalizes data.

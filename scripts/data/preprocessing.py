@@ -409,7 +409,7 @@ def _process_input_date(
         output_dataset = xr.open_mfdataset(
             paths=grib_paths,
             preprocess=preprocess_input,
-            coords="minimal",
+            coords="minimal", # type: ignore[reportArgumentType]
             compat="equals",
             join="outer",
             errors="warn",

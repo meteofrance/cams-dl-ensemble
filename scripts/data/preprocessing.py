@@ -41,7 +41,6 @@ from cams.settings import (
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
 
-
 INPUT_RE = re.compile(
     r"^(?P<year>\d{4})_(?P<month>\d{2})_(?P<day>\d{2})"
     r"_(?P<species>[A-Z0-9_]+?)_(?P<leadtime>\d{2})h_(?P<level>[A-Z0-9_m]+)(\.grib)?$"
@@ -409,7 +408,7 @@ def _process_input_date(
         output_dataset = xr.open_mfdataset(
             paths=grib_paths,
             preprocess=preprocess_input,
-            coords="minimal", # type: ignore[reportArgumentType]
+            coords="minimal",  # type: ignore[reportArgumentType]
             compat="equals",
             join="outer",
             errors="warn",

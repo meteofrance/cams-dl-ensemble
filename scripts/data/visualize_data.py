@@ -5,6 +5,7 @@ from pathlib import Path
 import dayplot as dp
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+import numpy as np
 from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
 
 from cams.settings import MODEL_NAMES, PROCESSED_DATA_DIR, RAW_DATA_DIR
@@ -200,7 +201,7 @@ def _plot_calendar(
     years = sorted(by_year.keys())
     n_years = len(years)
 
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    scalar_mappable = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 
     fig, axes = plt.subplots(nrows=n_years, ncols=1, figsize=(18, n_years * 3), dpi=150)
     if n_years == 1:
@@ -223,15 +224,15 @@ def _plot_calendar(
         # Colors are overwrited due to calendar not handling normalization
         dates_sorted = sorted(date_to_value.keys())
         for patch, date in zip(patches, dates_sorted):
-            rgba = sm.to_rgba(date_to_value[date])
+            rgba = scalar_mappable.to_rgba(np.ndarray([date_to_value[date]]))
             patch.set_facecolor(rgba)
 
         ax.text(s=year, x=-4, y=3.5, size=30, rotation=90, color="#aaa", va="center")
 
     # Single shared colorbar at the bottom
-    sm.set_array([])
+    scalar_mappable.set_array([])
     cbar = fig.colorbar(
-        sm,
+        scalar_mappable,
         ax=axes[-1],
         orientation="vertical",
         fraction=0.02,

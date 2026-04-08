@@ -123,19 +123,19 @@ class FillMissingModels(nn.Module):
             NamedTensor: NamedTensor containing all the 11 models
 
         """
-        input_nt = inputs[0]
+        x, y = inputs
         model_names_sorted = sorted(MODEL_NAMES)
         t_final = torch.zeros(
             len(model_names_sorted), 
-            input_nt.tensor.shape[1], 
-            input_nt.tensor.shape[2], 
-            dtype=input_nt.tensor.dtype, 
-            device=input_nt.tensor.device
+            x.tensor.shape[1], 
+            x.tensor.shape[2], 
+            dtype=x.tensor.dtype, 
+            device=x.tensor.device
         )
         for idx, model in enumerate(model_names_sorted):
-            if model in input_nt.feature_names:
-                t_final[idx] = input_nt[model]
-        return NamedTensor(t_final, input_nt.names, model_names_sorted), inputs[1]
+            if model in x.feature_names:
+                t_final[idx] = x[model]
+        return NamedTensor(t_final, x.names, model_names_sorted), y
 
 class Normalize(nn.Module, ReversibleTransformMixin):
     """Normalizes data.

@@ -125,18 +125,17 @@ class FillMissingModels(nn.Module):
 
         """
         x, y = inputs
-        model_names_sorted = sorted(MODEL_NAMES)
         t_final = torch.zeros(
-            len(model_names_sorted),
+            len(MODEL_NAMES),
             x.tensor.shape[1],
             x.tensor.shape[2],
             dtype=x.tensor.dtype,
             device=x.tensor.device,
         )
-        for idx, model in enumerate(model_names_sorted):
+        for idx, model in enumerate(MODEL_NAMES):
             if model in x.feature_names:
                 t_final[idx] = x[model]
-        return NamedTensor(t_final, x.names, model_names_sorted), y
+        return NamedTensor(t_final, x.names, MODEL_NAMES), y
 
 
 class Normalize(nn.Module, ReversibleTransformMixin):

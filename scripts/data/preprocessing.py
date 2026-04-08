@@ -35,12 +35,12 @@ from cams.settings import (
     MODEL_NAMES,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
+    HAUTEUR_LEVELS,
 )
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
 
-HAUTEUR_LEVELS = (50, 100, 250, 500, 750, 1000, 2000, 3000, 5000)
-SOL_LEVELS = (0,)
+
 
 INPUT_RE = re.compile(
     r"^(?P<year>\d{4})_(?P<month>\d{2})_(?P<day>\d{2})"

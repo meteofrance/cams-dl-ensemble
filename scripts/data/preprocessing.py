@@ -31,11 +31,11 @@ from tqdm import tqdm
 
 from cams.settings import (
     ECMWF_MF_PARAMETER_NAME_MAPPING,
+    HAUTEUR_LEVELS,
     KILOGRAM_TO_MICROGRAM,
     MODEL_NAMES,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
-    HAUTEUR_LEVELS,
 )
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]

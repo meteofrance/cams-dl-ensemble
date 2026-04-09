@@ -10,7 +10,7 @@ from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor, nn
 from typing_extensions import override
 
-from cams.settings import STATS_PATH
+from cams.settings import MODEL_NAMES, STATS_PATH
 from cams.types import STATISTICS_NAMES, StatisticsNames
 
 
@@ -106,6 +106,36 @@ def load_stats(stats_path: Path) -> dict[str, Any]:
     with open(stats_path, "r") as file:
         stats = json.load(file)
     return stats
+
+
+class FillMissingModels(nn.Module):
+    """Add missing models at the right index with values of zeros"""
+
+    @override
+    def forward(
+        self, inputs: tuple[NamedTensor, NamedTensor]
+    ) -> tuple[NamedTensor, NamedTensor]:
+        """Create a new NamedTensor that have the 11 models.
+
+        Args:
+            inputs: NamedTensor containing missing models
+
+        Returns:
+            NamedTensor: NamedTensor containing all the 11 models
+
+        """
+        x, y = inputs
+        t_final = torch.zeros(
+            len(MODEL_NAMES),
+            x.tensor.shape[1],
+            x.tensor.shape[2],
+            dtype=x.tensor.dtype,
+            device=x.tensor.device,
+        )
+        for idx, model in enumerate(MODEL_NAMES):
+            if model in x.feature_names:
+                t_final[idx] = x[model]
+        return NamedTensor(t_final, x.names, MODEL_NAMES), y
 
 
 class Normalize(nn.Module, ReversibleTransformMixin):
@@ -206,7 +236,7 @@ if __name__ == "__main__":
     sample = Sample(dt.datetime(2024, 7, 30), 15)
     x, y = sample.input_data, sample.target_data
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
-    x_transformed, _ = transform(x, y)
+    x_transformed, _ = transform((x, y))
     nt = NamedTensor.concat([x, x_transformed, y])
     print(nt)
     plot_named_tensor(nt, "O3", Path("test_transform.png"))

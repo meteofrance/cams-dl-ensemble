@@ -1,15 +1,24 @@
 import json
+import os
 from pathlib import Path
 
+from cams.settings import MODEL_NAMES
 import pytest
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.transforms import ExtractInputStatisticalFeatures, Normalize
+from cams.transforms import ExtractInputStatisticalFeatures, FillMissingModels, Normalize
 
 
 def test_ExtractInputStatisticalFeatures():
     """Test of ExtractInputStatisticalFeatures tranform."""
+    os.environ["SCIPY_ARRAY_API"] = "0"
+    with pytest.raises(RuntimeError):
+        transform = ExtractInputStatisticalFeatures(
+            ["mean", "amin", "argmin", "amax", "argmax", "median", "skew", "kurtosis"]
+        )
+    os.environ["SCIPY_ARRAY_API"] = "1"
+
     input_data = torch.tensor(
         [
             [[1.0, 2.0], [3.0, 4.0]],
@@ -70,6 +79,33 @@ def test_ExtractInputStatisticalFeatures():
     assert result_nt.tensor.shape == (0, 2, 2)
     assert target_nt_result == target_nt
 
+def test_FillMissingModels():
+    """Test of ExtractInputStatisticalFeatures tranform."""
+    input_data = torch.ones(9, 2, 2)
+    input_nt = NamedTensor(
+        input_data,
+        names=["features", "lat", "lon"],
+        feature_names=MODEL_NAMES[:9],
+    )
+    target_nt = NamedTensor(
+        torch.ones(1, 2, 2),
+        names=["features", "lat", "lon"],
+        feature_names=["analysis"],
+    )
+
+    transform = FillMissingModels()
+    result_nt, target_nt_result = transform((input_nt, target_nt))
+
+    # Test 1: output shape and unchanged target
+    assert result_nt.tensor.shape == (11, 2, 2)
+    assert target_nt_result == target_nt
+
+    # Test 2: output feature_names
+    assert result_nt.feature_names == MODEL_NAMES
+
+    # Test 3: output added models contains only 0
+    assert torch.equal(result_nt.tensor[9], torch.zeros(2, 2))
+    assert torch.equal(result_nt.tensor[10], torch.zeros(2, 2))
 
 @pytest.fixture
 def x_named_tensor() -> NamedTensor:

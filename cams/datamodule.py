@@ -1,3 +1,4 @@
+import calendar
 import datetime as dt
 from pathlib import Path
 from typing import Literal
@@ -28,7 +29,7 @@ class CAMSDataModule(LightningDataModule):
         num_workers: int = 1,
         prefetch_factor: int = 2,
         start_date: dt.datetime | None = None,
-        val_date: dt.datetime | None = None,
+        val_day: int = 5,
         end_date: dt.datetime | None = None,
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
@@ -41,11 +42,10 @@ class CAMSDataModule(LightningDataModule):
                 Defaults to 2.
             start_date: Dataset start date, inclusive. If None, earliest date
                 is selected. Defaults to None.
-            val_date: Date after which the data is reserved for validation,
-                inclusive. If None, is defined to be 365 days before the end
-                date or the date after which there are 30% of the available data
-                if there are less than 365 days of data available.
-                Defaults to None.
+            val_day: Day after which the data is reserved for validation,
+                inclusive. If None, is defined to be 5 days before the end
+                of each month.
+                Defaults to 5.
             end_date: Dataset end date, inclusive. If None, latest date is
                 selected. Defaults to None.
             processed_dir: Path to the CAMS processed dataset.
@@ -86,39 +86,25 @@ class CAMSDataModule(LightningDataModule):
         # Set dates if they are not defined
         start_date = start_date if start_date else run_dates[0]
         end_date = end_date if end_date else run_dates[-1]
-        if val_date is None and end_date - dt.timedelta(days=365) <= start_date:
-            val_date = start_date + dt.timedelta(
-                days=int((end_date - start_date).days * 0.7)
-            )
-        elif val_date is None:
-            val_date = end_date - dt.timedelta(days=365)
-        if not (start_date < val_date < end_date):
-            raise ValueError(
-                "Given start, val or end values are invalid:\n"
-                f"start {start_date} - val {val_date} - end {end_date}"
-            )
+        self.train_dates = []
+        self.val_dates = []
+        for date in run_dates:
+            _, last_day_month = calendar.monthrange(date.year, date.month)
+            last_date_month = dt.datetime(date.year, date.month, last_day_month)
+            first_date_month = dt.datetime(date.year, date.month, 1)
 
-        # Define training set start and end date
-        # To avoid overlap in train/val sets, we remove the last 4 days from train set
-        self.train_start = start_date
-        self.train_end = val_date - dt.timedelta(days=4)
+            val_start_date = last_date_month - dt.timedelta(days=val_day)
+            train_end_date = last_date_month - dt.timedelta(days=val_day + 4)
+            if first_date_month <= date <= train_end_date:
+                self.train_dates.append(date)
+            elif val_start_date <= date <= last_date_month:
+                self.val_dates.append(date)
 
-        # Define validation set start and end date
-        self.val_start = val_date
-        self.val_end = end_date
-
-        # Sanity checks on the train and validation dates
-        train_dates = [
-            date for date in run_dates if self.train_start <= date <= self.train_end
-        ]
-        val_dates = [
-            date for date in run_dates if self.val_start <= date <= self.val_end
-        ]
         if (
-            any(date in val_dates for date in train_dates)
-            or any(date in train_dates for date in val_dates)
-            or len(train_dates) == 0
-            or len(val_dates) == 0
+            any(date in self.val_dates for date in self.train_dates)
+            or any(date in self.train_dates for date in self.val_dates)
+            or len(self.train_dates) == 0
+            or len(self.val_dates) == 0
         ):
             raise ValueError(
                 "Start and end dates given for CAMS "
@@ -129,13 +115,8 @@ class CAMSDataModule(LightningDataModule):
         # Display reports
         print(f"--> {len(run_dates)} runs available in whole dataset.")
         print(f"--> {len(run_dates)} runs available in selected dataset.")
-        print(
-            f"--> {len(train_dates)} train dates: "
-            f"from {self.train_start} to {self.train_end}"
-        )
-        print(
-            f"--> {len(val_dates)} val dates: from {self.val_start} to {self.val_end}"
-        )
+        print(f"--> {len(self.train_dates)} train dates in selected dataset.")
+        print(f"--> {len(self.val_dates)} val dates in selected dataset.")
 
         self.save_hyperparameters()
 
@@ -153,14 +134,14 @@ class CAMSDataModule(LightningDataModule):
         }
         if stage == "fit":
             self.train_dataset = (
-                CAMSDataset(self.train_start, self.train_end, **dataset_kwargs)
+                CAMSDataset(self.train_dates, **dataset_kwargs)
                 if self.train_dataset is None
                 else self.train_dataset
             )
             print("--> Train dataset length: ", len(self.train_dataset))
         if stage in ["fit", "val", "validate"]:
             self.val_dataset = (
-                CAMSDataset(self.val_start, self.val_end, **dataset_kwargs)
+                CAMSDataset(self.val_dates, **dataset_kwargs)
                 if self.val_dataset is None
                 else self.val_dataset
             )

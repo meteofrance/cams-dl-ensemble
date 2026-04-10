@@ -1,12 +1,11 @@
 import datetime as dt
-import os
 from pathlib import Path
 
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.dataset import CAMSDataset, get_run_dates
+from cams.dataset import CAMSDataset
 from cams.settings import MODEL_NAMES
-from tests.conftest import clear_directory, create_dummy_input_netcdf, create_dummy_target_netcdf
+from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
 def test_cams_dataset_creation(tmp_dataset_dir: Path):

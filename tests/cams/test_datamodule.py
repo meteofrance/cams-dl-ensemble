@@ -38,7 +38,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
 
     # This should raise an error
     with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
-        dm.setup("invalid_stage")  # type: ignore[reportArgumentType]
+        dm.setup("invalid_stage")
 
     # Setup for fit stage
     dm.setup("fit")

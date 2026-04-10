@@ -42,7 +42,7 @@ class CAMSDataModule(LightningDataModule):
                 Defaults to 2.
             start_date: Dataset start date, inclusive. If None, earliest date
                 is selected. Defaults to None.
-            val_days: Number of days reserved for validation at the 
+            val_days: Number of days reserved for validation at the
                 end of each month, inclusive.
                 Defaults to 5.
             end_date: Dataset end date, inclusive. If None, latest date is

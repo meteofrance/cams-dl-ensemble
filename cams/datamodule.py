@@ -29,7 +29,7 @@ class CAMSDataModule(LightningDataModule):
         num_workers: int = 1,
         prefetch_factor: int = 2,
         start_date: dt.datetime | None = None,
-        val_day: int = 5,
+        val_days: int = 5,
         end_date: dt.datetime | None = None,
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
@@ -42,7 +42,7 @@ class CAMSDataModule(LightningDataModule):
                 Defaults to 2.
             start_date: Dataset start date, inclusive. If None, earliest date
                 is selected. Defaults to None.
-            val_day: Day after which the data is reserved for validation,
+            val_days: Day after which the data is reserved for validation,
                 inclusive. If None, is defined to be 5 days before the end
                 of each month.
                 Defaults to 5.
@@ -93,11 +93,11 @@ class CAMSDataModule(LightningDataModule):
             last_date_month = dt.datetime(date.year, date.month, last_day_month)
             first_date_month = dt.datetime(date.year, date.month, 1)
 
-            val_start_date = last_date_month - dt.timedelta(days=val_day)
-            train_end_date = last_date_month - dt.timedelta(days=val_day + 4)
+            val_start_date = last_date_month - dt.timedelta(days=val_days)
+            train_end_date = last_date_month - dt.timedelta(days=val_days + 4)
             if first_date_month <= date <= train_end_date:
                 self.train_dates.append(date)
-            elif val_start_date <= date <= last_date_month:
+            elif val_start_date < date <= last_date_month:
                 self.val_dates.append(date)
 
         if (

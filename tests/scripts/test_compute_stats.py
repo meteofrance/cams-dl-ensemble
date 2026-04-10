@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import datetime as dt
 from cams.dataset import CAMSDataset
 from scripts.data.compute_stats import compute_stats
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
@@ -17,7 +17,9 @@ def test_compute_stats(tmp_dataset_dir: Path):
     create_dummy_target_netcdf(target_path1)
     create_dummy_target_netcdf(target_path2)
 
-    dataset = CAMSDataset(processed_dir=tmp_dataset_dir)
+    dates = [dt.datetime(2022, 1, i) for i in range(1, 3)]
+
+    dataset = CAMSDataset(dates_run=dates, processed_dir=tmp_dataset_dir)
 
     assert len(dataset.samples) == 2
 

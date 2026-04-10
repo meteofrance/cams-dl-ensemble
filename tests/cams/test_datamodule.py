@@ -12,14 +12,12 @@ from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 def test_CAMSDatamodule(tmp_dataset_dir: Path):
     """Test CAMSDataModule initialization."""
     # Create some dummy files to simulate a real dataset
-    dates = [dt.datetime(2022, 1, i) for i in range(1, 11)]
+    for i in range(1,32):
+        create_dummy_input_netcdf(tmp_dataset_dir / f"input/2022_01_{i:02}.netcdf")
+        create_dummy_target_netcdf(tmp_dataset_dir / f"target/2022_01_{i:02}_15.netcdf")
 
-    for date in dates:
-        input_path = tmp_dataset_dir / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        target_path = tmp_dataset_dir / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
-        create_dummy_input_netcdf(input_path)
-        create_dummy_target_netcdf(target_path)
-
+    dates = [dt.datetime(2022, 1, i) for i in range(1, 32)]
+    
     dm = CAMSDataModule(
         batch_size=4, processed_dir=tmp_dataset_dir
     )
@@ -31,11 +29,12 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert dm.train_dataset is None
     assert dm.val_dataset is None
 
+    val_split_size = 5 # Default
+    train_split_size = len(dates) - 4 - val_split_size
+
     # Check date calculations
-    assert dm.train_start == dt.datetime(2022, 1, 1)  # first date
-    assert dm.train_end == dt.datetime(2022, 1, 3)  # val_start - 4 days
-    assert dm.val_start == dt.datetime(2022, 1, 7)  # 70%
-    assert dm.val_end == dt.datetime(2022, 1, 10)  # last date
+    assert len(dm.train_dates) == train_split_size
+    assert len(dm.val_dates) == val_split_size
 
     # This should raise an error
     with pytest.raises(ValueError, match="should be either 'fit', 'val', 'validate'"):
@@ -46,11 +45,13 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
 
     # Check that train dataset was created
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == 3  # 2022-01-01 to 2022-01-04
+    assert len(dm.train_dataset) == train_split_size # Should be 22 (31 - 4 - 5)
+    assert dm.train_dataset.dates_run == dates[:train_split_size] # 2022-01-01 to 2022-01-22
 
-    # Check that val dataset was also created (because of the condition)
+    # Check that val dataset was also created
     assert dm.val_dataset is not None
-    assert len(dm.val_dataset) == 4  # 2022-01-07 to 2022-01-10
+    assert len(dm.val_dataset) == val_split_size # Default 5
+    assert dm.val_dataset.dates_run == dates[-val_split_size:] # 2022-01-27 to 2022-01-31
 
     # Get train dataloader
     train_loader = dm.train_dataloader()
@@ -86,18 +87,33 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert list(targets.feature_names) == ["O3"]
 
     # Check custom start and end dates
+    val_split_size = 4
+    train_split_size = len(dates) - 4 - val_split_size
+    
     dm = CAMSDataModule(
         processed_dir=tmp_dataset_dir,
         start_date=dt.datetime(2022, 1, 2),
-        val_date=dt.datetime(2022, 1, 7),
-        end_date=dt.datetime(2022, 1, 9),
+        val_days=4,
+        end_date=dt.datetime(2022, 1, 31),
     )
-    assert dm.train_start == dt.datetime(2022, 1, 2)
-    assert dm.train_end == dt.datetime(2022, 1, 3)
-    assert dm.val_start == dt.datetime(2022, 1, 7)
-    assert dm.val_end == dt.datetime(2022, 1, 9)
+    assert len(dm.train_dates) == len(dates) - 4 - 4
+    assert len(dm.val_dates) == 4
     dm.setup("fit")
+    
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == 2  # 2022-01-02 to 2022-01-03
+    assert len(dm.train_dataset) == len(dm.train_dates) # Should be 23 (31 - 4 - 4)
+    assert dm.train_dataset.dates_run == dates[:train_split_size] # 2022-01-01 to 2022-01-23
+
     assert dm.val_dataset is not None
-    assert len(dm.val_dataset) == 3  # 2022-01-07 to 2022-01-09
+    assert len(dm.val_dataset) == len(dm.val_dates) # Should be 4 (val_days)
+    assert dm.val_dataset.dates_run == dates[-val_split_size:] # 2022-01-28 to 2022-01-31
+
+
+def test_dataloader(tmp_dataset_dir: Path):
+    """Test CAMSDataModule initialization."""
+
+    dm = CAMSDataModule(
+        batch_size=4, processed_dir=tmp_dataset_dir
+    )
+    assert dm.train_dataloader() is not None
+    assert dm.val_dataloader() is not None

@@ -94,7 +94,9 @@ class CAMSDataModule(LightningDataModule):
             first_date_month = dt.datetime(date.year, date.month, 1)
 
             val_start_date = last_date_month - dt.timedelta(days=val_days)
-            train_end_date = last_date_month - dt.timedelta(days=val_days + train_val_separation)
+            train_end_date = last_date_month - dt.timedelta(
+                days=val_days + train_val_separation
+            )
             if first_date_month <= date <= train_end_date:
                 self.train_dates.append(date)
             elif val_start_date < date <= last_date_month:

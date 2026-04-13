@@ -46,12 +46,12 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     # Check that train dataset was created
     assert dm.train_dataset is not None
     assert len(dm.train_dataset) == train_split_size # Should be 22 (31 - 4 - 5)
-    assert dm.train_dataset.dates_run == dates[:train_split_size] # 2022-01-01 to 2022-01-22
+    assert dm.train_dataset.run_dates == dates[:train_split_size] # 2022-01-01 to 2022-01-22
 
     # Check that val dataset was also created
     assert dm.val_dataset is not None
     assert len(dm.val_dataset) == val_split_size # Default 5
-    assert dm.val_dataset.dates_run == dates[-val_split_size:] # 2022-01-27 to 2022-01-31
+    assert dm.val_dataset.run_dates == dates[-val_split_size:] # 2022-01-27 to 2022-01-31
 
     # Get train dataloader
     train_loader = dm.train_dataloader()
@@ -102,11 +102,11 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     
     assert dm.train_dataset is not None
     assert len(dm.train_dataset) == len(dm.train_dates) # Should be 23 (31 - 4 - 4)
-    assert dm.train_dataset.dates_run == dates[:train_split_size] # 2022-01-01 to 2022-01-23
+    assert dm.train_dataset.run_dates == dates[:train_split_size] # 2022-01-01 to 2022-01-23
 
     assert dm.val_dataset is not None
     assert len(dm.val_dataset) == len(dm.val_dates) # Should be 4 (val_days)
-    assert dm.val_dataset.dates_run == dates[-val_split_size:] # 2022-01-28 to 2022-01-31
+    assert dm.val_dataset.run_dates == dates[-val_split_size:] # 2022-01-28 to 2022-01-31
 
 
 def test_dataloader(tmp_dataset_dir: Path):

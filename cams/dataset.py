@@ -24,7 +24,7 @@ class CAMSDataset(Dataset):
 
     def __init__(
         self,
-        dates_run: list[dt.datetime],
+        run_dates: list[dt.datetime],
         processed_dir: Path = PROCESSED_DATA_DIR,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:
@@ -32,20 +32,20 @@ class CAMSDataset(Dataset):
         A sample point is a date and a forecast id, used to instantiate a Sample.
 
         Args:
-            dates_run: The list of date to process
+            run_dates: The list of date to process
             processed_dir: Path to the CAMS dataset's processed data.
             transform_sequence: transforms sequence applied to the data after loading.
         """
         self.processed_dir = processed_dir
         self.transform_sequence = transform_sequence
-        self.dates_run = dates_run
+        self.run_dates = run_dates
 
     @cached_property
     def samples(self) -> list[Sample]:
         """Returns the list of valid samples in the dataset."""
         # For now, we only use the leadtime = 15h:
         samples = [
-            Sample(date_run, 15, self.processed_dir) for date_run in self.dates_run
+            Sample(date_run, 15, self.processed_dir) for date_run in self.run_dates
         ]
         return [sample for sample in samples if sample.is_valid]
 

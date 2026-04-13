@@ -20,7 +20,7 @@ def test_cams_dataset_creation(tmp_dataset_dir: Path):
     dataset = CAMSDataset(dates, tmp_dataset_dir)
     assert len(dataset) == 31
     assert len(dataset.samples) == 31
-    assert len(dataset.dates_run) == 31
+    assert len(dataset.run_dates) == 31
 
     # Get first item
     x, y = dataset[0]

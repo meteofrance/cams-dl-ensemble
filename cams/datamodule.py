@@ -29,8 +29,9 @@ class CAMSDataModule(LightningDataModule):
         num_workers: int = 1,
         prefetch_factor: int = 2,
         start_date: dt.datetime | None = None,
-        val_days: int = 5,
         end_date: dt.datetime | None = None,
+        val_days: int = 5,
+        train_val_separation: int = 4,
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
     ) -> None:
@@ -93,7 +94,7 @@ class CAMSDataModule(LightningDataModule):
             first_date_month = dt.datetime(date.year, date.month, 1)
 
             val_start_date = last_date_month - dt.timedelta(days=val_days)
-            train_end_date = last_date_month - dt.timedelta(days=val_days + 4)
+            train_end_date = last_date_month - dt.timedelta(days=val_days + train_val_separation)
             if first_date_month <= date <= train_end_date:
                 self.train_dates.append(date)
             elif val_start_date < date <= last_date_month:

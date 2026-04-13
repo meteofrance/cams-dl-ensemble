@@ -19,7 +19,7 @@ def test_compute_stats(tmp_dataset_dir: Path):
 
     dates = [dt.datetime(2022, 1, i) for i in range(1, 3)]
 
-    dataset = CAMSDataset(dates_run=dates, processed_dir=tmp_dataset_dir)
+    dataset = CAMSDataset(run_dates=dates, processed_dir=tmp_dataset_dir)
 
     assert len(dataset.samples) == 2
 

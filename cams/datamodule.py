@@ -43,11 +43,12 @@ class CAMSDataModule(LightningDataModule):
                 Defaults to 2.
             start_date: Dataset start date, inclusive. If None, earliest date
                 is selected. Defaults to None.
-            val_days: Number of days reserved for validation at the
-                end of each month, inclusive.
-                Defaults to 5.
             end_date: Dataset end date, inclusive. If None, latest date is
                 selected. Defaults to None.
+            val_days: Number of days reserved for validation at the
+                end of each month, inclusive. Defaults to 5.
+            train_val_separation: Number of days between train and validation
+                datasets. Defaults to 4.
             processed_dir: Path to the CAMS processed dataset.
             transforms: list of transforms to apply to the data after loading it.
         """

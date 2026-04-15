@@ -25,7 +25,7 @@ dependencies = [
   "mlflow==3.10.*",
   # Dev dependencies
   "pyright[nodejs]",
-  "ruff",
+  "ruff==0.15.9",
   "pytest",
   "pytest-cov",
   "dayplot>=0.5.1",

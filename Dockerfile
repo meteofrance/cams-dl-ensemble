@@ -22,24 +22,6 @@ RUN $MY_APT update \
 RUN mkdir -p /run/sshd \
     && curl -fsSL https://code-server.dev/install.sh | sh
 
-# Build time variables
-ARG USERNAME
-ARG GROUPNAME
-ARG USER_UID
-ARG USER_GUID
-ARG HOME_DIR
-ARG NODE_EXTRA_CA_CERTS
-
-RUN set -eux \
-    && groupadd --gid $USER_GUID $GROUPNAME \
-    # https://stackoverflow.com/questions/73208471/docker-build-issue-stuck-at-exporting-layers
-    && mkdir -p $HOME_DIR \
-    && useradd -l --no-log-init --uid $USER_UID --gid $USER_GUID -s /bin/bash --home-dir $HOME_DIR --create-home $USERNAME \
-    && chown $USERNAME:$GROUPNAME $HOME_DIR \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME \
-    && echo "$USERNAME:$USERNAME" | chpasswd
-
 # uv configuration
 # Copy astral uv binaries from official distroless image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -57,3 +39,21 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=cache,target=.venv \
     uv sync --locked --no-install-project --no-dev --allow-insecure-host https://github.com --allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org
+
+# Build time variables
+ARG USERNAME
+ARG GROUPNAME
+ARG USER_UID
+ARG USER_GUID
+ARG HOME_DIR
+ARG NODE_EXTRA_CA_CERTS
+
+RUN set -eux \
+    && groupadd --gid $USER_GUID $GROUPNAME \
+    # https://stackoverflow.com/questions/73208471/docker-build-issue-stuck-at-exporting-layers
+    && mkdir -p $HOME_DIR \
+    && useradd -l --no-log-init --uid $USER_UID --gid $USER_GUID -s /bin/bash --home-dir $HOME_DIR --create-home $USERNAME \
+    && chown $USERNAME:$GROUPNAME $HOME_DIR \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && echo "$USERNAME:$USERNAME" | chpasswd

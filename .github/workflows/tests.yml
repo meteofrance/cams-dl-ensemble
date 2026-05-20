@@ -16,7 +16,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
     - name: Gather Python changed files
       id: changed-py-files
@@ -30,8 +32,10 @@ jobs:
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
         pip install ruff==0.15.9
-        ruff format --check ${{ steps.changed-py-files.outputs.all_changed_files }}
-        ruff check ${{ steps.changed-py-files.outputs.all_changed_files }}
+        ruff format --check ${STEPS_CHANGED_PY_FILES_OUTPUTS_ALL_CHANGED_FILES}
+        ruff check ${STEPS_CHANGED_PY_FILES_OUTPUTS_ALL_CHANGED_FILES}
+      env:
+        STEPS_CHANGED_PY_FILES_OUTPUTS_ALL_CHANGED_FILES: ${{ steps.changed-py-files.outputs.all_changed_files }}
 
   tests:
     env:
@@ -39,13 +43,15 @@ jobs:
       SCIPY_ARRAY_API: 1
     runs-on: ubuntu-22.04
     container:
-      image: pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel
+      image: pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel@sha256:df80e10d07cd114c5f33380e3df7b6c5a3caab8481f68509ea652a7c0908316e
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
       with:
         enable-cache: true
 
@@ -69,7 +75,9 @@ jobs:
     - name: Type hinting with pyright on changed files
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: |
-        uv run pyright ${{ steps.changed-py-files.outputs.all_changed_files }}
+        uv run pyright ${STEPS_CHANGED_PY_FILES_OUTPUTS_ALL_CHANGED_FILES}
+      env:
+        STEPS_CHANGED_PY_FILES_OUTPUTS_ALL_CHANGED_FILES: ${{ steps.changed-py-files.outputs.all_changed_files }}
 
     - name: Test with pytest
       if: steps.changed-py-files.outputs.any_changed == 'true'

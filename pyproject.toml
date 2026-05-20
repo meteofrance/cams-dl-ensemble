@@ -29,10 +29,19 @@ dependencies = [
   "pytest",
   "pytest-cov",
   "dayplot>=0.5.1",
+  "pypi-attestations>=0.0.29",
 ]
 
 [tool.setuptools.packages.find]
 exclude = ["doc*", "configs*"]
+
+[tool.uv]
+# Enforces the use of prebuilt binary wheels over source distributions
+# that require a build step and executes arbitrary code when installing.
+pip.only-binary = [":all:"]
+
+# Cooldown period for new versions of a package.
+exclude-newer = "7 days"
 
 [tool.ruff]
 target-version = "py312"

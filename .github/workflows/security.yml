@@ -1,3 +1,14 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
 jobs:
   audit:
     runs-on: ubuntu-latest

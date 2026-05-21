@@ -3,7 +3,7 @@ revision = 3
 requires-python = "==3.12.3"
 
 [options]
-exclude-newer = "2026-05-06T08:30:57.412928051Z"
+exclude-newer = "2026-05-06T08:57:29.52083848Z"
 exclude-newer-span = "P15D"
 
 [[package]]
@@ -265,8 +265,8 @@ requires-dist = [
     { name = "pypi-attestations", specifier = ">=0.0.29" },
     { name = "pyright", specifier = ">=1.1.405" },
     { name = "pyright", extras = ["nodejs"] },
-    { name = "pytest" },
-    { name = "pytest-cov" },
+    { name = "pytest", specifier = "==9.0.*" },
+    { name = "pytest-cov", specifier = "==7.1.*" },
     { name = "ruff", specifier = "==0.15.9" },
     { name = "torch", specifier = "==2.11.*" },
     { name = "tornado", specifier = ">=6.5.4" },

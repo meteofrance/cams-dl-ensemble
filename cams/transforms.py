@@ -109,7 +109,11 @@ def load_stats(stats_path: Path) -> dict[str, Any]:
 
 
 class FillMissingModels(nn.Module):
-    """Add missing models at the right index with values of zeros"""
+    """Add missing models at the right index with a given value."""
+
+    def __init__(self, fill_value: int=-1) -> None:
+        super().__init__()
+        self.fill_value = fill_value
 
     @override
     def forward(
@@ -125,16 +129,17 @@ class FillMissingModels(nn.Module):
 
         """
         x, y = inputs
-        t_final = torch.zeros(
+        t_final = torch.ones(
             len(MODEL_NAMES),
             x.tensor.shape[1],
             x.tensor.shape[2],
             dtype=x.tensor.dtype,
             device=x.tensor.device,
-        )
+        ) * self.fill_value
         for idx, model in enumerate(MODEL_NAMES):
             if model in x.feature_names:
                 t_final[idx] = x[model]
+
         return NamedTensor(t_final, x.names, MODEL_NAMES), y
 
 

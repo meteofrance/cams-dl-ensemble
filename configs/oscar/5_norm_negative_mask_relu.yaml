@@ -1,0 +1,49 @@
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      tracking_uri: http://priam-sidev.meteo.fr:11072
+      experiment_name: oscar
+      run_name: norm_negative_mask
+      log_model: True
+      artifact_location: /scratch/shared/cams/mlartifacts
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: val_loss
+        patience: 50
+        mode: min
+  max_epochs: 500
+  log_every_n_steps: 10
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.HalfUNet
+    init_args:
+      in_channels: 11  # 11 CAMS models
+      out_channels: 1
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+        last_activation: ReLU
+  loss:
+    class_path: torch.nn.L1Loss
+
+data:
+  batch_size: 16
+  num_workers: 10
+  prefetch_factor: 2
+  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed_test
+  transforms:
+    - class_path: cams.transforms.Normalize
+    - class_path: cams.transforms.FillMissingModels
+      init_args:
+        fill_value: -1

@@ -10,6 +10,10 @@ trainer:
       log_model: True
       artifact_location: /scratch/shared/cams/mlartifacts
   max_steps: 1
+  callbacks:
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
+  max_epochs: 500
+  log_every_n_steps: 10
 
 model:
   learning_rate: 0.0001

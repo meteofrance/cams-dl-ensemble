@@ -6,9 +6,9 @@ from typing import Any
 import numpy as np
 from tqdm import tqdm
 
-from cams.dataset import CAMSDataset
+from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
-from cams.settings import STATS_PATH
+from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
 
 
 def compute_stats(dataset: CAMSDataset) -> dict[str, Any]:
@@ -37,8 +37,16 @@ def compute_stats(dataset: CAMSDataset) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Computes min/max of the different species on the Analysis data.",
+    )
+
     # Compute stats
-    stats = compute_stats(dataset=CAMSDataset())
+    stats = compute_stats(
+        dataset=CAMSDataset(run_dates=get_run_dates(PROCESSED_DATA_DIR))
+    )
 
     # Save stats as json
     with open(STATS_PATH, "w") as f:

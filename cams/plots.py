@@ -129,7 +129,7 @@ def plot_y_vs_yhat(
     """Plots the ground truth VS the prediction from a model."""
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 8))
-    subfig = fig.subfigures(nrows=2, ncols=1)
+    subfig: np.typing.NDArray = fig.subfigures(nrows=2, ncols=1)  # type: ignore [reportAssignmentType]
 
     # Plot maps of species
     axes = subfig[0].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)

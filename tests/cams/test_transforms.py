@@ -93,7 +93,7 @@ def test_FillMissingModels():
         feature_names=["analysis"],
     )
 
-    transform = FillMissingModels()
+    transform = FillMissingModels(fill_value=0)
     result_nt, target_nt_result = transform((input_nt, target_nt))
 
     # Test 1: output shape and unchanged target

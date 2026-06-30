@@ -111,7 +111,12 @@ def load_stats(stats_path: Path) -> dict[str, Any]:
 class FillMissingModels(nn.Module):
     """Add missing models at the right index with a given value."""
 
-    def __init__(self, fill_value: int=-1) -> None:
+    def __init__(self, fill_value: int = -1) -> None:
+        """
+        Args:
+            fill_value: Value used to fill missing models spaces with.
+                Defaults to -1.
+        """
         super().__init__()
         self.fill_value = fill_value
 
@@ -129,13 +134,16 @@ class FillMissingModels(nn.Module):
 
         """
         x, y = inputs
-        t_final = torch.ones(
-            len(MODEL_NAMES),
-            x.tensor.shape[1],
-            x.tensor.shape[2],
-            dtype=x.tensor.dtype,
-            device=x.tensor.device,
-        ) * self.fill_value
+        t_final = (
+            torch.ones(
+                len(MODEL_NAMES),
+                x.tensor.shape[1],
+                x.tensor.shape[2],
+                dtype=x.tensor.dtype,
+                device=x.tensor.device,
+            )
+            * self.fill_value
+        )
         for idx, model in enumerate(MODEL_NAMES):
             if model in x.feature_names:
                 t_final[idx] = x[model]

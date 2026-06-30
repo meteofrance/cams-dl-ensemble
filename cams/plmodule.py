@@ -200,21 +200,18 @@ class CAMSLightningModule(LightningModule):
                 and self.trainer.current_epoch % 15 != 0
                 and self.trainer.current_epoch != self.trainer.max_epochs
                 and self.trainer.current_epoch != self.trainer.max_epochs - 1
-            # Only plot the first batch of the evaluation
-            or batch_idx not in [0]
+                # Only plot the first batch of the evaluation
+                or batch_idx not in [0]
             )
             # No run id
             or self.logger.run_id is None
         ):
             return
 
-
         # Open temporary file
         with NamedTemporaryFile(
-            prefix=f"epoch_{self.trainer.current_epoch}_",
-            suffix=".png"
+            prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
         ) as file:
-
             # First save the plot in a temporary PNG file
             plot_y_vs_yhat_vs_median(
                 x.select_dim("batch", 0),

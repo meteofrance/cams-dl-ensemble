@@ -5,11 +5,11 @@ from pathlib import Path
 
 import cartopy
 import cartopy.feature as cfeature
-from cartopy.mpl.geoaxes import GeoAxes
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from cartopy.crs import PlateCarree
+from cartopy.mpl.geoaxes import GeoAxes
 from matplotlib.axes import Axes
 from matplotlib.typing import HashableList
 from mfai.pytorch.namedtensor import NamedTensor
@@ -154,6 +154,7 @@ def plot_y_vs_yhat(
     plt.savefig(save_path)
     plt.close()
 
+
 def plot_y_vs_yhat_vs_median(
     x: NamedTensor, y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
 ) -> None:
@@ -172,7 +173,9 @@ def plot_y_vs_yhat_vs_median(
     cbar_gt.set_label(UNITS["O3"], size=13)
 
     # Plot prediction and median side by side
-    axes_pred_med: np.ndarray = subfigs[1].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
+    axes_pred_med: np.ndarray = subfigs[1].subplots(
+        nrows=1, ncols=2, subplot_kw=subplot_kw
+    )
     axs_pred_med = axes_pred_med.flat
     img_pred = axs_pred_med[0].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs_pred_med[0], "Prediction")
@@ -185,7 +188,9 @@ def plot_y_vs_yhat_vs_median(
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs_diff = axes_diff.flat
     diff_pred = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
-    img_diff_pred = axs_diff[0].imshow(diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
+    img_diff_pred = axs_diff[0].imshow(
+        diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50
+    )
     format_axis(axs_diff[0], "Difference (Prediction)")
     diff_med = x.tensor.cpu().median(dim=0).values - y.tensor[0].cpu()
     axs_diff[1].imshow(diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
@@ -195,6 +200,7 @@ def plot_y_vs_yhat_vs_median(
     fig.suptitle(title, size=18)
     plt.savefig(save_path)
     plt.close()
+
 
 def plot_named_tensor(
     nt: NamedTensor, species_name: str, save_path: Path, title: str = ""

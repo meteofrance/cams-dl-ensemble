@@ -11,5 +11,5 @@ if __name__ == "__main__":
         model_class=CAMSLightningModule,
         datamodule_class=CAMSDataModule,
         save_config_kwargs={"overwrite": True},
-        save_config_callback = MLFlowSaveConfigCallback,
+        save_config_callback=MLFlowSaveConfigCallback,
     )

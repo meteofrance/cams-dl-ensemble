@@ -4,7 +4,7 @@ from pathlib import Path
 # Define path to the cams dataset dir to the CAMS_DATASET_DIR
 # environment variable if it exists, otherwise takes a default value.
 CAMS_DATASET_DIR: Path = (
-    Path("/scratch/shared/cams/o3_15h_SOL/")
+    Path("/scratch/shared/cams-dl-ensemble/o3_15h_SOL/")
     if (dataset_dir_from_env := os.getenv("CAMS_DATASET_DIR")) is None
     else Path(dataset_dir_from_env)
 )
@@ -12,7 +12,7 @@ CAMS_DATASET_DIR: Path = (
 # Define paths to the CAMS dataset directory content
 RAW_DATA_DIR: Path = CAMS_DATASET_DIR / "raw"
 PROCESSED_DATA_DIR: Path = CAMS_DATASET_DIR / "processed"
-LOGS_DIR: Path = CAMS_DATASET_DIR / "logs"
+# LOGS_DIR: Path = CAMS_DATASET_DIR / "logs"
 STATS_PATH = CAMS_DATASET_DIR / "species_stats.json"
 
 # Model names

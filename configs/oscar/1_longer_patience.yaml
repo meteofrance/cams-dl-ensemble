@@ -4,10 +4,10 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       tracking_uri: http://priam-sidev.meteo.fr:11072
-      experiment_name: oscar
+      experiment_name: other2_oscar
       run_name: very_long_patience
       log_model: True
-      artifact_location: /scratch/shared/cams/mlartifacts
+      # artifact_location: /scratch/shared/cams/mlartifacts
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
@@ -18,7 +18,7 @@ trainer:
         monitor: val_loss
         patience: 50
         mode: min
-  max_epochs: 500
+  max_epochs: 400
   log_every_n_steps: 10
 
 model:
@@ -41,7 +41,6 @@ data:
   batch_size: 16
   num_workers: 10
   prefetch_factor: 2
-  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed_test
   transforms:
     - class_path: cams.transforms.Normalize
     - class_path: cams.transforms.FillMissingModels

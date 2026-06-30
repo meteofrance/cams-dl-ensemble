@@ -18,7 +18,7 @@ trainer:
         monitor: val_loss
         patience: 50
         mode: min
-  max_epochs: 500
+  max_epochs: 400
   log_every_n_steps: 10
 
 model:

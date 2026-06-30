@@ -12,7 +12,6 @@ CAMS_DATASET_DIR: Path = (
 # Define paths to the CAMS dataset directory content
 RAW_DATA_DIR: Path = CAMS_DATASET_DIR / "raw"
 PROCESSED_DATA_DIR: Path = CAMS_DATASET_DIR / "processed"
-# LOGS_DIR: Path = CAMS_DATASET_DIR / "logs"
 STATS_PATH = CAMS_DATASET_DIR / "species_stats.json"
 
 # Model names

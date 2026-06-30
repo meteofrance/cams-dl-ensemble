@@ -42,20 +42,8 @@ jobs:
       image: pytorch/pytorch:2.10.0-cuda12.6-cudnn9-devel
 
     steps:
-    # Script from https://github.com/apache/flink/blob/02d30ace69dc18555a5085eccf70ee884e73a16e/tools/azure-pipelines/free_disk_space.sh
-    - name: Clean up space in runner
-      run: |
-        dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-        df -h
-        sudo apt-get remove -y '^ghc-8.*'
-        sudo apt-get remove -y '^dotnet-.*'
-        sudo apt-get remove -y '^llvm-.*'
-        sudo apt-get remove -y 'php.*'
-        sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell    mono-devel
-        sudo apt-get autoremove -y
-        sudo apt-get clean
-        df -h
-        rm -rf /usr/share/dotnet/
+    - name: Free disk space
+      run: curl -fsSL https://raw.githubusercontent.com/kou/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash/share/dotnet/
         df -h
 
     - uses: actions/checkout@v4

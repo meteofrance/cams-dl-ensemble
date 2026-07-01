@@ -180,7 +180,7 @@ def plot_y_vs_yhat_vs_median(
     img_pred = axs_pred_med[0].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs_pred_med[0], "Prediction")
     axs_pred_med[1].imshow(x.tensor.cpu().median(dim=0).values, **plot_kwargs)
-    format_axis(axs_pred_med[1], "Median of Input Data")
+    format_axis(axs_pred_med[1], "Median of Inputs")
     cbar_pred = subfigs[1].colorbar(img_pred, ax=axes_pred_med, fraction=0.023)
     cbar_pred.set_label(UNITS["O3"], size=13)
 

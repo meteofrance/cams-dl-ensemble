@@ -191,7 +191,7 @@ def plot_y_vs_yhat_vs_median(
     img_diff_pred = axs_diff[0].imshow(
         diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50
     )
-    format_axis(axs_diff[0], "Difference (Prediction)")
+    format_axis(axs_diff[0], "Difference (AI Prediction)")
     diff_med = x.tensor.cpu().median(dim=0).values - y.tensor[0].cpu()
     axs_diff[1].imshow(diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
     format_axis(axs_diff[1], "Difference (Median of Inputs)")

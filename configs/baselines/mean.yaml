@@ -4,9 +4,11 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      save_dir: /scratch/shared/cams/logs/
+      tracking_uri: http://priam-sidev.meteo.fr:11072
       experiment_name: baseline
       run_name: mean
+      log_model: True
+      artifact_location: /scratch/shared/cams/mlartifacts
   max_steps: 1
 
 model:

@@ -252,4 +252,4 @@ if __name__ == "__main__":
     x_transformed, _ = transform((x, y))
     nt = NamedTensor.concat([x, x_transformed, y])
     print(nt)
-    plot_named_tensor(nt, "O3", Path("test_transform.png"))
+    plot_named_tensor(nt, "O3", Path("output/test_transform.png"))

@@ -227,7 +227,7 @@ class CAMSLightningModule(LightningModule):
                 mlf_logger.log_image(
                     self.logger.run_id,
                     image=img,
-                    key=f"val_plot_{self.trainer.current_epoch}",
+                    key=f"val_plot",
                     step=self.current_epoch,
                 )
 

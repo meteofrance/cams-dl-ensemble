@@ -3,7 +3,7 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: http://priam-sidev.meteo.fr:11072
+      tracking_uri: None
       experiment_name: oscar
       run_name: norm_negative_mask
       log_model: True

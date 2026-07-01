@@ -4,7 +4,7 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: http://priam-sidev.meteo.fr:11072
+      tracking_uri: None
       experiment_name: baseline
       run_name: median
       log_model: True

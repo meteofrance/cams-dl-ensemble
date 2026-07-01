@@ -5,7 +5,7 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: None
+      tracking_uri: NNone  # To be replaced by the adress to your mlflow servere
       experiment_name: oscar
       run_name: dummy
       log_model: True

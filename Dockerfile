@@ -22,6 +22,27 @@ RUN $MY_APT update \
 RUN mkdir -p /run/sshd \
     && curl -fsSL https://code-server.dev/install.sh | sh
 
+# uv configuration
+# Copy astral uv binaries from official distroless image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
+# Ensure installed tools can be executed out of the box
+ENV UV_TOOL_BIN_DIR=/usr/local/bin
+
+# uv installation
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=cache,target=.venv \
+    uv sync --locked --freeze --no-install-project --no-dev \
+    --allow-insecure-host https://github.com \
+    --allow-insecure-host pypi.org \
+    --allow-insecure-host files.pythonhosted.org
+
 # Build time variables
 ARG USERNAME
 ARG GROUPNAME
@@ -39,21 +60,3 @@ RUN set -eux \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && echo "$USERNAME:$USERNAME" | chpasswd
-
-# uv configuration
-# Copy astral uv binaries from official distroless image
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
-# Ensure installed tools can be executed out of the box
-ENV UV_TOOL_BIN_DIR=/usr/local/bin
-
-# uv installation
-# Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=cache,target=.venv \
-    uv sync --locked --no-install-project --no-dev --allow-insecure-host https://github.com --allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org

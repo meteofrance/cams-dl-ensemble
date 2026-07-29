@@ -1,25 +1,24 @@
-# lightning.pytorch==2.6.1
 seed_everything: 666
 trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      save_dir: /scratch/shared/cams/logs/
-      experiment_name: basic
-      run_name: halfunet_666
+      tracking_uri: None  # To be replaced by the adress to your mlflow server
+      experiment_name: oscar
+      run_name: norm_negative_mask
       log_model: True
+      artifact_location: /scratch/shared/cams/mlartifacts
   callbacks:
-    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
-      init_args:
-        filename: "{epoch:02d}-{val_loss:.2f}"
-        monitor: val_loss
-        mode: min
-        save_top_k: 1    # Save the best model
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
         logging_interval: step
     - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
-  max_epochs: 20
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: val_loss
+        patience: 50
+        mode: min
+  max_epochs: 500
   log_every_n_steps: 10
 
 model:
@@ -34,14 +33,16 @@ model:
         - 700
       settings:
         autopad_enabled: True
-        last_activation: ReLU
+        # last_activation: ReLU
   loss:
-    class_path: torch.nn.MSELoss
+    class_path: torch.nn.L1Loss
 
 data:
   batch_size: 16
   num_workers: 10
   prefetch_factor: 2
-  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
   transforms:
     - class_path: cams.transforms.Normalize
+    - class_path: cams.transforms.FillMissingModels
+      init_args:
+        fill_value: -1

@@ -109,7 +109,16 @@ def load_stats(stats_path: Path) -> dict[str, Any]:
 
 
 class FillMissingModels(nn.Module):
-    """Add missing models at the right index with values of zeros"""
+    """Add missing models at the right index with a given value."""
+
+    def __init__(self, fill_value: int = -1) -> None:
+        """
+        Args:
+            fill_value: Value used to fill missing models spaces with.
+                Defaults to -1.
+        """
+        super().__init__()
+        self.fill_value = fill_value
 
     @override
     def forward(
@@ -125,16 +134,20 @@ class FillMissingModels(nn.Module):
 
         """
         x, y = inputs
-        t_final = torch.zeros(
-            len(MODEL_NAMES),
-            x.tensor.shape[1],
-            x.tensor.shape[2],
-            dtype=x.tensor.dtype,
-            device=x.tensor.device,
+        t_final = (
+            torch.ones(
+                len(MODEL_NAMES),
+                x.tensor.shape[1],
+                x.tensor.shape[2],
+                dtype=x.tensor.dtype,
+                device=x.tensor.device,
+            )
+            * self.fill_value
         )
         for idx, model in enumerate(MODEL_NAMES):
             if model in x.feature_names:
                 t_final[idx] = x[model]
+
         return NamedTensor(t_final, x.names, MODEL_NAMES), y
 
 
@@ -239,4 +252,4 @@ if __name__ == "__main__":
     x_transformed, _ = transform((x, y))
     nt = NamedTensor.concat([x, x_transformed, y])
     print(nt)
-    plot_named_tensor(nt, "O3", Path("test_transform.png"))
+    plot_named_tensor(nt, "O3", Path("output/test_transform.png"))

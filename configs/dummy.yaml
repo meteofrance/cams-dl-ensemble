@@ -1,13 +1,16 @@
 # lightning.pytorch==2.6.1
 seed_everything: 666
+
 trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      save_dir: /scratch/shared/cams/logs/
-      experiment_name: dummy
-      run_name: seed_666
+      tracking_uri: NNone  # To be replaced by the adress to your mlflow servere
+      experiment_name: oscar
+      run_name: dummy
       log_model: True
+      artifact_location: /scratch/shared/cams/mlartifacts
+
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:

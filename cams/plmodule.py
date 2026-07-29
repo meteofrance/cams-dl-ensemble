@@ -23,7 +23,7 @@ from cams.metrics import (
     MeanAbsoluteError,
     MeanSquaredError,
 )
-from cams.plots import plot_y_vs_yhat
+from cams.plots import plot_y_vs_yhat_vs_median
 from cams.transforms import ExtractInputStatisticalFeatures
 
 
@@ -184,30 +184,50 @@ class CAMSLightningModule(LightningModule):
     def val_plot_step(
         self,
         batch_idx: int,
+        x: NamedTensor,
         y: NamedTensor,
         y_hat: NamedTensor,
     ) -> None:
         """Plots images on some batches and log them in mlflow."""
-        if not isinstance(self.logger, MLFlowLogger):
+
+        # Guard conditions
+        if (
+            # Skip  if no mlflow logger
+            not isinstance(self.logger, MLFlowLogger)
+            # Only plot every 15 epochs and the 2 last epochs
+            or (
+                self.trainer.max_epochs is not None
+                and self.trainer.current_epoch % 15 != 0
+                and self.trainer.current_epoch != self.trainer.max_epochs
+                and self.trainer.current_epoch != self.trainer.max_epochs - 1
+                # Only plot the first batch of the evaluation
+                or batch_idx not in [0]
+            )
+            # No run id
+            or self.logger.run_id is None
+        ):
             return
-        interesting_batches = [0]
-        if batch_idx not in interesting_batches:
-            return
-        with NamedTemporaryFile(suffix=".png") as fp:
+
+        # Open temporary file
+        with NamedTemporaryFile(
+            prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
+        ) as file:
             # First save the plot in a temporary PNG file
-            plot_y_vs_yhat(
+            plot_y_vs_yhat_vs_median(
+                x.select_dim("batch", 0),
                 y.select_dim("batch", 0),
                 y_hat.select_dim("batch", 0),
-                Path(fp.name),
-                f"Sample {batch_idx}",
+                Path(file.name),
+                f"Epoch {self.trainer.current_epoch}",
             )
+
             # Then open the image with PIL and log it in mlflow
-            with Image.open(fp.name) as img:
+            with Image.open(file.name) as img:
                 mlf_logger: MlflowClient = self.logger.experiment
                 mlf_logger.log_image(
-                    self.logger.run_id,  # type: ignore[reportArgumentType]
+                    self.logger.run_id,
                     image=img,
-                    key=f"val_plot_{batch_idx}",
+                    key="val_plot",
                     step=self.current_epoch,
                 )
 
@@ -222,7 +242,7 @@ class CAMSLightningModule(LightningModule):
         _, y_hat = self.trainer.datamodule.undo_transforms(x, y_hat)  # type: ignore[reportAttributeAccessIssue]
         x, y = self.trainer.datamodule.undo_transforms(x, y)  # type: ignore[reportAttributeAccessIssue]
         self.metrics.update(y_hat, y)
-        self.val_plot_step(batch_idx, y, y_hat)
+        self.val_plot_step(batch_idx, x, y, y_hat)
         return loss
 
     @override

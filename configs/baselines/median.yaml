@@ -4,10 +4,15 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      save_dir: /scratch/shared/cams/logs/
+      tracking_uri: None  # To be replaced by the adress to your mlflow server
       experiment_name: baseline
       run_name: median
+      log_model: True
   max_steps: 1
+  callbacks:
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
+  max_epochs: 500
+  log_every_n_steps: 10
 
 model:
   learning_rate: 0.0001
@@ -20,7 +25,6 @@ data:
   batch_size: 2
   num_workers: 3
   prefetch_factor: 2
-  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
   transforms:
     - class_path: cams.transforms.ExtractInputStatisticalFeatures
       init_args:

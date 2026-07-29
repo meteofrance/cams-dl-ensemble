@@ -115,11 +115,13 @@ class CAMSDataModule(LightningDataModule):
                 "produce an empty dataset."
             )
 
-        # Display reports
+        # Display dataset availability informations
         print(f"--> {len(run_dates)} runs available in whole dataset.")
+        print(f"from {run_dates[0]} to {run_dates[-1]}")
         print(f"--> {len(run_dates)} runs available in selected dataset.")
         print(f"--> {len(self.train_dates)} train dates in selected dataset.")
         print(f"--> {len(self.val_dates)} val dates in selected dataset.")
+        print(f"from {self.val_dates[0]} to {self.val_dates[-1]}")
 
         self.save_hyperparameters()
 

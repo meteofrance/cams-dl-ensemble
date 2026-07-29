@@ -6,8 +6,10 @@ from pathlib import Path
 import cartopy
 import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from cartopy.crs import PlateCarree
+from cartopy.mpl.geoaxes import GeoAxes
 from matplotlib.axes import Axes
 from matplotlib.typing import HashableList
 from mfai.pytorch.namedtensor import NamedTensor
@@ -48,7 +50,7 @@ def get_vmin_vmax(species_name: str) -> tuple[float, float] | tuple[None, None]:
         return None, None
 
 
-def format_axis(ax: Axes, title: str) -> None:
+def format_axis(ax: GeoAxes | Axes, title: str) -> None:
     """Formats a given plot axis with title, labels, ticks and coastlines.
 
     Args:
@@ -59,8 +61,12 @@ def format_axis(ax: Axes, title: str) -> None:
     ax.set(xticklabels=[], yticklabels=[])
     ax.tick_params(bottom=False, left=False)
     ax.set_aspect(1.8)
-    ax.add_feature(cfeature.BORDERS.with_scale("50m"), edgecolor="grey", linewidth=1)  # type: ignore[reportAttributeAccessIssue]
-    ax.coastlines(resolution="50m", color="black", linewidth=1)  # type: ignore[reportAttributeAccessIssue]
+
+    if isinstance(ax, GeoAxes):
+        ax.add_feature(
+            cfeature.BORDERS.with_scale("50m"), edgecolor="grey", linewidth=1
+        )
+        ax.coastlines(resolution="50m", color="black", linewidth=1)
 
 
 def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> None:
@@ -123,7 +129,7 @@ def plot_y_vs_yhat(
     """Plots the ground truth VS the prediction from a model."""
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 8))
-    subfig = fig.subfigures(nrows=2, ncols=1)
+    subfig: np.typing.NDArray = fig.subfigures(nrows=2, ncols=1)  # type: ignore [reportAssignmentType]
 
     # Plot maps of species
     axes = subfig[0].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
@@ -143,6 +149,53 @@ def plot_y_vs_yhat(
     img = ax.imshow(diff, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
     format_axis(ax, "Difference")
     cbar = subfig[1].colorbar(img, ax=ax, fraction=0.023)
+
+    fig.suptitle(title, size=18)
+    plt.savefig(save_path)
+    plt.close()
+
+
+def plot_y_vs_yhat_vs_median(
+    x: NamedTensor, y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
+) -> None:
+    """Plots the ground truth, prediction, and median of inputs in three rows."""
+    subplot_kw = {"projection": PlateCarree()}
+    fig = plt.figure(constrained_layout=True, figsize=(9, 12))
+    subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]
+
+    # Plot ground truth (full size)
+    ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    vmin, vmax = get_vmin_vmax("O3")
+    plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
+    img_gt = ax_gt.imshow(y.tensor[0].cpu(), **plot_kwargs)
+    format_axis(ax_gt, "Ground Truth = Analysis")
+    cbar_gt = subfigs[0].colorbar(img_gt, ax=ax_gt, fraction=0.023)
+    cbar_gt.set_label(UNITS["O3"], size=13)
+
+    # Plot prediction and median side by side
+    axes_pred_med: np.ndarray = subfigs[1].subplots(
+        nrows=1, ncols=2, subplot_kw=subplot_kw
+    )
+    axs_pred_med = axes_pred_med.flat
+    img_pred = axs_pred_med[0].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
+    format_axis(axs_pred_med[0], "AI Prediction")
+    axs_pred_med[1].imshow(x.tensor.cpu().median(dim=0).values, **plot_kwargs)
+    format_axis(axs_pred_med[1], "Median of Inputs")
+    cbar_pred = subfigs[1].colorbar(img_pred, ax=axes_pred_med, fraction=0.023)
+    cbar_pred.set_label(UNITS["O3"], size=13)
+
+    # Plot differences
+    axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
+    axs_diff = axes_diff.flat
+    diff_pred = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
+    img_diff_pred = axs_diff[0].imshow(
+        diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50
+    )
+    format_axis(axs_diff[0], "Difference (AI Prediction)")
+    diff_med = x.tensor.cpu().median(dim=0).values - y.tensor[0].cpu()
+    axs_diff[1].imshow(diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
+    format_axis(axs_diff[1], "Difference (Median of Inputs)")
+    subfigs[2].colorbar(img_diff_pred, ax=axes_diff, fraction=0.023)
 
     fig.suptitle(title, size=18)
     plt.savefig(save_path)

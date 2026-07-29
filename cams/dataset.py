@@ -13,10 +13,12 @@ from cams.settings import PROCESSED_DATA_DIR
 
 def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     """Retrieves the dates of all the runs available in a directory."""
-    return [
-        dt.datetime.strptime(path.stem, "%Y_%m_%d")
-        for path in sorted(list(processed_dir.glob("input/*.netcdf")))
-    ]
+    return sorted(
+        [
+            dt.datetime.strptime(path.stem, r"%Y_%m_%d")
+            for path in processed_dir.glob("input/*.netcdf")
+        ]
+    )
 
 
 class CAMSDataset(Dataset):

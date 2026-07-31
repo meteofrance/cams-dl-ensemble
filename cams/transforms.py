@@ -167,7 +167,7 @@ class Normalize(nn.Module, ReversibleTransformMixin):
         if not stats_file_path.exists():
             raise FileNotFoundError(
                 f"Statistics file not found: {stats_file_path}. "
-                "Please run `python scripts/compute_stats.py`."
+                "Please run `scripts/data/compute_stats.py`."
             )
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)

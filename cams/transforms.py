@@ -246,7 +246,7 @@ if __name__ == "__main__":
     from cams.sample import Sample
     from cams.types import STATISTICS_NAMES
 
-    sample = Sample(dt.datetime(2024, 7, 30), 15)
+    sample = Sample(dt.datetime(2024, 7, 30), lead_time=15, specie="O3", level=0)
     x, y = sample.input_data, sample.target_data
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))

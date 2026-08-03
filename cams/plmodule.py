@@ -52,7 +52,6 @@ class CAMSLightningModule(LightningModule):
         """
         super().__init__()
         self.model = model
-        self.model = torch.compile(self.model)
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
@@ -113,7 +112,7 @@ class CAMSLightningModule(LightningModule):
     @override
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
-        output = self.model(inputs.tensor)
+        output = self.model(inputs.tensor)  # pyright: ignore[reportCallIssue]
         if self.training_mode == "residual":
             y_hat_tensor = inputs["median"] + output
         else:
@@ -130,7 +129,7 @@ class CAMSLightningModule(LightningModule):
         """Computes forward pass and loss for a batch.
         Step shared by training, validation and test steps.
         """
-        output = self.model(x.tensor)
+        output = self.model(x.tensor)  # pyright: ignore[reportCallIssue]
         if self.training_mode == "residual":
             y_hat_tensor = x["median"] + output
         else:

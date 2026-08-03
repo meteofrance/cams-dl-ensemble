@@ -831,7 +831,7 @@ def process(
 
     # Delete processed input files that do not have an associated target file
     print("\nINFO Cleaning orphan input files...")
-    cleanup_errors = _cleanup_orphan_inputs([15])
+    cleanup_errors = _cleanup_orphan_inputs(required_leadtimes)
     errors.extend(cleanup_errors)
     print(f" Deleted {len(cleanup_errors)} ophan input file(s).")
 

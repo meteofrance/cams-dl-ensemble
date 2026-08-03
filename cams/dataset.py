@@ -28,6 +28,8 @@ class CAMSDataset(Dataset):
         self,
         run_dates: list[dt.datetime],
         processed_dir: Path = PROCESSED_DATA_DIR,
+        specie: str = "O3",
+        level: int = 0,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:
         """Loads the dataset's sample points for the given split.
@@ -36,18 +38,30 @@ class CAMSDataset(Dataset):
         Args:
             run_dates: The list of date to process
             processed_dir: Path to the CAMS dataset's processed data.
+            specie: list of the species to load in the dataset.
+            level: list of the levels to load in the dataset.
+                '0' corresponds to 'ground' level.
             transform_sequence: transforms sequence applied to the data after loading.
         """
-        self.processed_dir = processed_dir
-        self.transform_sequence = transform_sequence
         self.run_dates = run_dates
+        self.processed_dir = processed_dir
+        self.specie = specie
+        self.level = level
+        self.transform_sequence = transform_sequence
 
     @cached_property
     def samples(self) -> list[Sample]:
         """Returns the list of valid samples in the dataset."""
         # For now, we only use the leadtime = 15h:
         samples = [
-            Sample(date_run, 15, self.processed_dir) for date_run in self.run_dates
+            Sample(
+                date_run,
+                15,
+                specie=self.specie,
+                level=self.level,
+                processed_dir=self.processed_dir,
+            )
+            for date_run in self.run_dates
         ]
         return [sample for sample in samples if sample.is_valid]
 

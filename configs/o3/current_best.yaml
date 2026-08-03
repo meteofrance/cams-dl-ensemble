@@ -3,11 +3,10 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: None  # To be replaced by the adress to your mlflow server
-      experiment_name: oscar
-      run_name: norm_negative_mask
+      experiment_name: ozone
+      run_name: current_best_oscar
       log_model: True
-      artifact_location: /scratch/shared/cams/mlartifacts
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:

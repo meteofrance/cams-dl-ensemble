@@ -406,7 +406,6 @@ def _process_input_date(
     renamed_levels: list[int | Literal["SOL"]] = [
         "SOL" if lvl == 0 else lvl for lvl in levels
     ]
-    print(f"{renamed_levels=}")
 
     grib_paths: list[Path] = [
         RAW_DATA_DIR / f"PMACC{mdl}" / f"{run_date_string}_{spc}_{ldt}h_{lvl}.grib"
@@ -415,10 +414,7 @@ def _process_input_date(
         for ldt in leadtimes
         for lvl in renamed_levels
     ]
-    print(f"{grib_paths=}")
     valid_grib_paths: list[Path] = [path for path in grib_paths if path.exists()]
-    print(f"{valid_grib_paths=}")
-    quit()
 
     try:
         # Open grib files as xr.Dataset and classify them

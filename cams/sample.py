@@ -47,6 +47,7 @@ class Sample:
             f"Sample(date_run={date_run_str}, "
             f"lead_time=+{self.lead_time}h, "
             f"specie={self.specie})"
+            f"level={self.level})"
         )
 
     @property

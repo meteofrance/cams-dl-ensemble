@@ -37,7 +37,7 @@ def create_dummy_input_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: in
     ds = xr.Dataset(
         {
             "data": (
-                ["model", "species", "level", "leadtime", "latitude", "longitude"],
+                ["model", "species", "levels", "leadtime", "latitude", "longitude"],
                 data,
             )
         },
@@ -45,7 +45,7 @@ def create_dummy_input_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: in
             "model": MODEL_NAMES,
             "species": ["O3"],
             "level": [0],
-            "leadtime": [15],
+            "leadtime": ["15"],
             "latitude": lats,
             "longitude": lons,
         },

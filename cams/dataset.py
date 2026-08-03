@@ -28,6 +28,7 @@ class CAMSDataset(Dataset):
         self,
         run_dates: list[dt.datetime],
         processed_dir: Path = PROCESSED_DATA_DIR,
+        leadtime: int = 15,
         specie: str = "O3",
         level: int = 0,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
@@ -38,13 +39,15 @@ class CAMSDataset(Dataset):
         Args:
             run_dates: The list of date to process
             processed_dir: Path to the CAMS dataset's processed data.
-            specie: list of the species to load in the dataset.
-            level: list of the levels to load in the dataset.
+            leadtime: the leadtime to load in the dataset.
+            specie: the specie to load in the dataset.
+            level: the level to load in the dataset.
                 '0' corresponds to 'ground' level.
             transform_sequence: transforms sequence applied to the data after loading.
         """
         self.run_dates = run_dates
         self.processed_dir = processed_dir
+        self.leadtime = leadtime
         self.specie = specie
         self.level = level
         self.transform_sequence = transform_sequence
@@ -56,7 +59,7 @@ class CAMSDataset(Dataset):
         samples = [
             Sample(
                 date_run,
-                15,
+                self.leadtime,
                 specie=self.specie,
                 level=self.level,
                 processed_dir=self.processed_dir,

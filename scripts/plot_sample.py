@@ -33,7 +33,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 date = dt.datetime.strptime(args.date, "%Y-%m-%d")
-sample = Sample(date, 15)  # Lead time is always 15h for now
+sample = Sample(date, lead_time=15, specie="O3", level=0)
 if not sample.is_valid:
     raise ValueError(f"Sample not valid: {sample}")
 

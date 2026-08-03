@@ -21,6 +21,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 from warnings import warn
 
 import joblib
@@ -113,34 +114,34 @@ def _gather_availability_info() -> dict:
             f"No file like ensemble/**/*.netcdf found in {RAW_DATA_DIR}"
         )
 
-    required_input_leadtimes: set[int] = set()
-    required_input_species: set[str] = set()
-    required_input_levels: set[int] = set()
-    required_input_dates: set[dt.datetime] = set()
-    required_input_months: set[dt.datetime] = set()
+    available_input_leadtimes: set[int] = set()
+    available_input_species: set[str] = set()
+    available_input_levels: set[int] = set()
+    available_input_dates: set[dt.datetime] = set()
+    available_input_months: set[dt.datetime] = set()
 
     for input_file in input_file_stems:
         match = INPUT_RE.match(input_file)
         if not match:
             raise ValueError(f"Inconsistant file name : {input_file}")
 
-        required_input_species.add(match.group("species"))
-        required_input_leadtimes.add(int(match.group("leadtime")))
+        available_input_species.add(match.group("species"))
+        available_input_leadtimes.add(int(match.group("leadtime")))
 
         if match.group("level") == "SOL":
-            required_input_levels.add(0)
+            available_input_levels.add(0)
         elif match.group("level") == "HAUTEUR":
             for level in HAUTEUR_LEVELS:
-                required_input_levels.add(level)
+                available_input_levels.add(level)
         date_str = (
             match.group("year") + "_" + match.group("month") + "_" + match.group("day")
         )
-        required_input_dates.add(
+        available_input_dates.add(
             dt.datetime.strptime(date_str, r"%Y_%m_%d")
             + dt.timedelta(hours=int(match.group("leadtime")))
         )
         month_str = match.group("year") + "_" + match.group("month")
-        required_input_months.add(dt.datetime.strptime(month_str, r"%Y_%m"))
+        available_input_months.add(dt.datetime.strptime(month_str, r"%Y_%m"))
 
     available_target_species: set[str] = set()
     available_target_type_reanalysis: set[str] = set()
@@ -157,7 +158,7 @@ def _gather_availability_info() -> dict:
         available_target_type_reanalysis.add(match.group("reanalysis_type"))
 
     # Gather available species
-    available_species: set[str] = required_input_species | available_target_species
+    available_species: set[str] = available_input_species | available_target_species
 
     # Gather available models
     available_models: set[str] = set(
@@ -169,10 +170,10 @@ def _gather_availability_info() -> dict:
         "target_file_stems": target_file_stems,
         "available_models": available_models,
         "available_species": available_species,
-        "required_leadtimes": required_input_leadtimes,
-        "required_dates": required_input_dates,
-        "required_months": required_input_months,
-        "required_levels": required_input_levels,
+        "available_leadtimes": available_input_leadtimes,
+        "available_dates": available_input_dates,
+        "available_months": available_input_months,
+        "available_levels": available_input_levels,
         "available_target_type_reanalysis": available_target_type_reanalysis,
     }
 
@@ -188,10 +189,10 @@ def report_available_data() -> None:
 
     print(f"  Models : {info['available_models']}")
     print(f"  Species : {info['available_species']}")
-    print(f"  Required Leadtimes : {info['required_leadtimes']}")
-    print(f"  Required Levels : {info['required_levels']}")
-    print(f"  Required Dates : {len(info['required_dates'])} date(s) found")
-    print(f"  Required Months : {len(info['required_months'])} month(s) found")
+    print(f"  Available Leadtimes : {info['available_leadtimes']}")
+    print(f"  Available Levels : {info['available_levels']}")
+    print(f"  Available Dates : {len(info['available_dates'])} date(s) found")
+    print(f"  Available Months : {len(info['available_months'])} month(s) found")
     print(f"  Target Reanalysis Available : {info['available_target_type_reanalysis']}")
 
 
@@ -351,6 +352,9 @@ def _process_input_date(
     run_date_string: str,
     lat_coordinates: xr.DataArray,
     lon_coordinates: xr.DataArray,
+    species: list[str],
+    leadtimes: list[str],
+    levels: list[int],
 ) -> ProcessingError | None:
     """Process input data for a run date.
 
@@ -362,6 +366,9 @@ def _process_input_date(
         run_date_string: The run date string, written as YYYY_MM_DD.
         lat_coordinates: Latitude coordinates to normalize data to.
         lon_coordinates: Longitude coordinates to normalize data to.
+        species: the list of the species to load.
+        leadtimes: the list of the leadtimes to load.
+        levels: the list of the levels to load.
     """
 
     # Check if the processed file exists
@@ -396,17 +403,24 @@ def _process_input_date(
 
         return dataset
 
-    try:
-        grib_paths = list(RAW_DATA_DIR.glob(f"**/{run_date_string}*.grib"))
-        if not grib_paths:
-            raise FileNotFoundError(
-                f"No .grib files found for run date {run_date_string}."
-            )
+    renamed_levels: list[int | Literal["SOL"]] = [
+        "SOL" if lvl == 0 else lvl for lvl in levels
+    ]
 
-        # Open grib files as xr.Dataset and classify them based on the weather
-        # parameter they represent.
+    grib_paths: list[Path] = [
+        RAW_DATA_DIR / f"PMACC{mdl}" / f"{run_date_string}_{spc}_{ldt}h_{lvl}.grib"
+        for mdl in MODEL_NAMES
+        for spc in species
+        for ldt in leadtimes
+        for lvl in renamed_levels
+    ]
+    valid_grib_paths: list[Path] = [path for path in grib_paths if path.exists()]
+
+    try:
+        # Open grib files as xr.Dataset and classify them
+        # based on the weather parameter they represent.
         output_dataset = xr.open_mfdataset(
-            paths=grib_paths,
+            paths=valid_grib_paths,
             preprocess=preprocess_input,
             coords="minimal",  # type: ignore[reportArgumentType]
             compat="equals",
@@ -451,6 +465,7 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
         Prepared DataArray ready for concatenation.
     """
     data_array: xr.DataArray = xr.open_dataarray(file_path)
+
     filename = file_path.name
     match = TARGET_RE.match(filename)
     if not match:
@@ -458,11 +473,9 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
 
     # Add species dimension and coordinates
     species_name: str = ECMWF_MF_PARAMETER_NAME_MAPPING[match.group("species")]
-    level: int = int(match.group("level"))
+    level: str = match.group("level")
     data_array = data_array.expand_dims(dim=["species", "level"], axis=[0, 1])
-    data_array = data_array.assign_coords(
-        {"species": [species_name], "level": [str(level)]}
-    )
+    data_array = data_array.assign_coords({"species": [species_name], "level": [level]})
 
     # Rename variables
     data_array = data_array.rename(
@@ -532,21 +545,21 @@ def _extract_hour_dataarray(
 
 
 def _process_target_month(
-    required_dates: list[dt.datetime],
+    dates: list[dt.datetime],
     levels: list[int],
+    required_species: list[str] = ["O3"],
 ) -> ProcessingError | None:
     """Processes some raw netcdf files of monthly target (reanalysis) data.
     Split the reanalysis monthly files into one file for each hour of the month
     they contain.
 
     Args:
-        required_dates: List of dates expected to be extracted
-            from one month of reanalysis.
-            will be written.
+        dates: List of dates expected to be extracted from one month of reanalysis.
         levels: List of levels to extract from raw data.
+        required_species: list of required species to extract
     """
     # Define the date month
-    target_date = dt.date(required_dates[0].year, required_dates[0].month, 1)
+    target_date = dt.date(dates[0].year, dates[0].month, 1)
     month_str = target_date.strftime("%Y-%m")
 
     try:
@@ -575,7 +588,7 @@ def _process_target_month(
         if not month_dataarrays:
             raise FileNotFoundError(f"No data arrays loaded for month {target_date}.")
         # Save a target file for each dates required
-        for date in required_dates:
+        for date in dates:
             # Check if output path exists
             save_path = (
                 PROCESSED_DATA_DIR
@@ -587,6 +600,15 @@ def _process_target_month(
 
             # Select the right date for each dataaray
             hour_dataarray = _extract_hour_dataarray(month_dataarrays, date, levels)
+
+            if not set(required_species).issubset(
+                set(hour_dataarray.coords["species"].values)
+            ):
+                raise KeyError(
+                    f"Required species {', '.join(required_species)} are missing."
+                    " Available species are:"
+                    ", ".join(list(hour_dataarray.coords["species"].values))
+                )
 
             # Save
             hour_dataarray.name = date.strftime(r"%Y_%m_%d_%H reanalisis")
@@ -636,7 +658,7 @@ def _cleanup_orphan_inputs(leadtimes: list[int]) -> list[ProcessingError]:
                     date=month_str,
                     stage="input",
                     error_type=CAMSOrphanFileError.__name__,
-                    message="Orphan file cleaned at: {input_path}",
+                    message=f"Orphan file cleaned at: {input_path}",
                 )
             )
 
@@ -709,9 +731,12 @@ def _plot_error_report(
 
 
 def process(
-    nb_jobs: int = 15,
-    overwrite: bool = False,
-    plot_error_path: Path = Path("./data/error_report.png"),
+    nb_jobs: int,
+    overwrite: bool,
+    plot_error_path: Path,
+    required_species: list[str],
+    required_leadtimes: list[int],
+    required_levels: list[int],
 ) -> None:
     """Prepares a CAMS dataset for use in training.
 
@@ -720,7 +745,9 @@ def process(
             Defaults to 15.
         overwrite: If True, will remove existing files in the output dir.
         plot_error_path: Path to the error report folder.
-        plot_error_path: Path to the error report folder.
+        required_species: the list of the species to include in the data processing.
+        required_leadtimes: the list of the leadtimes to include in the data processing.
+        required_levels: the list of the levels to include in the data processing.
     """
     errors: list[ProcessingError] = []
 
@@ -733,7 +760,7 @@ def process(
 
     # Validate directory structure
     print("\nINFO: Validating raw directory structure...")
-    expected_dirs = set(PMACC_MODEL_NAMES) | {"ensemble"}
+    expected_dirs = set(PMACC_MODEL_NAMES) | {"ensemble", "PMACCENS", "PMACCWENS"}
     actual_dirs = set(os.listdir(RAW_DATA_DIR))
     unknown = actual_dirs - expected_dirs
     if unknown:
@@ -768,6 +795,9 @@ def process(
             run_date_string,
             lat,
             lon,
+            required_species,
+            required_leadtimes,
+            required_levels,
         )
         for run_date_string in tqdm(run_date_strings, desc="Input processing")
     )
@@ -779,18 +809,18 @@ def process(
 
     info = _gather_availability_info()
 
-    print(f"\nINFO: Processing {len(info['required_months'])} target month(s)...")
+    print(f"\nINFO: Processing {len(info['available_months'])} target month(s)...")
     # Process the target with parallel jobs.
     target_results = joblib.Parallel(n_jobs=nb_jobs)(
         joblib.delayed(_process_target_month)(
-            required_dates=[
+            dates=[
                 date
-                for date in info["required_dates"]
+                for date in info["available_dates"]
                 if (date.year == date_month.year and date.month == date_month.month)
             ],
-            levels=info["required_levels"],
+            levels=info["available_levels"],
         )
-        for date_month in tqdm(info["required_months"], desc="Target processing")
+        for date_month in tqdm(info["available_months"], desc="Target processing")
     )
 
     errors.extend(r for r in target_results if r is not None)
@@ -801,7 +831,7 @@ def process(
 
     # Delete processed input files that do not have an associated target file
     print("\nINFO Cleaning orphan input files...")
-    cleanup_errors = _cleanup_orphan_inputs(info["required_leadtimes"])
+    cleanup_errors = _cleanup_orphan_inputs(required_leadtimes)
     errors.extend(cleanup_errors)
     print(f" Deleted {len(cleanup_errors)} ophan input file(s).")
 
@@ -821,7 +851,7 @@ if __name__ == "__main__":
         "--nb-jobs",
         "-j",
         type=int,
-        default=15,
+        default=1,
         help=(
             "Number of parallel processes used. Defaults to 15. "
             "Choose one to be able to catch error effectively."
@@ -840,6 +870,26 @@ if __name__ == "__main__":
             "Where the error plot will be saved. Defaults to `./data/error_report.png`"
         ),
     )
+    parser.add_argument(
+        "--species",
+        nargs="+",
+        default=["O3"],
+        help=("The name of the species to process."),
+    )
+    parser.add_argument(
+        "--levels",
+        nargs="+",
+        type=int,
+        default=[0],
+        help=("The value of the levels to process."),
+    )
+    parser.add_argument(
+        "--leadtimes",
+        nargs="+",
+        type=int,
+        default=[15],
+        help=("The vaue of the leadtime to process."),
+    )
 
     args = parser.parse_args()
 
@@ -847,9 +897,19 @@ if __name__ == "__main__":
     nb_jobs: int = args.nb_jobs
     overwrite: bool = args.overwrite
     plot_error_path: Path = args.plot_error
+    required_species: list[str] = args.species
+    required_levels: list[int] = args.levels
+    required_leadtimes: list[int] = args.leadtimes
 
     # Report data availability
     report_available_data()
 
     # Process raw dataset
-    process(nb_jobs=nb_jobs, overwrite=overwrite, plot_error_path=plot_error_path)
+    process(
+        nb_jobs=nb_jobs,
+        overwrite=overwrite,
+        plot_error_path=plot_error_path,
+        required_species=required_species,
+        required_leadtimes=required_leadtimes,
+        required_levels=required_levels,
+    )

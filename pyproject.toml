@@ -16,6 +16,7 @@ dependencies = [
   "tornado>=6.5.4",
   "xarray>=2026.1.0",
   "torch==2.11.*",
+  "torchvision==0.26.*",
   "mfai==7.3.1",
   "earthkit==0.13.2",
   "joblib==1.5.*",
@@ -29,6 +30,7 @@ dependencies = [
   "pytest==9.0.*",
   "pytest-cov==7.1.*",
   "dayplot>=0.5.1",
+  "ipython>=9.15.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -38,6 +40,19 @@ exclude = ["doc*", "configs*"]
 # Enforces the use of prebuilt binary wheels over source distributions
 # that require a build step and executes arbitrary code when installing.
 pip.only-binary = [":all:"]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
 
 # Cooldown period for new versions of a package.
 # exclude-newer = "15 days"

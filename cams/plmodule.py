@@ -5,7 +5,7 @@ from typing import Any, Literal
 import torch
 from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
-from mfai.pytorch.models.base import BaseModel
+from mfai.pytorch.models.base import BaseModel, ModelABC
 from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient
 from PIL import Image
@@ -16,7 +16,6 @@ from typing_extensions import override
 
 from cams.metrics import (
     Accuracy,
-    Bias,
     F1Score,
     FalseAlarmRate,
     FalsePositiveRate,
@@ -38,7 +37,7 @@ class CAMSLightningModule(LightningModule):
 
     def __init__(
         self,
-        model: BaseModel,
+        model: BaseModel | ModelABC,
         loss: torch.nn.Module,
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
@@ -53,7 +52,6 @@ class CAMSLightningModule(LightningModule):
         """
         super().__init__()
         self.model = model
-        self.model = torch.compile(self.model)
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
@@ -91,7 +89,6 @@ class CAMSLightningModule(LightningModule):
                 MetricCollection(
                     [
                         Accuracy("O3", threshold=120),
-                        Bias("O3", threshold=120),
                         F1Score("O3", threshold=120),
                         FalseAlarmRate("O3", threshold=120),
                         FalsePositiveRate("O3", threshold=120),
@@ -115,7 +112,7 @@ class CAMSLightningModule(LightningModule):
     @override
     def forward(self, inputs: NamedTensor) -> NamedTensor:
         """Runs data through the model. Separate from training step."""
-        output = self.model(inputs.tensor)
+        output = self.model(inputs.tensor)  # pyright: ignore[reportCallIssue]
         if self.training_mode == "residual":
             y_hat_tensor = inputs["median"] + output
         else:
@@ -132,7 +129,7 @@ class CAMSLightningModule(LightningModule):
         """Computes forward pass and loss for a batch.
         Step shared by training, validation and test steps.
         """
-        output = self.model(x.tensor)
+        output = self.model(x.tensor)  # pyright: ignore[reportCallIssue]
         if self.training_mode == "residual":
             y_hat_tensor = x["median"] + output
         else:

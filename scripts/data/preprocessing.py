@@ -902,7 +902,7 @@ if __name__ == "__main__":
     required_leadtimes: list[int] = args.leadtimes
 
     # Report data availability
-    # report_available_data()
+    report_available_data()
 
     # Process raw dataset
     process(

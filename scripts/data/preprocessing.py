@@ -25,6 +25,7 @@ from typing import Literal
 from warnings import warn
 
 import joblib
+import zarr
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -547,6 +548,7 @@ def _extract_hour_dataarray(
 def _process_target_month(
     dates: list[dt.datetime],
     levels: list[int],
+    zarr_root: zarr.Group,
     required_species: list[str] = ["O3"],
 ) -> ProcessingError | None:
     """Processes some raw netcdf files of monthly target (reanalysis) data.
@@ -555,9 +557,16 @@ def _process_target_month(
 
     Args:
         dates: List of dates expected to be extracted from one month of reanalysis.
+        zarr_root: the zarr.Group to save the processed data in.
         levels: List of levels to extract from raw data.
         required_species: list of required species to extract
     """
+    # Create 'target' group
+    try:
+        zarr_target: zarr.Group = zarr_root.get_group("target")
+    except zarr.errors.GroupNotFoundError:
+        zarr_target: zarr.Group = zarr_root.create_group("target")
+
     # Define the date month
     target_date = dt.date(dates[0].year, dates[0].month, 1)
     month_str = target_date.strftime("%Y-%m")
@@ -589,18 +598,12 @@ def _process_target_month(
             raise FileNotFoundError(f"No data arrays loaded for month {target_date}.")
         # Save a target file for each dates required
         for date in dates:
-            # Check if output path exists
-            save_path = (
-                PROCESSED_DATA_DIR
-                / "target"
-                / f"{date.strftime(r'%Y_%m_%d_%H')}.netcdf"
-            )
-            if save_path.exists():
-                continue
-
             # Select the right date for each dataaray
-            hour_dataarray = _extract_hour_dataarray(month_dataarrays, date, levels)
+            hour_dataarray: xr.DataArray = _extract_hour_dataarray(
+                month_dataarrays, date, levels
+            )
 
+            # Check that all species are in the Dataset
             if not set(required_species).issubset(
                 set(hour_dataarray.coords["species"].values)
             ):
@@ -611,8 +614,18 @@ def _process_target_month(
                 )
 
             # Save
-            hour_dataarray.name = date.strftime(r"%Y_%m_%d_%H reanalisis")
-            hour_dataarray.to_netcdf(save_path)
+            array_name: str = f"{date.strftime(r'%Y_%m_%d_%H')}"
+            array_shape: tuple[int] = hour_dataarray.shape
+            chunks: list[int] = [1] * len(array_shape[:-2]) + array_shape[-2:]
+            dimension_names: list[str] = list(hour_dataarray.dims)
+            z: zarr.Array = zarr_target.empty(
+                shape=array_shape,
+                name=array_name,
+                chunks=chunks,
+                dtype="float32",
+                dimension_names=dimension_names,
+            )
+            z[:] = hour_dataarray.values
 
     except Exception as exc:
         return ProcessingError(
@@ -769,9 +782,8 @@ def process(
             "Expected only model dirs and 'ensemble'."
         )
 
-    # Create output dirs
-    (PROCESSED_DATA_DIR / "input").mkdir(exist_ok=True, parents=True)
-    (PROCESSED_DATA_DIR / "target").mkdir(exist_ok=True, parents=True)
+    # Create zarr file
+    zarr_root: zarr.Group = zarr.group(PROCESSED_DATA_DIR / "dataset.zarr", zarr_format=3)
 
     # Gather dates
     run_date_strings: set[str] = set(
@@ -819,10 +831,10 @@ def process(
                 if (date.year == date_month.year and date.month == date_month.month)
             ],
             levels=info["available_levels"],
+            zarr_root=zarr_root,
         )
         for date_month in tqdm(info["available_months"], desc="Target processing")
     )
-
     errors.extend(r for r in target_results if r is not None)
 
     # ---------------------------------------------------------------------

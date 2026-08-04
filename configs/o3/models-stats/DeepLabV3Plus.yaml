@@ -3,46 +3,48 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: None  # To be replaced by the adress to your mlflow server
-      experiment_name: oscar
-      run_name: norm_negative_mask
+      experiment_name: ozone
+      run_name: stats/DeepLabV3Plus
       log_model: True
-      artifact_location: /scratch/shared/cams/mlartifacts
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
         logging_interval: step
-    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
-    - class_path: lightning.pytorch.callbacks.EarlyStopping
-      init_args:
-        monitor: val_loss
-        patience: 50
-        mode: min
   max_epochs: 500
   log_every_n_steps: 10
 
 model:
   learning_rate: 0.0001
   model:
-    class_path: mfai.pytorch.models.HalfUNet
+    class_path: mfai.pytorch.models.DeepLabV3Plus
     init_args:
-      in_channels: 11  # 11 CAMS models
+      in_channels: 7  # median, mean, skew, kurt, amin, amax, std
       out_channels: 1
       input_shape:
         - 420
         - 700
       settings:
         autopad_enabled: True
-        # last_activation: ReLU
   loss:
     class_path: torch.nn.L1Loss
 
 data:
-  batch_size: 16
-  num_workers: 10
+  batch_size: 128
+  num_workers: 15
   prefetch_factor: 2
   transforms:
     - class_path: cams.transforms.Normalize
     - class_path: cams.transforms.FillMissingModels
       init_args:
         fill_value: -1
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - "median"
+          - "mean"
+          - "skew"
+          - "kurtosis"
+          - "amin"
+          - "amax"
+          - "std"

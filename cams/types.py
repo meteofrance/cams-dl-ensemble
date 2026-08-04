@@ -9,6 +9,7 @@ STATISTICS_NAMES = (
     "median",
     "skew",
     "kurtosis",
+    "std",
 )
 
 StatisticsNames = Literal[
@@ -20,4 +21,5 @@ StatisticsNames = Literal[
     "median",
     "skew",
     "kurtosis",
+    "std",
 ]

@@ -1,9 +1,9 @@
 import json
 import os
 from abc import abstractmethod
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
-from collections.abc import Sequence
 
 import scipy.stats
 import torch

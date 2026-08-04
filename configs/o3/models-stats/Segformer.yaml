@@ -4,7 +4,7 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: ozone
-      run_name: median/Segformer
+      run_name: stats/Segformer
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
   callbacks:
@@ -19,7 +19,7 @@ model:
   model:
     class_path: mfai.pytorch.models.Segformer
     init_args:
-      in_channels: 1  # median
+      in_channels: 7  # median, mean, skew, kurt, amin, amax, std
       out_channels: 1
       input_shape:
         - 420
@@ -41,10 +41,10 @@ data:
     - class_path: cams.transforms.ExtractInputStatisticalFeatures
       init_args:
         statistic_types:
-          - median
-          - mean
-          - skew
-          - kurt
-          - amin
-          - amax
-          - std
+          - "median"
+          - "mean"
+          - "skew"
+          - "kurtosis"
+          - "amin"
+          - "amax"
+          - "std"

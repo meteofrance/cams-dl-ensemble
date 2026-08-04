@@ -55,6 +55,7 @@ ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {
     # "": "NH4_DRY",
     # "": "SO4_DRY",
 }
+SPECIES: tuple[str] = tuple(ECMWF_MF_PARAMETER_NAME_MAPPING.values())
 
 # Physics constants
 KILOGRAM_TO_MICROGRAM = 10**9
@@ -65,3 +66,6 @@ SIZE_LON = 700
 
 HAUTEUR_LEVELS = (50, 100, 250, 500, 750, 1000, 2000, 3000, 5000)
 SOL_LEVELS = (0,)
+LEVELS: tuple[int] = SOL_LEVELS + HAUTEUR_LEVELS
+
+LEADTIMES: tuple[int] = tuple([i for i in range(97)])  # (0, 1, ..., 96)

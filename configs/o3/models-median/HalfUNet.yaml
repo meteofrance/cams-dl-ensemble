@@ -1,0 +1,44 @@
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      experiment_name: ozone
+      run_name: median/HalfUNet
+      log_model: True
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+  max_epochs: 1000
+  log_every_n_steps: 10
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.HalfUNet
+    init_args:
+      in_channels: 1  # median
+      out_channels: 1
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.L1Loss
+
+data:
+  batch_size: 64
+  num_workers: 10
+  prefetch_factor: 2
+  transforms:
+    - class_path: cams.transforms.Normalize
+    - class_path: cams.transforms.FillMissingModels
+      init_args:
+        fill_value: -1
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - median

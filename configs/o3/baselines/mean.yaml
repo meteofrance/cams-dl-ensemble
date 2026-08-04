@@ -4,11 +4,10 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: None  # To be replaced by the adress to your mlflow server
-      experiment_name: baseline
+      experiment_name: ozone
       run_name: mean
       log_model: True
-      artifact_location: /scratch/shared/cams/mlartifacts
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
   max_steps: 1
 
 model:
@@ -22,7 +21,6 @@ data:
   batch_size: 2
   num_workers: 3
   prefetch_factor: 2
-  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
   transforms:
     - class_path: cams.transforms.ExtractInputStatisticalFeatures
       init_args:

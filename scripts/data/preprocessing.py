@@ -19,9 +19,10 @@ import os
 import pickle as pkl
 import re
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from warnings import warn
 
 import joblib
@@ -34,9 +35,12 @@ from cams.settings import (
     ECMWF_MF_PARAMETER_NAME_MAPPING,
     HAUTEUR_LEVELS,
     KILOGRAM_TO_MICROGRAM,
+    LEADTIMES,
+    LEVELS,
     MODEL_NAMES,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
+    SPECIES,
 )
 
 PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
@@ -352,9 +356,9 @@ def _process_input_date(
     run_date_string: str,
     lat_coordinates: xr.DataArray,
     lon_coordinates: xr.DataArray,
-    species: list[str],
-    leadtimes: list[str],
-    levels: list[int],
+    species: Sequence[str],
+    leadtimes: Sequence[str],
+    levels: Sequence[int],
 ) -> ProcessingError | None:
     """Process input data for a run date.
 
@@ -366,9 +370,9 @@ def _process_input_date(
         run_date_string: The run date string, written as YYYY_MM_DD.
         lat_coordinates: Latitude coordinates to normalize data to.
         lon_coordinates: Longitude coordinates to normalize data to.
-        species: the list of the species to load.
-        leadtimes: the list of the leadtimes to load.
-        levels: the list of the levels to load.
+        species:the species to load.
+        leadtimes:the leadtimes to load.
+        levels:the levels to load.
     """
 
     # Check if the processed file exists
@@ -416,33 +420,38 @@ def _process_input_date(
     ]
     valid_grib_paths: list[Path] = [path for path in grib_paths if path.exists()]
 
-    try:
-        # Open grib files as xr.Dataset and classify them
-        # based on the weather parameter they represent.
-        output_dataset = xr.open_mfdataset(
-            paths=valid_grib_paths,
-            preprocess=preprocess_input,
-            coords="minimal",  # type: ignore[reportArgumentType]
-            compat="equals",
-            join="outer",
-            errors="warn",
-        )
-        # Add run_date coordinate
-        output_dataset = output_dataset.assign_coords(
-            run_date=np.datetime64(run_date_string.replace("_", "-"))
-        )
+    # try:
+    # Open grib files as xr.Dataset and classify them
+    # based on the weather parameter they represent.
+    if valid_grib_paths == []:
+        # raise FileNotFoundError(f"No file is available for date {run_date_string}.")
+        return
+    output_dataset = xr.open_mfdataset(
+        paths=valid_grib_paths,
+        preprocess=preprocess_input,
+        coords="minimal",  # type: ignore[reportArgumentType]
+        compat="equals",
+        join="outer",
+        errors="raise",
+    )
+    print(output_dataset)
+    # Add run_date coordinate
+    output_dataset = output_dataset.assign_coords(
+        run_date=np.datetime64(run_date_string.replace("_", "-"))
+    )
 
-        _validate_model_coords(output_dataset)
-        # Save
-        output_dataset.to_netcdf(save_path)
+    _validate_model_coords(output_dataset)
+    # Save
+    output_dataset.to_netcdf(save_path)
 
-    except Exception as exc:
-        return ProcessingError(
-            date=run_date_string,
-            stage="input",
-            error_type=type(exc).__name__,
-            message=str(exc),
-        )
+    # except Exception as exc:
+    #     return ProcessingError(
+    #         date=run_date_string,
+    #         stage="input",
+    #         error_type=type(exc).__name__,
+    #         message=str(exc),
+    #     )
+
 
     return None
 
@@ -509,7 +518,7 @@ def _load_target_dataarray(file_path: Path) -> xr.DataArray:
 def _extract_hour_dataarray(
     month_dataarrays: list[xr.DataArray],
     date: dt.date,
-    levels: list[int],
+    levels: Sequence[int],
 ) -> xr.DataArray:
     """Slice and concatenate monthly dataarrays to a single-hour DataArray.
 
@@ -546,8 +555,8 @@ def _extract_hour_dataarray(
 
 def _process_target_month(
     dates: list[dt.datetime],
-    levels: list[int],
-    required_species: list[str] = ["O3"],
+    species: Sequence[str],
+    levels: Sequence[int],
 ) -> ProcessingError | None:
     """Processes some raw netcdf files of monthly target (reanalysis) data.
     Split the reanalysis monthly files into one file for each hour of the month
@@ -555,8 +564,8 @@ def _process_target_month(
 
     Args:
         dates: List of dates expected to be extracted from one month of reanalysis.
-        levels: List of levels to extract from raw data.
-        required_species: list of required species to extract
+        species: the species to load.
+        levels: the levels to load.
     """
     # Define the date month
     target_date = dt.date(dates[0].year, dates[0].month, 1)
@@ -573,7 +582,8 @@ def _process_target_month(
             if (
                 match.group("year") == month_str.split("-")[0]
                 and match.group("month") == month_str.split("-")[1]
-                and match.group("level") in list(map(str, levels))
+                and match.group("species") in species
+                and match.group("level") in levels
             ):
                 file_paths.append(target_file)
 
@@ -628,11 +638,11 @@ def _process_target_month(
 # ------------ #
 
 
-def _cleanup_orphan_inputs(leadtimes: list[int]) -> list[ProcessingError]:
+def _cleanup_orphan_inputs(leadtimes: Sequence[int]) -> list[ProcessingError]:
     """Remove input files that have no matching target files.
 
     Args:
-        leadtimes: List of integer forecast leadtimes to check.
+        leadtimes: sequence of leadtimes to check.
 
     Raises:
         CAMSOrphanFileError when a file is removed.
@@ -734,9 +744,9 @@ def process(
     nb_jobs: int,
     overwrite: bool,
     plot_error_path: Path,
-    required_species: list[str],
-    required_leadtimes: list[int],
-    required_levels: list[int],
+    required_species: Sequence[str],
+    required_leadtimes: Sequence[int],
+    required_levels: Sequence[int],
 ) -> None:
     """Prepares a CAMS dataset for use in training.
 
@@ -745,9 +755,9 @@ def process(
             Defaults to 15.
         overwrite: If True, will remove existing files in the output dir.
         plot_error_path: Path to the error report folder.
-        required_species: the list of the species to include in the data processing.
-        required_leadtimes: the list of the leadtimes to include in the data processing.
-        required_levels: the list of the levels to include in the data processing.
+        required_species: the species to include in the data processing.
+        required_leadtimes: the leadtimes to include in the data processing.
+        required_levels: the levels to include in the data processing.
     """
     errors: list[ProcessingError] = []
 
@@ -840,6 +850,31 @@ def process(
     _plot_error_report(errors, plot_error_path)
 
 
+def valid_arg(value: Any) -> Literal["all"] | int:
+    """
+    Validate and convert an input value to either the literal string "all" or
+    an integer.
+
+    Args:
+        value: The input value to validate. Can be a string ("all" or an integer as
+            string) or any other type that can be converted to an integer.
+
+    Returns:
+        Literal["all"] | int: The validated value. Returns the literal string "all"
+            if the input is "all" (case-insensitive), otherwise returns the input
+            converted to an integer.
+
+    Raises:
+        argparse.ArgumentTypeError: If the input is neither "all" nor a valid integer.
+    """
+    if value.lower() == "all":
+        return value
+    try:
+        return int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{value}' is not a valid integer or 'all'.")
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -874,21 +909,21 @@ if __name__ == "__main__":
         "--species",
         nargs="+",
         default=["O3"],
-        help=("The name of the species to process."),
+        help=("The species to process."),
     )
     parser.add_argument(
         "--levels",
         nargs="+",
-        type=int,
+        type=valid_arg,
         default=[0],
-        help=("The value of the levels to process."),
+        help=("The levels to process."),
     )
     parser.add_argument(
         "--leadtimes",
         nargs="+",
-        type=int,
+        type=valid_arg,
         default=[15],
-        help=("The vaue of the leadtime to process."),
+        help=("The leadtimes to process."),
     )
 
     args = parser.parse_args()
@@ -897,9 +932,11 @@ if __name__ == "__main__":
     nb_jobs: int = args.nb_jobs
     overwrite: bool = args.overwrite
     plot_error_path: Path = args.plot_error
-    required_species: list[str] = args.species
-    required_levels: list[int] = args.levels
-    required_leadtimes: list[int] = args.leadtimes
+    required_species: Sequence[str] = SPECIES if "all" in args.species else args.species
+    required_levels: Sequence[int] = LEVELS if "all" in args.levels else args.levels
+    required_leadtimes: Sequence[int] = (
+        LEADTIMES if "all" in args.leadtimes else args.leadtimes
+    )
 
     # Report data availability
     report_available_data()

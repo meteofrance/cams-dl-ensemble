@@ -2,7 +2,8 @@ import json
 import os
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
+from collections.abc import Sequence
 
 import scipy.stats
 import torch
@@ -36,7 +37,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
         Args:
             statistic_types: List of statistical measures to compute.
                 Must be one or more of: 'mean', 'amin', 'argmin', 'amax',
-                'argmax', 'median', 'skew', 'kurtosis'.
+                'argmax', 'median', 'skew', 'kurtosis', 'std'.
         """
         super().__init__()
         self.statistic_types = statistic_types

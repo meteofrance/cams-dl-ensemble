@@ -24,6 +24,7 @@ dependencies = [
   "lightning==2.6.1",
   "jsonargparse[signatures]<=4.41.0",
   "mlflow==3.12.*",
+  "zarr==3.3.*",
   # Dev dependencies
   "pyright[nodejs]",
   "ruff==0.15.9",

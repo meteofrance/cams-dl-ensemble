@@ -13,15 +13,17 @@ class Sample:
     """CAMS sample.
 
     Responsibilities:
-    - Load a sample from the CAMS dataset from a given date, specie, level and leadtime.
+        Load a sample from the CAMS dataset from a given run date, 
+        and list of species, levels, models and leadtimes.
     """
 
     def __init__(
         self,
         date_run: dt.datetime,
-        lead_time: int,
-        specie: str,
-        level: int,
+        models: list[str],
+        lead_times: list[int],
+        species: list[str],
+        levels: list[int],
         processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """
@@ -34,20 +36,22 @@ class Sample:
             processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run
-        self.lead_time = lead_time
-        self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
+        self.models = models
+        self.lead_times = lead_times
+        self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
+        self.species = species
+        self.levels = levels
         self.processed_dir = processed_dir
-        self.specie: str = specie
-        self.level: int = level
 
     @override
     def __str__(self) -> str:
         date_run_str = self.date_run.strftime("%Y-%m-%d %H:%M")
         return (
             f"Sample(date_run={date_run_str}, "
-            f"lead_time=+{self.lead_time}h, "
-            f"specie={self.specie})"
-            f"level={self.level})"
+            f"lead_times=+{self.lead_times}, "
+            f"species={self.species}), "
+            f"models={self.models}), "
+            f"levels={self.levels})"
         )
 
     @property
@@ -94,9 +98,15 @@ class Sample:
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a Sample
 
-    sample = Sample(dt.datetime(2025, 5, 10), lead_time=15, specie="O3", level=0)
+    sample = Sample(dt.datetime(2025, 5, 10), lead_times=[15], species=["O3"], levels=[0], models=["chimere"])
     print(sample)
+
+    exit()
     print("Sample is valid ? ->", sample.is_valid)
     print(sample.input_path)
     x, y = sample.input_data, sample.target_data
     print(x, y)
+
+# TODO :
+# - définir un type pour les modèles, et les autres paramètres
+# - fix docker build

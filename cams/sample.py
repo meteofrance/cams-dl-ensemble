@@ -2,6 +2,7 @@ import datetime as dt
 from pathlib import Path
 
 import torch
+from torch import Tensor
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
@@ -29,16 +30,15 @@ class Sample:
         """
         Args:
             date_run: The run date of the CTMs from which to load the sample.
-            lead_time: Which forecast leadtime to load the sample from.
-                The accepted values for lead_time are [0, 1, ..., 96]
-            specie: the specie to load.
-            level: the level to load.
+            models: the l models to load.
+            lead_times: Which forecast leadtimes to load the sample from.
+                The accepted values for one leadtime are [0, 1, ..., 96].
+            specie: the species to load.
+            level: the levels to load.
             processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run
         self.models = models
-        if len(models) > 1:
-            raise NotImplementedError("For now, only use one model.")
         self.lead_times = lead_times
         self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
         self.species = species
@@ -63,11 +63,18 @@ class Sample:
         )
 
     @property
-    def input_path(self) -> Path:
-        """The path to the netcdf of input ensemble data."""
+    def input_filename(self) -> str:
+        """The standard filename for all input files."""
         date_run_str = self.date_run.strftime("%Y_%m_%d")
         filename = f"{date_run_str}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-        return self.processed_dir / self.models[0] / filename
+        return filename
+
+    @property
+    def input_paths(self) -> list[Path]:
+        """The path to the netcdf of input ensemble data."""
+        return [
+            self.processed_dir / model / self.input_filename for model in self.models
+        ]
 
     @property
     def target_path(self) -> Path:
@@ -79,27 +86,30 @@ class Sample:
     @property
     def is_valid(self) -> bool:
         """Returns True if the Sample is valid: if input and target files exist."""
-        return self.input_path.exists() and self.target_path.exists()
+        return (
+            all([path.exists() for path in self.input_paths])
+            and self.target_path.exists()
+        )
+
+    def load_tensor_for_one_model(self, model: str) -> Tensor:
+        """Loads data tensor for one pollutant model."""
+        model_path = self.processed_dir / model / self.input_filename
+        data = xr.open_dataset(model_path)
+        data_of_interest = data.sel(level=self.levels, time=self.lead_times)
+        selected_species = [f"{s.lower()}_conc" for s in self.species]
+        tensors = [
+            torch.Tensor(data_of_interest[species].values)
+            for species in selected_species
+        ]
+        return torch.stack(tensors)
 
     @property
     def input_data(self) -> NamedTensor:
         """Returns the input ensemble data as a NamedTensor."""
-        data = xr.open_dataset(self.input_path)
-        print(data)
-        selected_species = [f"{s.lower()}_conc" for s in self.species]
-        data_of_interest: xr.DataArray = data[selected_species]
-        data_of_interest = data_of_interest.sel(level=self.levels, time=self.lead_times)
-        print(data_of_interest)
-        tensors = []
-        for species in selected_species:
-            tensor = torch.Tensor(data_of_interest[species].values)
-            tensors.append(tensor)
-            print(tensor.shape)
-        data_tensor = torch.stack(tensors)
-        data_tensor = data_tensor.unsqueeze(0)
-        print(data_tensor.shape)
+        tensors = [self.load_tensor_for_one_model(model) for model in self.models]
+        data = torch.stack(tensors)
         nt = NamedTensor(
-            data_tensor,
+            data,
             ["features", "species", "leadtimes", "levels", "lat", "lon"],
             self.models,
         )
@@ -121,15 +131,16 @@ if __name__ == "__main__":
 
     sample = Sample(
         dt.datetime(2025, 5, 10),
-        lead_times=[15, 20],
+        lead_times=[15, 24, 36, 48],
         species=["O3", "CO", "NO2"],
         levels=[0],
-        models=["chimere"],
+        models=["chimere", "mocage"],
     )
     print(sample)
 
     print("Sample is valid ? ->", sample.is_valid)
-    print(sample.input_path, sample.input_path.exists())
+    for input_path in sample.input_paths:
+        print(input_path, input_path.exists())
     print(sample.target_path, sample.target_path.exists())
 
     x = sample.input_data
@@ -138,3 +149,8 @@ if __name__ == "__main__":
 # TODO :
 # - définir un type pour les modèles, et les autres paramètres
 # - fix docker build
+# - zip target data
+# - charger target data
+# - inventer des plots pour représenter tout ça lol
+# - répercuter sur dataset et datamodule
+# - vérifier que toute la pipeline fonctionne

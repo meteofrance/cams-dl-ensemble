@@ -43,9 +43,9 @@ class Sample:
         self.lead_times = lead_times
         self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
         self.species = species
-        if any([s not in ["CO", "NO2", "O3", "PM10", "PM3P5", "SO2"] for s in species]):
+        if any([s not in ["CO", "NO2", "O3", "PM10", "PM2P5", "SO2"] for s in species]):
             raise NotImplementedError(
-                "For now, only use the following species: CO, NO2, O3, PM10, PM3P5, SO2."
+                "For now, only use the following species: CO, NO2, O3, PM10, PM2P5, SO2."
             )
         self.levels = levels
         if levels != [0]:
@@ -57,7 +57,7 @@ class Sample:
         date_run_str = self.date_run.strftime("%Y-%m-%d")
         return (
             f"Sample(date_run={date_run_str}, "
-            f"lead_times=+{self.lead_times}, "
+            f"lead_times=+{self.lead_times}h, "
             f"species={self.species}), "
             f"models={self.models}), "
             f"levels={self.levels})"
@@ -150,7 +150,7 @@ class Sample:
             time=first_model.time,
             level=first_model.level,
         )
-        models["Reanalyse"] = rean
+        models["target"] = rean
         combined = xr.Dataset()
         for model_name, ds in models.items():
             da = ds.to_array(dim="species")
@@ -204,8 +204,8 @@ if __name__ == "__main__":
 
     sample = Sample(
         dt.datetime(2025, 5, 10),
-        lead_times=[15, 24, 36, 48],
-        species=["O3", "CO", "NO2"],
+        lead_times=[15, 24, 36],
+        species=["O3", "CO", "NO2", "PM10", "PM2P5", "SO2"],
         levels=[0],
         models=["chimere", "mocage"],
     )
@@ -217,11 +217,12 @@ if __name__ == "__main__":
     for target_path in sample.target_paths:
         print(target_path, target_path.exists())
 
+    print(sample.data)
     print(sample.data_as_nt)
 
 # TODO :
 # - définir un type pour les modèles, et les autres paramètres
 # - fix docker build
-# - inventer des plots pour représenter tout ça lol
+# - compute stats for all species
 # - répercuter sur dataset et datamodule
 # - vérifier que toute la pipeline fonctionne

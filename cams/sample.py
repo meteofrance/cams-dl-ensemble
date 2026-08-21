@@ -77,21 +77,29 @@ class Sample:
         ]
 
     @property
-    def target_path(self) -> Path:
-        """The path to the netcdf of target analysis data."""
-        date_run_str = self.date_run.strftime("%Y-%m-01")  # TODO : changer quand netcdf
-        filename = f"-{date_run_str}-CO_NO2_PM10_PM25_SO2_O3-0m-ira.zip"  # TODO : changer quand netcdf
-        return self.processed_dir / "reanalysis" / filename
+    def target_paths(self) -> list[Path]:
+        """The paths to the netcdf of targets reanalysis data.
+        Files are grouped by months and species."""
+        date_run_str = self.date_run.strftime("%Y-%m")
+        folder = self.processed_dir / "reanalysis"
+        paths = []
+        for species in self.species:
+            filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{date_run_str}.nc"
+            if not (folder / filename).exists():
+                # if VRA Reanalysis file does not exist
+                # Use Intermediate analysis (IRA) as replacement
+                filename = filename.replace("vra", "ira")
+            paths.append(folder / filename)
+        return paths
 
     @property
     def is_valid(self) -> bool:
         """Returns True if the Sample is valid: if input and target files exist."""
-        return (
-            all([path.exists() for path in self.input_paths])
-            and self.target_path.exists()
+        return all([path.exists() for path in self.input_paths]) and all(
+            [path.exists() for path in self.target_paths]
         )
 
-    def load_tensor_for_one_model(self, model: str) -> Tensor:
+    def load_input_tensor_for_one_model(self, model: str) -> Tensor:
         """Loads data tensor for one pollutant model."""
         model_path = self.processed_dir / model / self.input_filename
         data = xr.open_dataset(model_path)
@@ -106,7 +114,7 @@ class Sample:
     @property
     def input_data(self) -> NamedTensor:
         """Returns the input ensemble data as a NamedTensor."""
-        tensors = [self.load_tensor_for_one_model(model) for model in self.models]
+        tensors = [self.load_input_tensor_for_one_model(model) for model in self.models]
         data = torch.stack(tensors)
         nt = NamedTensor(
             data,
@@ -118,11 +126,16 @@ class Sample:
     @property
     def target_data(self) -> NamedTensor:
         """Returns the target analysis data as a NamedTensor."""
-        data: xr.DataArray = xr.open_dataarray(self.target_path)
-        data_of_interest: xr.DataArray = data.sel(species=self.specie, level=self.level)
-        tensor = torch.Tensor(data_of_interest.values)
-        tensor = tensor.unsqueeze(dim=0)
-        nt = NamedTensor(tensor, ["features", "lat", "lon"], [self.specie])
+        tensors = []
+        for i, path in enumerate(self.target_paths):
+            data = xr.open_dataset(path)
+            data_of_interest = data.sel(time=self.valid_times)
+            tensor = torch.Tensor(data_of_interest[self.species[i].lower()].values)
+            tensors.append(tensor)
+        tensor = torch.stack(tensors).unsqueeze(dim=2)
+        nt = NamedTensor(
+            tensor, ["features", "time", "levels", "lat", "lon"], self.species
+        )
         return nt
 
 
@@ -141,16 +154,17 @@ if __name__ == "__main__":
     print("Sample is valid ? ->", sample.is_valid)
     for input_path in sample.input_paths:
         print(input_path, input_path.exists())
-    print(sample.target_path, sample.target_path.exists())
+    for target_path in sample.target_paths:
+        print(target_path, target_path.exists())
 
     x = sample.input_data
     print(x)
+    y = sample.target_data
+    print(y)
 
 # TODO :
 # - définir un type pour les modèles, et les autres paramètres
 # - fix docker build
-# - zip target data
-# - charger target data
 # - inventer des plots pour représenter tout ça lol
 # - répercuter sur dataset et datamodule
 # - vérifier que toute la pipeline fonctionne

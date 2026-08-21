@@ -3,6 +3,7 @@ from pathlib import Path
 
 import torch
 from torch import Tensor
+import numpy as np
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
@@ -99,43 +100,102 @@ class Sample:
             [path.exists() for path in self.target_paths]
         )
 
-    def load_input_tensor_for_one_model(self, model: str) -> Tensor:
-        """Loads data tensor for one pollutant model."""
+    def load_input_data_for_one_model(self, model: str) -> xr.Dataset:
+        """Loads data for one pollutant model."""
         model_path = self.processed_dir / model / self.input_filename
         data = xr.open_dataset(model_path)
-        data_of_interest = data.sel(level=self.levels, time=self.lead_times)
-        selected_species = [f"{s.lower()}_conc" for s in self.species]
-        tensors = [
-            torch.Tensor(data_of_interest[species].values)
-            for species in selected_species
-        ]
-        return torch.stack(tensors)
-
-    @property
-    def input_data(self) -> NamedTensor:
-        """Returns the input ensemble data as a NamedTensor."""
-        tensors = [self.load_input_tensor_for_one_model(model) for model in self.models]
-        data = torch.stack(tensors)
-        nt = NamedTensor(
-            data,
-            ["features", "species", "leadtimes", "levels", "lat", "lon"],
-            self.models,
+        data = data.sel(level=self.levels, time=self.lead_times)
+        data = data.assign_coords(
+            time=np.datetime64(self.date_run)
+            + data.time.values.astype("timedelta64[h]")
         )
-        return nt
+        selected_species = [f"{s.lower()}_conc" for s in self.species]
+        data = data[selected_species]
+        data = data.assign_coords(longitude=((data.longitude + 180) % 360) - 180)
+        data = data.sortby("longitude")
+        return data[selected_species]
 
-    @property
-    def target_data(self) -> NamedTensor:
-        """Returns the target analysis data as a NamedTensor."""
-        tensors = []
+    def load_target_data(self) -> xr.Dataset:
+        """Returns the target analysis data."""
+        all_species_da = {}
         for i, path in enumerate(self.target_paths):
             data = xr.open_dataset(path)
             data_of_interest = data.sel(time=self.valid_times)
-            tensor = torch.Tensor(data_of_interest[self.species[i].lower()].values)
-            tensors.append(tensor)
-        tensor = torch.stack(tensors).unsqueeze(dim=2)
-        nt = NamedTensor(
-            tensor, ["features", "time", "levels", "lat", "lon"], self.species
+            data_of_interest = data_of_interest[self.species[i].lower()]
+            all_species_da[self.species[i]] = data_of_interest
+        target = xr.Dataset(all_species_da)
+        target = target.rename(
+            {
+                "lat": "latitude",
+                "lon": "longitude",
+            }
         )
+        target = target.sortby("latitude", ascending=False)
+        target = target.expand_dims(level=[0.0])
+        target = target.transpose("time", "level", "latitude", "longitude")
+        return target
+
+    @property
+    def data(self) -> xr.Dataset:
+        """Combination of models and reanalysis data."""
+        models = {
+            model: self.load_input_data_for_one_model(model) for model in self.models
+        }
+        rean = self.load_target_data()
+        first_model = models[self.models[0]]
+        # Align type of coordinates, btw models and reanalysis
+        rean = rean.assign_coords(
+            latitude=first_model.latitude,
+            longitude=first_model.longitude,
+            time=first_model.time,
+            level=first_model.level,
+        )
+        models["Reanalyse"] = rean
+        combined = xr.Dataset()
+        for model_name, ds in models.items():
+            da = ds.to_array(dim="species")
+            da = da.assign_coords(  # Format name of species
+                species=[s.replace("_conc", "").upper() for s in da.species.values]
+            )
+            combined[model_name] = da
+        return combined
+
+    @property
+    def data_as_nt(self) -> NamedTensor:
+        """Converts the data to a NamedTensor of shape (features, latitude, longitude)."""
+        ds = self.data
+        channel_arrays = []
+        channel_names = []
+
+        model_names = list(ds.data_vars)
+        for model in model_names:
+            da = ds[model]
+            da = da.transpose("species", "time", "level", "latitude", "longitude")
+            species_values = da.coords["species"].values
+            time_values = da.coords["time"].values
+            level_values = da.coords["level"].values
+
+            for i_species, species in enumerate(species_values):
+                for i_time, time in enumerate(time_values):
+                    for i_level, level in enumerate(level_values):
+                        arr = da.isel(
+                            species=i_species, time=i_time, level=i_level
+                        ).values  # extract 2D channel
+                        arr = np.nan_to_num(arr, nan=0.0)
+                        channel_arrays.append(arr)
+
+                        if np.issubdtype(type(time), np.datetime64):
+                            time_str = np.datetime_as_string(time, unit="h")
+                        else:
+                            time_str = str(time)
+
+                        channel_name = (
+                            f"{model} - {species} - {time_str} - {float(level)}"
+                        )
+                        channel_names.append(channel_name)
+
+        tensor = torch.tensor(np.stack(channel_arrays, axis=0))
+        nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
 
 
@@ -157,10 +217,7 @@ if __name__ == "__main__":
     for target_path in sample.target_paths:
         print(target_path, target_path.exists())
 
-    x = sample.input_data
-    print(x)
-    y = sample.target_data
-    print(y)
+    print(sample.data_as_nt)
 
 # TODO :
 # - définir un type pour les modèles, et les autres paramètres

@@ -1,20 +1,24 @@
-from collections.abc import Generator
+import datetime as dt
 from pathlib import Path
+from typing import override
 
 from calendardataviz import InspectorABC, start_app, RichString
-import datetime as dt
-from typing_extensions import override
 from cams.settings import RAW_DATA_DIR
 
 RAW_DATA_DIR = Path("/scratch/shared/cams-dl-ensemble/all_from_ads/")
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
 
-class FileSizeInspector(InspectorABC):
-    name = "File size"
 
-    # model * 11 + reanalysis + weighted_ensemble * 6
-    _target_size_one_file = 684439444
+
+
+class FileCountInspector(InspectorABC):
+    """Implementation of the inspector class for the CAMS dataset."""
+
+    name = "Target file count"
+    root_dir = Path("/scratch/shared/cams-dl-ensemble/all_from_ads")
+    target_nb_files_total = 3 * 365 * 11
+    target_nb_files_per_day = 11
 
     # Colors from https://colorbargenerator.com/
     _colors: dict[float, RichString] = {
@@ -32,20 +36,11 @@ class FileSizeInspector(InspectorABC):
         11 / 11: RichString(" ", "#006837", "#ffffff"),
     }
 
-
-    def _paths_for_date(self, date: dt.date) -> Generator[Path]:
-        return RAW_DATA_DIR.glob(f"**/{date.strftime(r'%Y_%m_%d')}*.netcdf")
-
-    def _pct_for_date(self, date: dt.date) -> float:
-        paths = list(self._paths_for_date(date))
-        total = 0
-        for path in paths:
-            total += 1 if path.stat().st_size > self._target_size_one_file * 0.90 else 0
-
-        if len(paths) > 0:
-            return total / len(paths)
-        else:
-            return 0
+    def _files_for_date(self, date: dt.date) -> tuple[Path, ...]:
+        # Finds files named like:
+        # `/lotos/2024_07_14-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.zip`
+        date_str = date.strftime(r"%Y_%m_%d")
+        return tuple(self.root_dir.glob(f"**/{date_str}*.netcdf"))
 
     @override
     def color_for_date(self, date: dt.date) -> RichString:
@@ -58,14 +53,11 @@ class FileSizeInspector(InspectorABC):
             RichString: The text and color associated
                 to the given date.
         """
+        pct = len(self._files_for_date(date)) / self.target_nb_files_per_day
+        if pct in self._colors:
+            return self._colors[pct]
 
-        pct = self._pct_for_date(date)
-        if pct < 0:
-            return UNDER_0_COLOR
-        if pct > 1:
-            return OVER_1_COLOR
-        closest_pct = min(self._colors.keys(), key=lambda x: abs(x - pct))
-        return self._colors[closest_pct]
+        return RichString("?", "#ff00ff")
 
     @override
     def as_color_bar(self, size: int) -> list[RichString]:
@@ -88,7 +80,6 @@ class FileSizeInspector(InspectorABC):
 
         return colors
 
-
     @override
     def popup_content(self, date: dt.date) -> tuple[str, str]:
         """Return the information displayed when a date is selected.
@@ -100,21 +91,21 @@ class FileSizeInspector(InspectorABC):
             str: The pop-up window title.
             str: The pop-up window content.
         """
-        title = (
-            date.strftime(r"%A %d %B %Y")
-            + f" {self._pct_for_date(date) * 100:.2f}%"
-        )
+        files = sorted(self._files_for_date(date))
         content = "\n".join(
-            f"{path.stat().st_size}B "
-            f"{path.relative_to(path.parents[1])}"
-            for path in self._paths_for_date(date)
+            f"{file.parent.stem:>7} {file.stem.replace('_', ' ')}" for file in files
+        )
+        title = (
+            f"{date.strftime(r'%Y_%m_%d')} "
+            f"({len(files)}/{self.target_nb_files_per_day})"
         )
 
         return title, content
 
+
 if __name__ == "__main__":
     start_app(
-        inspector_cls=FileSizeInspector,
+        inspector_cls=FileCountInspector,
         years=[2024, 2025, 2026],
-        nb_processes=12,
+        nb_processes=8,
     )

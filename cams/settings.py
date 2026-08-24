@@ -56,6 +56,8 @@ ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {
     # "": "SO4_DRY",
 }
 
+AVAILABLE_SPECIES = ["CO", "NO2", "O3", "PM10", "PM2P5", "SO2"]
+
 # Physics constants
 KILOGRAM_TO_MICROGRAM = 10**9
 

@@ -8,7 +8,7 @@ import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
-from cams.settings import PROCESSED_DATA_DIR
+from cams.settings import PROCESSED_DATA_DIR, AVAILABLE_SPECIES
 
 
 class Sample:
@@ -43,9 +43,9 @@ class Sample:
         self.lead_times = lead_times
         self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
         self.species = species
-        if any([s not in ["CO", "NO2", "O3", "PM10", "PM2P5", "SO2"] for s in species]):
+        if any([s not in AVAILABLE_SPECIES for s in species]):
             raise NotImplementedError(
-                "For now, only use the following species: CO, NO2, O3, PM10, PM2P5, SO2."
+                f"For now, only use the following species: {AVAILABLE_SPECIES}."
             )
         self.levels = levels
         if levels != [0]:

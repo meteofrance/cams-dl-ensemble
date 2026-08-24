@@ -15,8 +15,8 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     """Retrieves the dates of all the runs available in a directory."""
     return sorted(
         [
-            dt.datetime.strptime(path.stem, r"%Y_%m_%d")
-            for path in processed_dir.glob("input/*.netcdf")
+            dt.datetime.strptime(path.stem.split("-")[0], r"%Y_%m_%d")
+            for path in processed_dir.glob("mocage/*.netcdf")
         ]
     )
 
@@ -27,29 +27,32 @@ class CAMSDataset(Dataset):
     def __init__(
         self,
         run_dates: list[dt.datetime],
+        models: list[str],
+        lead_times: list[int] = [15],
+        species: list[str] = ["O3"],
+        levels: list[int] = [0],
         processed_dir: Path = PROCESSED_DATA_DIR,
-        leadtime: int = 15,
-        specie: str = "O3",
-        level: int = 0,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:
         """Loads the dataset's sample points for the given split.
         A sample point is a date and a forecast id, used to instantiate a Sample.
 
         Args:
-            run_dates: The list of date to process
-            processed_dir: Path to the CAMS dataset's processed data.
-            leadtime: the leadtime to load in the dataset.
-            specie: the specie to load in the dataset.
-            level: the level to load in the dataset.
+            run_dates: The list of date to process.
+            models: the models to load in the dataset.
+            lead_times: the lead_times to load in the dataset.
+            species: the species to load in the dataset.
+            levels: the levels to load in the dataset.
                 '0' corresponds to 'ground' level.
+            processed_dir: Path to the CAMS dataset's processed data.
             transform_sequence: transforms sequence applied to the data after loading.
         """
         self.run_dates = run_dates
+        self.models = models
+        self.lead_times = lead_times
+        self.species = species
+        self.levels = levels
         self.processed_dir = processed_dir
-        self.leadtime = leadtime
-        self.specie = specie
-        self.level = level
         self.transform_sequence = transform_sequence
 
     @cached_property
@@ -58,10 +61,11 @@ class CAMSDataset(Dataset):
         # For now, we only use the leadtime = 15h:
         samples = [
             Sample(
-                date_run,
-                self.leadtime,
-                specie=self.specie,
-                level=self.level,
+                date_run=date_run,
+                models=self.models,
+                lead_times=self.lead_times,
+                species=self.species,
+                levels=self.levels,
                 processed_dir=self.processed_dir,
             )
             for date_run in self.run_dates
@@ -74,16 +78,22 @@ class CAMSDataset(Dataset):
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
-        return self.transform_sequence(
-            (self.samples[idx].input_data, self.samples[idx].target_data)
-        )
+        x, y = self.samples[idx].get_input_and_target()
+        return self.transform_sequence((x, y))
 
 
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a CAMSDataset
 
     run_dates: list[dt.datetime] = get_run_dates(PROCESSED_DATA_DIR)
-    dataset = CAMSDataset(run_dates)
+    print(len(run_dates))
+    dataset = CAMSDataset(
+        run_dates,
+        models=["chimere", "mocage"],
+        lead_times=[15, 24],
+        species=["O3", "NO2"],
+        levels=[0],
+    )
     print("Len dataset : ", len(dataset))
 
     sample = dataset.samples[10]

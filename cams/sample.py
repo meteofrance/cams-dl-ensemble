@@ -31,7 +31,7 @@ class Sample:
         """
         Args:
             date_run: The run date of the CTMs from which to load the sample.
-            models: the l models to load.
+            models: the list of models to load.
             lead_times: Which forecast leadtimes to load the sample from.
                 The accepted values for one leadtime are [0, 1, ..., 96].
             specie: the species to load.
@@ -160,10 +160,9 @@ class Sample:
             combined[model_name] = da
         return combined
 
-    @property
-    def data_as_nt(self) -> NamedTensor:
-        """Converts the data to a NamedTensor of shape (features, latitude, longitude)."""
-        ds = self.data
+    @staticmethod
+    def convert_data_to_nt(ds: xr.Dataset) -> NamedTensor:
+        """Converts xarray dataset to a NamedTensor of shape (features, latitude, longitude)."""
         channel_arrays = []
         channel_names = []
 
@@ -198,6 +197,13 @@ class Sample:
         nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
 
+    def get_input_and_target(self) -> NamedTensor:
+        """Returns inputs and target as NamedTensor"""
+        ds = self.data
+        x = Sample.convert_data_to_nt(ds.drop("target"))
+        y = Sample.convert_data_to_nt(ds[["target"]])
+        return x, y
+
 
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a Sample
@@ -218,7 +224,9 @@ if __name__ == "__main__":
         print(target_path, target_path.exists())
 
     print(sample.data)
-    print(sample.data_as_nt)
+    x, y = sample.get_input_and_target()
+    print(x)
+    print(y)
 
 # TODO :
 # - définir un type pour les modèles, et les autres paramètres

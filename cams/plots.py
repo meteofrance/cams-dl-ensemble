@@ -257,7 +257,7 @@ def plot_named_tensor(
 
 
 if __name__ == "__main__":
-    # This is a simple example of how to instanciate and use a Sample
+    # This is a simple example of how to plot a Sample
 
     sample = Sample(
         dt.datetime(2025, 5, 10),

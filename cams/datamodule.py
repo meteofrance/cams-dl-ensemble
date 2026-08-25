@@ -32,6 +32,10 @@ class CAMSDataModule(LightningDataModule):
         end_date: dt.datetime | None = None,
         val_days: int = 5,
         train_val_separation: int = 4,
+        models: list[str] = ["chimere", "mocage"],
+        lead_times: list[int] = [15],
+        species: list[str] = ["O3"],
+        levels: list[int] = [0],
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
     ) -> None:
@@ -49,6 +53,11 @@ class CAMSDataModule(LightningDataModule):
                 end of each month, inclusive. Defaults to 5.
             train_val_separation: Number of days between train and validation
                 datasets. Defaults to 4.
+            models: the models to load in the dataset.
+            lead_times: the lead_times to load in the dataset.
+            species: the species to load in the dataset.
+            levels: the levels to load in the dataset.
+                '0' corresponds to 'ground' level.
             processed_dir: Path to the CAMS processed dataset.
             transforms: list of transforms to apply to the data after loading it.
         """
@@ -56,6 +65,10 @@ class CAMSDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.prefetch_factor = prefetch_factor
+        self.models = models
+        self.lead_times = lead_times
+        self.species = species
+        self.levels = levels
         self.processed_dir = processed_dir
 
         # Define a transform and reverse transform sequences
@@ -80,9 +93,7 @@ class CAMSDataModule(LightningDataModule):
         # Gather run dates available
         run_dates: list[dt.datetime] = get_run_dates(self.processed_dir)
         if len(run_dates) == 0:
-            raise FileNotFoundError(
-                f"CAMS dataset empty: {self.processed_dir / 'input'}"
-            )
+            raise FileNotFoundError(f"CAMS dataset empty: no run found.")
 
         # Set dates if they are not defined
         start_date = start_date if start_date else run_dates[0]
@@ -134,6 +145,10 @@ class CAMSDataModule(LightningDataModule):
                 either 'fit', 'val', 'validate' or 'test'.
         """
         dataset_kwargs = {
+            "models": self.models,
+            "lead_times": self.lead_times,
+            "species": self.species,
+            "levels": self.levels,
             "processed_dir": self.processed_dir,
             "transform_sequence": self.transform_sequence,
         }
@@ -186,7 +201,6 @@ class CAMSDataModule(LightningDataModule):
         batch: list[tuple[NamedTensor, NamedTensor]],
     ) -> tuple[NamedTensor, NamedTensor]:
         """Collates a batch of NamedTensor data."""
-
         inputs = NamedTensor.collate_fn([item[0] for item in batch])
         targets = NamedTensor.collate_fn([item[1] for item in batch])
 
@@ -198,7 +212,12 @@ class CAMSDataModule(LightningDataModule):
 
 
 if __name__ == "__main__":
-    dm = CAMSDataModule()
+    dm = CAMSDataModule(
+        models=["chimere", "mocage"],
+        lead_times=[15, 24],
+        species=["O3", "NO2"],
+        levels=[0],
+    )
     train_loader = dm.train_dataloader()
     x, y = next(iter(train_loader))
     print(x, y)

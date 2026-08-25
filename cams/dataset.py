@@ -13,12 +13,20 @@ from cams.settings import PROCESSED_DATA_DIR
 
 def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     """Retrieves the dates of all the runs available in a directory."""
-    return sorted(
-        [
-            dt.datetime.strptime(path.stem.split("-")[0], r"%Y_%m_%d")
-            for path in processed_dir.glob("mocage/*.netcdf")
-        ]
+    all_files = sorted(list(set(processed_dir.glob("**/*.netcdf"))))
+    run_dates, files_not_parsed = [], []
+    for file in all_files:
+        try:
+            date = dt.datetime.strptime(file.stem.split("-")[0], r"%Y_%m_%d")
+            run_dates.append(date)
+        except:
+            files_not_parsed.append(file)
+            continue
+    print(
+        f"WARNING: {len(files_not_parsed)} files could not be parsed: {files_not_parsed}"
     )
+    run_dates = list(set(run_dates))  # remove duplicates
+    return run_dates
 
 
 class CAMSDataset(Dataset):

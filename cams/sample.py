@@ -158,6 +158,7 @@ class Sample:
                 species=[s.replace("_conc", "").upper() for s in da.species.values]
             )
             combined[model_name] = da
+        combined.coords["lead_time"] = (("time",), self.lead_times)
         return combined
 
     @staticmethod
@@ -175,21 +176,16 @@ class Sample:
             level_values = da.coords["level"].values
 
             for i_species, species in enumerate(species_values):
-                for i_time, time in enumerate(time_values):
+                for i_time in range(len(time_values)):
                     for i_level, level in enumerate(level_values):
                         arr = da.isel(
                             species=i_species, time=i_time, level=i_level
                         ).values  # extract 2D channel
                         arr = np.nan_to_num(arr, nan=0.0)
                         channel_arrays.append(arr)
-
-                        if np.issubdtype(type(time), np.datetime64):
-                            time_str = np.datetime_as_string(time, unit="h")
-                        else:
-                            time_str = str(time)
-
+                        leadtime = da.coords["lead_time"].values[i_time]
                         channel_name = (
-                            f"{model} - {species} - {time_str} - {float(level)}"
+                            f"{model} - {species} - +{leadtime}h - {int(level)}m"
                         )
                         channel_names.append(channel_name)
 
@@ -197,10 +193,10 @@ class Sample:
         nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
 
-    def get_input_and_target(self) -> NamedTensor:
+    def get_input_and_target(self) -> tuple[NamedTensor, NamedTensor]:
         """Returns inputs and target as NamedTensor"""
         ds = self.data
-        x = Sample.convert_data_to_nt(ds.drop("target"))
+        x = Sample.convert_data_to_nt(ds.drop_vars("target"))
         y = Sample.convert_data_to_nt(ds[["target"]])
         return x, y
 
@@ -229,8 +225,5 @@ if __name__ == "__main__":
     print(y)
 
 # TODO :
-# - définir un type pour les modèles, et les autres paramètres
-# - fix docker build
-# - compute stats for all species
-# - répercuter sur dataset et datamodule
-# - vérifier que toute la pipeline fonctionne
+# - fix docker build ou faire un ticket
+# - vérifier que toute la pipeline fonctionne (plots ?)

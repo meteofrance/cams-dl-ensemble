@@ -86,16 +86,16 @@ class CAMSLightningModule(LightningModule):
                 MetricCollection(
                     [MeanSquaredError(squared=False), MeanAbsoluteError()]
                 ),
-                MetricCollection(
-                    [
-                        Accuracy("O3", threshold=120),
-                        F1Score("O3", threshold=120),
-                        FalseAlarmRate("O3", threshold=120),
-                        FalsePositiveRate("O3", threshold=120),
-                    ],
-                    prefix="O3/",
-                    postfix="_120",
-                ),
+                # MetricCollection(
+                #     [
+                #         Accuracy("O3", threshold=120),
+                #         F1Score("O3", threshold=120),
+                #         FalseAlarmRate("O3", threshold=120),
+                #         FalsePositiveRate("O3", threshold=120),
+                #     ],
+                #     prefix="O3/",
+                #     postfix="_120",
+                # ),
             ]
         )
         return metrics

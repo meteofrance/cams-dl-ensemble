@@ -226,4 +226,8 @@ if __name__ == "__main__":
 
 # TODO :
 # - fix docker build ou faire un ticket
-# - vérifier que toute la pipeline fonctionne (plots ?)
+# - adapter les métriques
+# - adapter les transforms
+# - adapter les plots de training
+# - check ML flow et vrai training
+# - pb de données : KeyError: "not all values found in index 'time'"

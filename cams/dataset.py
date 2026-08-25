@@ -13,6 +13,7 @@ from cams.settings import PROCESSED_DATA_DIR
 
 def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     """Retrieves the dates of all the runs available in a directory."""
+    print("--> Retrieving run dates...")
     all_files = sorted(list(set(processed_dir.glob("**/*.netcdf"))))
     run_dates, files_not_parsed = [], []
     for file in all_files:
@@ -22,9 +23,10 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
         except:
             files_not_parsed.append(file)
             continue
-    print(
-        f"WARNING: {len(files_not_parsed)} files could not be parsed: {files_not_parsed}"
-    )
+    if len(files_not_parsed) > 0:
+        print(
+            f"WARNING: {len(files_not_parsed)} files could not be parsed: {files_not_parsed}"
+        )
     run_dates = list(set(run_dates))  # remove duplicates
     return run_dates
 

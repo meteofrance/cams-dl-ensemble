@@ -183,7 +183,9 @@ def plot_y_vs_yhat(
 def plot_y_vs_yhat_vs_median(
     x: NamedTensor, y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
 ) -> None:
-    """Plots the ground truth, prediction, and median of inputs in three rows."""
+    """Plots the ground truth, prediction, and median of inputs in three rows.
+    Only plots for Ozone, level 0m, +15h.
+    TODO: add options to plot other species and leadtimes."""
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 12))
     subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]
@@ -192,7 +194,8 @@ def plot_y_vs_yhat_vs_median(
     ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     vmin, vmax = get_vmin_vmax("O3")
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
-    img_gt = ax_gt.imshow(y.tensor[0].cpu(), **plot_kwargs)
+    ground_truth = y["target - O3 - +15h - 0m"][0].cpu()
+    img_gt = ax_gt.imshow(ground_truth, **plot_kwargs)
     format_axis(ax_gt, "Ground Truth = Analysis")
     cbar_gt = subfigs[0].colorbar(img_gt, ax=ax_gt, fraction=0.023)
     cbar_gt.set_label(UNITS["O3"], size=13)
@@ -202,9 +205,13 @@ def plot_y_vs_yhat_vs_median(
         nrows=1, ncols=2, subplot_kw=subplot_kw
     )
     axs_pred_med = axes_pred_med.flat
-    img_pred = axs_pred_med[0].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
+    prediction = y_hat["target - O3 - +15h - 0m"][0].cpu()
+    img_pred = axs_pred_med[0].imshow(prediction, **plot_kwargs)
     format_axis(axs_pred_med[0], "AI Prediction")
-    axs_pred_med[1].imshow(x.tensor.cpu().median(dim=0).values, **plot_kwargs)
+
+    models_tensors = [x[fname][0] for fname in x.feature_names if "O3 - +15h - 0m" in fname]
+    median = torch.stack(models_tensors).median(dim=0).values
+    axs_pred_med[1].imshow(median, **plot_kwargs)
     format_axis(axs_pred_med[1], "Median of Inputs")
     cbar_pred = subfigs[1].colorbar(img_pred, ax=axes_pred_med, fraction=0.023)
     cbar_pred.set_label(UNITS["O3"], size=13)
@@ -212,12 +219,12 @@ def plot_y_vs_yhat_vs_median(
     # Plot differences
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs_diff = axes_diff.flat
-    diff_pred = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
+    diff_pred = prediction - ground_truth
     img_diff_pred = axs_diff[0].imshow(
         diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50
     )
     format_axis(axs_diff[0], "Difference (AI Prediction)")
-    diff_med = x.tensor.cpu().median(dim=0).values - y.tensor[0].cpu()
+    diff_med = median - ground_truth
     axs_diff[1].imshow(diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
     format_axis(axs_diff[1], "Difference (Median of Inputs)")
     subfigs[2].colorbar(img_diff_pred, ax=axes_diff, fraction=0.023)

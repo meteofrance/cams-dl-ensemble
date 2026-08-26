@@ -1,14 +1,13 @@
 import datetime as dt
 from pathlib import Path
 
-import torch
-from torch import Tensor
 import numpy as np
+import torch
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
-from cams.settings import PROCESSED_DATA_DIR, AVAILABLE_SPECIES
+from cams.settings import AVAILABLE_SPECIES, PROCESSED_DATA_DIR
 
 
 class Sample:
@@ -34,8 +33,8 @@ class Sample:
             models: the list of models to load.
             lead_times: Which forecast leadtimes to load the sample from.
                 The accepted values for one leadtime are [0, 1, ..., 96].
-            specie: the species to load.
-            level: the levels to load.
+            species: the species to load.
+            levels: the levels to load.
             processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run
@@ -80,17 +79,15 @@ class Sample:
     @property
     def target_paths(self) -> list[Path]:
         """The paths to the netcdf of targets reanalysis data.
-        Files are grouped by months and species."""
-        date_run_str = self.date_run.strftime("%Y-%m")
+        Files are grouped by months and species.
+        """
         months_str = list(set([date.strftime("%Y-%m") for date in self.valid_times]))
         if len(months_str) > 1:
             # The sample is overlapping 2 differents months
             # TODO: adapt to this case in load_target_data
             # For now, return a non existing file, so that the sample is not valid
             # and ignored in dataset and training
-            print(
-                f"WARNING: {self} is overlapping 2 months, this case is not implemented."
-            )
+            print(f"WARNING: {self} is overlapping 2 months, not implemented.")
             return [Path("non_existing_file.nc")]
         folder = self.processed_dir / "reanalysis"
         paths = []
@@ -178,7 +175,7 @@ class Sample:
 
     @staticmethod
     def convert_data_to_nt(ds: xr.Dataset) -> NamedTensor:
-        """Converts xarray dataset to a NamedTensor of shape (features, latitude, longitude)."""
+        """Converts xarray dataset to a NamedTensor of shape (features, lat, lon)."""
         channel_arrays = []
         channel_names = []
 
@@ -238,10 +235,3 @@ if __name__ == "__main__":
     x, y = sample.get_input_and_target()
     print(x)
     print(y)
-
-# TODO :
-# - fix docker build ou faire un ticket
-# - ajouter métriques pour autres especes / leadtimes
-# - adapter les transforms notamment de statistiques (travailler directement sur le xarray ?)
-# - adapter les plots de training
-# - pb à la jonction des mois pour la target, message d'erreur

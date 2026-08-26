@@ -1,15 +1,15 @@
+import datetime as dt
 import json
 import math
 import warnings
 from pathlib import Path
-import datetime as dt
-import xarray as xr
 
 import cartopy
 import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import xarray as xr
 from cartopy.crs import PlateCarree
 from cartopy.mpl.geoaxes import GeoAxes
 from matplotlib.axes import Axes
@@ -185,7 +185,8 @@ def plot_y_vs_yhat_vs_median(
 ) -> None:
     """Plots the ground truth, prediction, and median of inputs in three rows.
     Only plots for Ozone, level 0m, +15h.
-    TODO: add options to plot other species and leadtimes."""
+    TODO: add options to plot other species and leadtimes.
+    """
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 12))
     subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]

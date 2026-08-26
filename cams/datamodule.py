@@ -93,7 +93,7 @@ class CAMSDataModule(LightningDataModule):
         # Gather run dates available
         run_dates: list[dt.datetime] = get_run_dates(self.processed_dir)
         if len(run_dates) == 0:
-            raise FileNotFoundError(f"CAMS dataset empty: no run found.")
+            raise FileNotFoundError("CAMS dataset empty: no run found.")
 
         # Set dates if they are not defined
         start_date = start_date if start_date else run_dates[0]

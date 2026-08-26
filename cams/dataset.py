@@ -20,12 +20,14 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
         try:
             date = dt.datetime.strptime(file.stem.split("-")[0], r"%Y_%m_%d")
             run_dates.append(date)
-        except:
+        except Exception as e:
             files_not_parsed.append(file)
+            print(e)
             continue
     if len(files_not_parsed) > 0:
         print(
-            f"WARNING: {len(files_not_parsed)} files could not be parsed: {files_not_parsed}"
+            f"WARNING: {len(files_not_parsed)} files could not be parsed: "
+            f"{files_not_parsed}"
         )
     run_dates = list(set(run_dates))  # remove duplicates
     return run_dates

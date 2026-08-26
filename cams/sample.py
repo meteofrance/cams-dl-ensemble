@@ -82,15 +82,24 @@ class Sample:
         """The paths to the netcdf of targets reanalysis data.
         Files are grouped by months and species."""
         date_run_str = self.date_run.strftime("%Y-%m")
+        months_str = list(set([date.strftime("%Y-%m") for date in self.valid_times]))
+        if len(months_str) > 1:
+            # The sample is overlapping 2 differents months
+            # TODO: adapt to this case in load_target_data
+            # For now, return a non existing file, so that the sample is not valid
+            # and ignored in dataset and training
+            print(f"WARNING: {self} is overlapping 2 months, this case is not implemented.")
+            return [Path("non_existing_file.nc")]
         folder = self.processed_dir / "reanalysis"
         paths = []
-        for species in self.species:
-            filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{date_run_str}.nc"
-            if not (folder / filename).exists():
-                # if VRA Reanalysis file does not exist
-                # Use Intermediate analysis (IRA) as replacement
-                filename = filename.replace("vra", "ira")
-            paths.append(folder / filename)
+        for month in months_str:
+            for species in self.species:
+                filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
+                if not (folder / filename).exists():
+                    # if VRA Reanalysis file does not exist
+                    # Use Intermediate analysis (IRA) as replacement
+                    filename = filename.replace("vra", "ira")
+                paths.append(folder / filename)
         return paths
 
     @property
@@ -102,6 +111,10 @@ class Sample:
 
     def load_input_data_for_one_model(self, model: str) -> xr.Dataset:
         """Loads data for one pollutant model."""
+        # TODO: adapt when sample is overlapping 2 months
+        # In this case, we need to load valid times from 2 different files
+        # for one species. 
+        # Else we get the error 'KeyError: "not all values found in index 'time'"'
         model_path = self.processed_dir / model / self.input_filename
         data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)
@@ -226,8 +239,7 @@ if __name__ == "__main__":
 
 # TODO :
 # - fix docker build ou faire un ticket
-# - adapter les métriques
-# - adapter les transforms
+# - ajouter métriques pour autres especes / leadtimes
+# - adapter les transforms notamment de statistiques (travailler directement sur le xarray ?)
 # - adapter les plots de training
-# - check ML flow et vrai training
-# - pb de données : KeyError: "not all values found in index 'time'"
+# - pb à la jonction des mois pour la target, message d'erreur

@@ -5,9 +5,8 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      tracking_uri: NNone  # To be replaced by the adress to your mlflow server
-      experiment_name: oscar
-      run_name: dummy
+      experiment_name: dummy
+      run_name: lea
       log_model: True
       artifact_location: /scratch/shared/cams/mlartifacts
 
@@ -55,7 +54,7 @@ data:
     - 15
     - 24
   batch_size: 2
-  num_workers: 3
+  num_workers: 1
   prefetch_factor: 2
   processed_dir: /scratch/shared/cams-dl-ensemble/all_from_ads/
   # transforms:

@@ -88,7 +88,9 @@ class Sample:
             # TODO: adapt to this case in load_target_data
             # For now, return a non existing file, so that the sample is not valid
             # and ignored in dataset and training
-            print(f"WARNING: {self} is overlapping 2 months, this case is not implemented.")
+            print(
+                f"WARNING: {self} is overlapping 2 months, this case is not implemented."
+            )
             return [Path("non_existing_file.nc")]
         folder = self.processed_dir / "reanalysis"
         paths = []
@@ -113,7 +115,7 @@ class Sample:
         """Loads data for one pollutant model."""
         # TODO: adapt when sample is overlapping 2 months
         # In this case, we need to load valid times from 2 different files
-        # for one species. 
+        # for one species.
         # Else we get the error 'KeyError: "not all values found in index 'time'"'
         model_path = self.processed_dir / model / self.input_filename
         data = xr.open_dataset(model_path)

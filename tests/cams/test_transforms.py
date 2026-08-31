@@ -2,12 +2,16 @@ import json
 import os
 from pathlib import Path
 
-from cams.settings import MODEL_NAMES
 import pytest
 import torch
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.transforms import ExtractInputStatisticalFeatures, FillMissingModels, Normalize
+from cams.transforms import (
+    ExtractInputStatisticalFeatures,
+    FillMissingModels,
+    Normalize,
+)
+from cams.types import MODELS_NAMES
 
 
 def test_ExtractInputStatisticalFeatures():
@@ -79,13 +83,14 @@ def test_ExtractInputStatisticalFeatures():
     assert result_nt.tensor.shape == (0, 2, 2)
     assert target_nt_result == target_nt
 
+
 def test_FillMissingModels():
     """Test of ExtractInputStatisticalFeatures tranform."""
     input_data = torch.ones(9, 2, 2)
     input_nt = NamedTensor(
         input_data,
         names=["features", "lat", "lon"],
-        feature_names=MODEL_NAMES[:9],
+        feature_names=MODELS_NAMES[:9],
     )
     target_nt = NamedTensor(
         torch.ones(1, 2, 2),
@@ -101,11 +106,12 @@ def test_FillMissingModels():
     assert target_nt_result == target_nt
 
     # Test 2: output feature_names
-    assert result_nt.feature_names == MODEL_NAMES
+    assert result_nt.feature_names == list(MODELS_NAMES)
 
     # Test 3: output added models contains only 0
     assert torch.equal(result_nt.tensor[9], torch.zeros(2, 2))
     assert torch.equal(result_nt.tensor[10], torch.zeros(2, 2))
+
 
 @pytest.fixture
 def x_named_tensor() -> NamedTensor:

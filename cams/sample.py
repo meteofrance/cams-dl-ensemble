@@ -7,7 +7,8 @@ import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
-from cams.settings import AVAILABLE_SPECIES, PROCESSED_DATA_DIR
+from cams.settings import PROCESSED_DATA_DIR
+from cams.types import AVAILABLE_SPECIES, AvailableSpecies, ModelsNames
 
 
 class Sample:
@@ -21,9 +22,9 @@ class Sample:
     def __init__(
         self,
         date_run: dt.date,
-        models: list[str],
+        models: list[ModelsNames],
         lead_times: list[int],
-        species: list[str],
+        species: list[AvailableSpecies],
         levels: list[int],
         processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
@@ -73,7 +74,8 @@ class Sample:
     def input_paths(self) -> list[Path]:
         """The path to the netcdf of input ensemble data."""
         return [
-            self.processed_dir / model / self.input_filename for model in self.models
+            self.processed_dir / model.lower() / self.input_filename
+            for model in self.models
         ]
 
     @property
@@ -108,13 +110,20 @@ class Sample:
             [path.exists() for path in self.target_paths]
         )
 
-    def load_input_data_for_one_model(self, model: str) -> xr.Dataset:
-        """Loads data for one pollutant model."""
+    def load_input_data_for_one_model(self, model: ModelsNames) -> xr.Dataset:
+        """Loads data for one pollutant model.
+
+        Args:
+            model: The name of the desired pollutant model.
+
+        Returns:
+            A xr.Dataset containing all the input data for this model.
+        """
         # TODO: adapt when sample is overlapping 2 months
         # In this case, we need to load valid times from 2 different files
         # for one species.
         # Else we get the error 'KeyError: "not all values found in index 'time'"'
-        model_path = self.processed_dir / model / self.input_filename
+        model_path = self.processed_dir / model.lower() / self.input_filename
         data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)
         data = data.assign_coords(
@@ -161,9 +170,9 @@ class Sample:
         * longitude  (longitude) float32 3kB -24.95 -24.85 -24.75 ... 44.85 44.95
         * species    (species) <U5 120B 'O3' 'CO' 'NO2' 'PM10' 'PM2P5' 'SO2'
         Data variables:
-            chimere    (species, time, level, latitude, longitude) float32 21MB 66.77...
-            mocage     (species, time, level, latitude, longitude) float32 21MB 69.86...
-            target     (species, time, level, latitude, longitude) float32 21MB 69.72...
+            CHIMERE    (species, time, level, latitude, longitude) float32 21MB 66.77...
+            MOCAGE     (species, time, level, latitude, longitude) float32 21MB 69.86...
+            TARGET     (species, time, level, latitude, longitude) float32 21MB 69.72...
         """
         models = {
             model: self.load_input_data_for_one_model(model) for model in self.models
@@ -177,7 +186,7 @@ class Sample:
             time=first_model.time,
             level=first_model.level,
         )
-        models["target"] = rean
+        models["TARGET"] = rean
         combined = xr.Dataset()
         for model_name, ds in models.items():
             da = ds.to_array(dim="species")
@@ -200,18 +209,18 @@ class Sample:
             ┌─────────────────────────────┬──────────────┬───────────┐
             │ Feature name                │          Min │       Max │
             ├─────────────────────────────┼──────────────┼───────────┤
-            │ chimere - O3 - +15h - 0m    │ 34.9141      │  139.932  │
-            │ chimere - CO - +15h - 0m    │ 84.701       │ 1169.37   │
-            │ chimere - NO2 - +15h - 0m   │  0.00369518  │   61.7275 │
-            │ chimere - PM10 - +15h - 0m  │  0.0479899   │ 1024.85   │
-            │ chimere - PM2P5 - +15h - 0m │  0.0419867   │  144.313  │
-            │ chimere - SO2 - +15h - 0m   │  1.06274e-16 │  198.59   │
-            │ mocage - O3 - +15h - 0m     │ 14.1139      │  165.537  │
-            │ mocage - CO - +15h - 0m     │ 53.1523      │ 2596.93   │
-            │ mocage - NO2 - +15h - 0m    │  0.00493127  │  543.657  │
-            │ mocage - PM10 - +15h - 0m   │  0.0434407   │ 1401.03   │
-            │ mocage - PM2P5 - +15h - 0m  │  0.0391834   │ 1363.39   │
-            │ mocage - SO2 - +15h - 0m    │  1.6078e-09  │ 2427.39   │
+            │ CHIMERE - O3 - +15h - 0m    │ 34.9141      │  139.932  │
+            │ CHIMERE - CO - +15h - 0m    │ 84.701       │ 1169.37   │
+            │ CHIMERE - NO2 - +15h - 0m   │  0.00369518  │   61.7275 │
+            │ CHIMERE - PM10 - +15h - 0m  │  0.0479899   │ 1024.85   │
+            │ CHIMERE - PM2P5 - +15h - 0m │  0.0419867   │  144.313  │
+            │ CHIMERE - SO2 - +15h - 0m   │  1.06274e-16 │  198.59   │
+            │ MOCAGE - O3 - +15h - 0m     │ 14.1139      │  165.537  │
+            │ MOCAGE - CO - +15h - 0m     │ 53.1523      │ 2596.93   │
+            │ MOCAGE - NO2 - +15h - 0m    │  0.00493127  │  543.657  │
+            │ MOCAGE - PM10 - +15h - 0m   │  0.0434407   │ 1401.03   │
+            │ MOCAGE - PM2P5 - +15h - 0m  │  0.0391834   │ 1363.39   │
+            │ MOCAGE - SO2 - +15h - 0m    │  1.6078e-09  │ 2427.39   │
             └─────────────────────────────┴──────────────┴───────────┘
         """
         channel_arrays = []
@@ -246,8 +255,8 @@ class Sample:
     def get_input_and_target(self) -> tuple[NamedTensor, NamedTensor]:
         """Returns inputs and target as NamedTensor"""
         ds = self.data
-        x = Sample.convert_data_to_nt(ds.drop_vars("target"))
-        y = Sample.convert_data_to_nt(ds[["target"]])
+        x = Sample.convert_data_to_nt(ds.drop_vars("TARGET"))
+        y = Sample.convert_data_to_nt(ds[["TARGET"]])
         return x, y
 
 
@@ -259,7 +268,7 @@ if __name__ == "__main__":
         lead_times=[15, 24, 36],
         species=["O3", "CO", "NO2", "PM10", "PM2P5", "SO2"],
         levels=[0],
-        models=["chimere", "mocage"],
+        models=["CHIMERE", "MOCAGE"],
     )
     print(sample)
 

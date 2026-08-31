@@ -12,6 +12,7 @@ from typing_extensions import override
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.settings import PROCESSED_DATA_DIR
 from cams.transforms import ReversibleTransformMixin
+from cams.types import AvailableSpecies
 
 
 class CAMSDataModule(LightningDataModule):
@@ -32,9 +33,9 @@ class CAMSDataModule(LightningDataModule):
         end_date: dt.datetime | None = None,
         val_days: int = 5,
         train_val_separation: int = 4,
-        models: list[str] = ["chimere", "mocage"],
+        models: list[str] = ["CHIMERE", "MOCAGE"],
         lead_times: list[int] = [15],
-        species: list[str] = ["O3"],
+        species: list[AvailableSpecies] = ["O3"],
         levels: list[int] = [0],
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
@@ -213,7 +214,7 @@ class CAMSDataModule(LightningDataModule):
 
 if __name__ == "__main__":
     dm = CAMSDataModule(
-        models=["chimere", "mocage"],
+        models=["CHIMERE", "MOCAGE"],
         lead_times=[15, 24],
         species=["O3", "NO2"],
         levels=[0],

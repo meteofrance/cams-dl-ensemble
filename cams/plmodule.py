@@ -88,10 +88,10 @@ class CAMSLightningModule(LightningModule):
                 ),
                 MetricCollection(
                     [
-                        Accuracy("target - O3 - +15h - 0m", threshold=120),
-                        F1Score("target - O3 - +15h - 0m", threshold=120),
-                        FalseAlarmRate("target - O3 - +15h - 0m", threshold=120),
-                        FalsePositiveRate("target - O3 - +15h - 0m", threshold=120),
+                        Accuracy("TARGET - O3 - +15h - 0m", threshold=120),
+                        F1Score("TARGET - O3 - +15h - 0m", threshold=120),
+                        FalseAlarmRate("TARGET - O3 - +15h - 0m", threshold=120),
+                        FalsePositiveRate("TARGET - O3 - +15h - 0m", threshold=120),
                     ],
                     prefix="O3-15h-0m/",
                     postfix="_120",

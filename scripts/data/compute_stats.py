@@ -8,7 +8,8 @@ from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
-from cams.settings import AVAILABLE_SPECIES, MODEL_NAMES, PROCESSED_DATA_DIR, STATS_PATH
+from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
+from cams.types import AVAILABLE_SPECIES, MODELS_NAMES
 
 
 def compute_stats(
@@ -28,8 +29,9 @@ def compute_stats(
 
     sample: Sample
     for sample in tqdm(dataset.samples, desc="Computing statistics"):
+        print(sample.data)
         try:
-            target = sample.data["target"]
+            target = sample.data["TARGET"]
         except Exception as e:
             print(e)
             print(f"Could not load sample {sample}, skipping to next sample.")
@@ -58,7 +60,7 @@ if __name__ == "__main__":
     stats = compute_stats(
         dataset=CAMSDataset(
             run_dates=get_run_dates(PROCESSED_DATA_DIR),
-            models=[model.lower() for model in MODEL_NAMES],
+            models=MODELS_NAMES,
             # We compute the stats on the reanalysis,
             # so we only need the first 24h of a sample
             # Else we will have overlaps with next sample, and compute some stats twice

@@ -14,22 +14,6 @@ RAW_DATA_DIR: Path = CAMS_DATASET_DIR / "raw"
 PROCESSED_DATA_DIR: Path = CAMS_DATASET_DIR / "all_from_ads"
 STATS_PATH = CAMS_DATASET_DIR / "species_stats.json"
 
-# Model names
-MODEL_NAMES = [
-    "MATCH",
-    "MINNI",
-    "CHIMERE",
-    "MOCAGE",
-    "MONARCH",
-    "EURADIM",
-    "EMEP",
-    "GEMAQ",
-    "SILAM",
-    "DEHM",
-    "LOTOS",
-]
-
-
 # Parameter name mapping
 ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {
     "ozone": "O3",
@@ -55,8 +39,6 @@ ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {
     # "": "NH4_DRY",
     # "": "SO4_DRY",
 }
-
-AVAILABLE_SPECIES = ["CO", "NO2", "O3", "PM10", "PM2P5", "SO2"]
 
 # Physics constants
 KILOGRAM_TO_MICROGRAM = 10**9

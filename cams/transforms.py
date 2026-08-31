@@ -11,8 +11,8 @@ from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor, nn
 from typing_extensions import override
 
-from cams.settings import MODEL_NAMES, STATS_PATH
-from cams.types import STATISTICS_NAMES, StatisticsNames
+from cams.settings import STATS_PATH
+from cams.types import MODELS_NAMES, STATISTICS_NAMES, StatisticsNames
 
 
 class ExtractInputStatisticalFeatures(nn.Module):
@@ -139,7 +139,7 @@ class FillMissingModels(nn.Module):
         x, y = inputs
         t_final = (
             torch.ones(
-                len(MODEL_NAMES),
+                len(MODELS_NAMES),
                 x.tensor.shape[1],
                 x.tensor.shape[2],
                 dtype=x.tensor.dtype,
@@ -147,11 +147,11 @@ class FillMissingModels(nn.Module):
             )
             * self.fill_value
         )
-        for idx, model in enumerate(MODEL_NAMES):
+        for idx, model in enumerate(MODELS_NAMES):
             if model in x.feature_names:
                 t_final[idx] = x[model]
 
-        return NamedTensor(t_final, x.names, MODEL_NAMES), y
+        return NamedTensor(t_final, x.names, MODELS_NAMES), y
 
 
 class Normalize(nn.Module, ReversibleTransformMixin):
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         lead_times=[15],
         species=["O3"],
         levels=[0],
-        models=["chimere", "mocage"],
+        models=["CHIMERE", "MOCAGE"],
     )
     x, y = sample.get_input_and_target()
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)

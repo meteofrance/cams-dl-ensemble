@@ -195,7 +195,7 @@ def plot_y_vs_yhat_vs_median(
     ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     vmin, vmax = get_vmin_vmax("O3")
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
-    ground_truth = y["target - O3 - +15h - 0m"][0].cpu()
+    ground_truth = y["TARGET - O3 - +15h - 0m"][0].cpu()
     img_gt = ax_gt.imshow(ground_truth, **plot_kwargs)
     format_axis(ax_gt, "Ground Truth = Analysis")
     cbar_gt = subfigs[0].colorbar(img_gt, ax=ax_gt, fraction=0.023)
@@ -206,7 +206,7 @@ def plot_y_vs_yhat_vs_median(
         nrows=1, ncols=2, subplot_kw=subplot_kw
     )
     axs_pred_med = axes_pred_med.flat
-    prediction = y_hat["target - O3 - +15h - 0m"][0].cpu()
+    prediction = y_hat["TARGET - O3 - +15h - 0m"][0].cpu()
     img_pred = axs_pred_med[0].imshow(prediction, **plot_kwargs)
     format_axis(axs_pred_med[0], "AI Prediction")
 

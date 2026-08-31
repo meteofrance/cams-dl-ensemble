@@ -14,9 +14,9 @@ from cams.settings import PROCESSED_DATA_DIR
 def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     """Retrieves the dates of all the runs available in a directory."""
     print("--> Retrieving run dates...")
-    all_files = sorted(list(set(processed_dir.glob("**/*.netcdf"))))
+    files = sorted(list(set(processed_dir.glob("**/*.netcdf"))))
     run_dates, files_not_parsed = [], []
-    for file in all_files:
+    for file in files:
         try:
             date = dt.datetime.strptime(file.stem.split("-")[0], r"%Y_%m_%d")
             run_dates.append(date)

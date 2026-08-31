@@ -149,7 +149,22 @@ class Sample:
 
     @property
     def data(self) -> xr.Dataset:
-        """Combination of models and reanalysis data."""
+        """Combination of models and reanalysis data.
+        This methods returns a xarray.Dataset with the format:
+        <xarray.Dataset> Size: 64MB
+        Dimensions:    (latitude: 420, level: 1, time: 3, longitude: 700, species: 6)
+        Coordinates:
+        * latitude   (latitude) float32 2kB 71.95 71.85 71.75 ... 30.25 30.15 30.05
+        * level      (level) float32 4B 0.0
+        * time       (time) datetime64[us] 24B 2025-05-10T15:00:00 ... 2025-05-11T1...
+            lead_time  (time) int64 24B 15 24 36
+        * longitude  (longitude) float32 3kB -24.95 -24.85 -24.75 ... 44.85 44.95
+        * species    (species) <U5 120B 'O3' 'CO' 'NO2' 'PM10' 'PM2P5' 'SO2'
+        Data variables:
+            chimere    (species, time, level, latitude, longitude) float32 21MB 66.77...
+            mocage     (species, time, level, latitude, longitude) float32 21MB 69.86...
+            target     (species, time, level, latitude, longitude) float32 21MB 69.72...
+        """
         models = {
             model: self.load_input_data_for_one_model(model) for model in self.models
         }
@@ -175,7 +190,30 @@ class Sample:
 
     @staticmethod
     def convert_data_to_nt(ds: xr.Dataset) -> NamedTensor:
-        """Converts xarray dataset to a NamedTensor of shape (features, lat, lon)."""
+        """Converts xarray dataset to a NamedTensor of shape (features, lat, lon).
+        Dimensions other than lat/lon are stacked along the features axis.
+        For example:
+            --- NamedTensor ---
+            Names: ['features', 'lat', 'lon']
+            Tensor Shape: torch.Size([12, 420, 700]))
+            Features:
+            ┌─────────────────────────────┬──────────────┬───────────┐
+            │ Feature name                │          Min │       Max │
+            ├─────────────────────────────┼──────────────┼───────────┤
+            │ chimere - O3 - +15h - 0m    │ 34.9141      │  139.932  │
+            │ chimere - CO - +15h - 0m    │ 84.701       │ 1169.37   │
+            │ chimere - NO2 - +15h - 0m   │  0.00369518  │   61.7275 │
+            │ chimere - PM10 - +15h - 0m  │  0.0479899   │ 1024.85   │
+            │ chimere - PM2P5 - +15h - 0m │  0.0419867   │  144.313  │
+            │ chimere - SO2 - +15h - 0m   │  1.06274e-16 │  198.59   │
+            │ mocage - O3 - +15h - 0m     │ 14.1139      │  165.537  │
+            │ mocage - CO - +15h - 0m     │ 53.1523      │ 2596.93   │
+            │ mocage - NO2 - +15h - 0m    │  0.00493127  │  543.657  │
+            │ mocage - PM10 - +15h - 0m   │  0.0434407   │ 1401.03   │
+            │ mocage - PM2P5 - +15h - 0m  │  0.0391834   │ 1363.39   │
+            │ mocage - SO2 - +15h - 0m    │  1.6078e-09  │ 2427.39   │
+            └─────────────────────────────┴──────────────┴───────────┘
+        """
         channel_arrays = []
         channel_names = []
 

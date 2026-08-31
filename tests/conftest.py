@@ -7,7 +7,7 @@ import datetime as dt
 import numpy as np
 import pytest
 import xarray as xr
-from cams.settings import MODEL_NAMES, SIZE_LAT, SIZE_LON
+from cams.settings import SIZE_LAT, SIZE_LON
 
 
 @pytest.fixture(scope="module")

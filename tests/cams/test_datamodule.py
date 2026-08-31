@@ -5,7 +5,6 @@ import pytest
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.datamodule import CAMSDataModule
-from cams.settings import MODEL_NAMES
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 

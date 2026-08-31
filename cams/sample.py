@@ -177,16 +177,16 @@ class Sample:
         models = {
             model: self.load_input_data_for_one_model(model) for model in self.models
         }
-        rean = self.load_target_data()
+        reanalysis = self.load_target_data()
         first_model = models[self.models[0]]
         # Align type of coordinates, btw models and reanalysis
-        rean = rean.assign_coords(
+        reanalysis = reanalysis.assign_coords(
             latitude=first_model.latitude,
             longitude=first_model.longitude,
             time=first_model.time,
             level=first_model.level,
         )
-        models["TARGET"] = rean
+        models["TARGET"] = reanalysis
         combined = xr.Dataset()
         for model_name, ds in models.items():
             da = ds.to_array(dim="species")

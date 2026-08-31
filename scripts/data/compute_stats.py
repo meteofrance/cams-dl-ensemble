@@ -11,17 +11,20 @@ from cams.sample import Sample
 from cams.settings import AVAILABLE_SPECIES, MODEL_NAMES, PROCESSED_DATA_DIR, STATS_PATH
 
 
-def compute_stats(dataset: CAMSDataset) -> dict[str, Any]:
+def compute_stats(
+    dataset: CAMSDataset, species: list[str] = AVAILABLE_SPECIES
+) -> dict[str, Any]:
     """Computes min/max over the reanalysis data.
 
     Args:
         dataset: A cams dataset.
+        species: The list of species to compute the statistics on.
 
     Returns:
         dict: Statistics dict of shape {species: {min: min, max: max}}.
     """
     # Init min and max for all species
-    stats = {species: {"min": np.inf, "max": -np.inf} for species in AVAILABLE_SPECIES}
+    stats = {spe: {"min": np.inf, "max": -np.inf} for spe in species}
 
     sample: Sample
     for sample in tqdm(dataset.samples, desc="Computing statistics"):
@@ -34,12 +37,12 @@ def compute_stats(dataset: CAMSDataset) -> dict[str, Any]:
         min_values = target.min(dim=["time", "level", "latitude", "longitude"])
         max_values = target.max(dim=["time", "level", "latitude", "longitude"])
 
-        for species in AVAILABLE_SPECIES:
-            stats[species]["min"] = min(
-                stats[species]["min"], float(min_values.sel(species=species).values)
+        for spe in species:
+            stats[spe]["min"] = min(
+                stats[spe]["min"], float(min_values.sel(species=spe).values)
             )
-            stats[species]["max"] = max(
-                stats[species]["max"], float(max_values.sel(species=species).values)
+            stats[spe]["max"] = max(
+                stats[spe]["max"], float(max_values.sel(species=spe).values)
             )
     return stats
 

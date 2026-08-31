@@ -31,6 +31,11 @@ def test_sample_str():
     assert "15" in result
 
 
+def test_sample_wrong_species():
+    with pytest.raises(NotImplementedError):
+        Sample(dt.date(2022, 7, 22), models=["chimere","mocage"], lead_times=[15], species=["O67"], levels=[0])
+
+
 def test_sample_paths():
     sample = Sample(dt.date(2022, 7, 22), models=["mocage"], lead_times=[15], species=["O3"], levels=[0], processed_dir=Path("."))
     assert sample.input_paths == [Path("mocage/2022_07_22-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf")]

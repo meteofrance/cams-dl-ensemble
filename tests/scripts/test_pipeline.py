@@ -28,6 +28,10 @@ def fit_model(args: list[str] | None = None) -> None | Path:
     # Train
     cli.trainer.fit(cli.model, datamodule=cli.datamodule)
 
+    # Forward
+    inputs, _ = next(iter(cli.datamodule.train_dataloader()))
+    cli.model(inputs)
+
     if cli.trainer.checkpoint_callback:
         return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
 

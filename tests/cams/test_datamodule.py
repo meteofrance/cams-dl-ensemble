@@ -14,9 +14,9 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     for i in range(1,32):
         create_dummy_input_netcdf(tmp_dataset_dir / f"mocage/2022_07_{i:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf")
     create_dummy_target_netcdf(tmp_dataset_dir / f"reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc")
-    
+
     dates = [dt.datetime(2022, 7, i) for i in range(1, 32)]
-    
+
     dm = CAMSDataModule(
         batch_size=4, models=["mocage"], lead_times=[15], species=["O3"], levels=[0], processed_dir=tmp_dataset_dir
     )
@@ -66,7 +66,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     batch = []
     for i in range(2):
         sample = dm.train_dataset.samples[i]
-        input_data, target_data = sample.get_input_and_target()
+        input_data, target_data = sample.get_input_and_target() # pyright: ignore[reportGeneralTypeIssues]
         batch.append((input_data, target_data))
 
     # Test collate function
@@ -87,7 +87,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     # Check custom start and end dates
     val_split_size = 4
     train_split_size = len(dates) - 4 - val_split_size
-    
+
     dm = CAMSDataModule(
         processed_dir=tmp_dataset_dir,
         models=["mocage"], lead_times=[15], species=["O3"], levels=[0],
@@ -98,7 +98,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert len(dm.train_dates) == len(dates) - 4 - 4
     assert len(dm.val_dates) == 4
     dm.setup("fit")
-    
+
     assert dm.train_dataset is not None
     assert len(dm.train_dataset) == len(dm.train_dates) # Should be 23 (31 - 4 - 4)
     assert sorted(dm.train_dataset.run_dates) == dates[:train_split_size] # 2022-01-01 to 2022-01-23

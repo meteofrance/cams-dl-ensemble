@@ -1,6 +1,5 @@
 from pathlib import Path
 import datetime as dt
-import numpy as np
 from cams.dataset import CAMSDataset
 from scripts.data.compute_stats import compute_stats
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf

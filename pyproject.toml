@@ -119,6 +119,8 @@ show_missing = true
 exclude_also = [
     'def __repr__',
     'if __name__ == .__main__.:',
+    '^\s*import\s+',
+    '^\s*from\s+\S+\s+import\s+',
 ]
 
 [tool.pyright]

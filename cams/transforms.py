@@ -249,10 +249,16 @@ if __name__ == "__main__":
     from cams.sample import Sample
     from cams.types import STATISTICS_NAMES
 
-    sample = Sample(dt.datetime(2024, 7, 30), lead_time=15, specie="O3", level=0)
-    x, y = sample.input_data, sample.target_data
+    sample = Sample(
+        dt.datetime(2024, 7, 30),
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        models=["chimere", "mocage"],
+    )
+    x, y = sample.get_input_and_target()
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
     nt = NamedTensor.concat([x, x_transformed, y])
     print(nt)
-    plot_named_tensor(nt, "O3", Path("output/test_transform.png"))
+    plot_named_tensor(nt, "O3", Path("test_transform.png"))

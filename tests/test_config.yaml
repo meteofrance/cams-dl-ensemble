@@ -29,8 +29,8 @@ model:
   model:
     class_path: mfai.pytorch.models.half_unet.HalfUNet
     init_args:
-      in_channels: 2  # 2 stats fields computed from 11 CAMS models
-      out_channels: 1
+      in_channels: 1  # 1 CAMS models x 1 species x 1 leadtimes
+      out_channels: 1  # 1 species x 1 leadtimes
       input_shape:
         - 64
         - 64
@@ -40,16 +40,22 @@ model:
         last_activation: ReLU
   loss:
     class_path: torch.nn.MSELoss
-  training_mode: residual  # y = f(x) + x
+  training_mode: classic  # y = f(x)
 
 data:
+  models:
+    - mocage
+  species:
+    - O3
+  lead_times:
+    - 15
   batch_size: 2
   num_workers: 1
   prefetch_factor: 2
-  processed_dir: /scratch/shared/cams/o3_15h_SOL/processed
-  transforms:
-    - class_path: cams.transforms.ExtractInputStatisticalFeatures
-      init_args:
-        statistic_types:
-          - median
-          - amax
+  processed_dir: /scratch/shared/cams-dl-ensemble/all_from_ads/
+  # transforms:
+  #   - class_path: cams.transforms.ExtractInputStatisticalFeatures
+  #     init_args:
+  #       statistic_types:
+  #         - median
+  #         - amax

@@ -201,7 +201,7 @@ class Sample:
                         )
                         channel_names.append(channel_name)
 
-        tensor = torch.tensor(np.stack(channel_arrays, axis=0))
+        tensor = torch.tensor(np.stack(channel_arrays, axis=0)).to(torch.float32)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
 

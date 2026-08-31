@@ -77,8 +77,10 @@ class ExtractInputStatisticalFeatures(nn.Module):
         )
         for idx, statistic_type in enumerate(self.statistic_types):
             if statistic_type in ["skew", "kurtosis"]:
-                stat_tensor[idx, :, :] = getattr(scipy.stats, statistic_type)(
-                    input_tensor, axis=0, nan_policy="omit"
+                stat_tensor[idx, :, :] = Tensor(
+                    getattr(scipy.stats, statistic_type)(
+                        input_tensor, axis=0, nan_policy="omit"
+                    )
                 )
             elif statistic_type == "median":
                 # Tensor.median() returns a tuple[values, indices], so we keep values

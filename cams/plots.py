@@ -135,7 +135,7 @@ def plot_sample(
             format_axis(ax, cell_name)
 
     # Add Colorbar
-    cbar = fig.colorbar(img, ax=axs["TARGET"])
+    cbar = fig.colorbar(img, ax=axs["TARGET"])  # pyright: ignore[reportPossiblyUnboundVariable]
     cbar.set_label(UNITS[species], size=13)
 
     # Add the plot's title

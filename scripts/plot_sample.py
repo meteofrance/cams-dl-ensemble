@@ -15,7 +15,6 @@ from pathlib import Path
 
 from cams.plots import plot_sample
 from cams.sample import Sample
-from cams.settings import MODEL_NAMES
 
 parser = argparse.ArgumentParser(description="Plots a CAMS sample.")
 parser.add_argument(
@@ -34,7 +33,24 @@ parser.add_argument(
 args = parser.parse_args()
 
 date = dt.datetime.strptime(args.date, "%Y-%m-%d")
-sample = Sample(date, models=[], lead_time=15, specie="O3", level=0)
+sample = Sample(
+    date,
+    models=[
+        "chimere",
+        "mocage",
+        "match",
+        "minni",
+        "monarch",
+        "euradim",
+        "gemaq",
+        "silam",
+        "dehm",
+        "lotos",
+    ],
+    lead_times=[15],
+    species=["O3"],
+    levels=[0],
+)
 if not sample.is_valid:
     raise ValueError(f"Sample not valid: {sample}")
 

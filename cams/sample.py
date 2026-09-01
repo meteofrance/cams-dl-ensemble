@@ -31,11 +31,10 @@ class Sample:
         """
         Args:
             date_run: The run date of the CTMs from which to load the sample.
-            models: the list of models to load.
-            lead_times: Which forecast leadtimes to load the sample from.
-                The accepted values for one leadtime are [0, 1, ..., 96].
-            species: the species to load.
-            levels: the levels to load.
+            models: Models to load.
+            lead_times: Leadtimes to load.
+            species: Species to load.
+            levels: Levels to load.
             processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run

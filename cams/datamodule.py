@@ -26,6 +26,8 @@ class CAMSDataModule(LightningDataModule):
 
     def __init__(
         self,
+        # We don't use ModelsNames type because of jsonargparse error:
+        # "Parser key 'data.models': Cannot take a Union of no types".
         models: list[str],
         lead_times: list[Leadtimes],
         species: list[SpeciesNames],

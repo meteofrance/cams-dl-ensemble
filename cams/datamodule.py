@@ -56,10 +56,10 @@ class CAMSDataModule(LightningDataModule):
                 end of each month, inclusive. Defaults to 5.
             train_val_separation: Number of days between train and validation
                 datasets. Defaults to 4.
-            models: the models to load in the dataset.
-            lead_times: the lead_times to load in the dataset.
-            species: the species to load in the dataset.
-            levels: the levels to load in the dataset.
+            models: Models to load in the dataset.
+            lead_times: Leadtimes to load in the dataset.
+            species: Species to load in the dataset.
+            levels: Levels to load in the dataset.
                 '0' corresponds to 'ground' level.
             processed_dir: Path to the CAMS processed dataset.
             transforms: list of transforms to apply to the data after loading it.

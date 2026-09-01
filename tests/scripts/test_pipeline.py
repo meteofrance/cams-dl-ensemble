@@ -50,10 +50,10 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
 
     # Create fake dataset
     img_size = (64, 64)  # Small images to lighten the pipeline
-    for i in range(1, 32):
+    for day in range(1, 32):
         input_path = (
             tmp_dataset_dir
-            / f"mocage/2022_07_{i:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+            / f"mocage/2022_07_{day:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
         )
         create_dummy_input_netcdf(input_path, *img_size)
     target_path = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"

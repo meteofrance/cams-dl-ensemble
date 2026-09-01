@@ -25,10 +25,10 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
             files_not_parsed.append(file)
             print(e)
             continue
-    if len(files_not_parsed) > 0:
+    if files_not_parsed:
         print(
             f"WARNING: {len(files_not_parsed)} files could not be parsed: "
-            f"{files_not_parsed}"
+            f"{', '.join(files_not_parsed)}"
         )
     run_dates = sorted(list(set(run_dates)))  # remove duplicates
     return run_dates
@@ -52,10 +52,10 @@ class CAMSDataset(Dataset):
 
         Args:
             run_dates: The list of date to process.
-            models: the models to load in the dataset.
-            lead_times: the lead_times to load in the dataset.
-            species: the species to load in the dataset.
-            levels: the levels to load in the dataset.
+            models: Models to load in the dataset.
+            lead_times: Leadtimes to load in the dataset.
+            species: Species to load in the dataset.
+            levels: Levels to load in the dataset.
                 '0' corresponds to 'ground' level.
             processed_dir: Path to the CAMS dataset's processed data.
             transform_sequence: transforms sequence applied to the data after loading.
@@ -71,7 +71,6 @@ class CAMSDataset(Dataset):
     @cached_property
     def samples(self) -> list[Sample]:
         """Returns the list of valid samples in the dataset."""
-        # For now, we only use the leadtime = 15h:
         samples = [
             Sample(
                 date_run=date_run,

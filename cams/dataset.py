@@ -71,7 +71,6 @@ class CAMSDataset(Dataset):
     @cached_property
     def samples(self) -> list[Sample]:
         """Returns the list of valid samples in the dataset."""
-        # For now, we only use the leadtime = 15h:
         samples = [
             Sample(
                 date_run=date_run,

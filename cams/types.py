@@ -24,20 +24,6 @@ StatisticsNames = Literal[
     "std",
 ]
 
-MODELS_NAMES = (
-    "MATCH",
-    "MINNI",
-    "CHIMERE",
-    "MOCAGE",
-    "MONARCH",
-    "EURADIM",
-    "EMEP",
-    "GEMAQ",
-    "SILAM",
-    "DEHM",
-    "LOTOS",
-)
-
 ModelsNames = Literal[
     "MATCH",
     "MINNI",
@@ -52,6 +38,20 @@ ModelsNames = Literal[
     "LOTOS",
 ]
 
-AVAILABLE_SPECIES = ("CO", "NO2", "O3", "PM10", "PM2P5", "SO2")
+MODELS_NAMES: list[ModelsNames] = [
+    "MATCH",
+    "MINNI",
+    "CHIMERE",
+    "MOCAGE",
+    "MONARCH",
+    "EURADIM",
+    "EMEP",
+    "GEMAQ",
+    "SILAM",
+    "DEHM",
+    "LOTOS",
+]
 
 AvailableSpecies = Literal["CO", "NO2", "O3", "PM10", "PM2P5", "SO2"]
+
+AVAILABLE_SPECIES: list[AvailableSpecies] = ["CO", "NO2", "O3", "PM10", "PM2P5", "SO2"]

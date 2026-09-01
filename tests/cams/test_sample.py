@@ -49,7 +49,7 @@ def test_sample_wrong_species():
             dt.date(2022, 7, 22),
             models=["CHIMERE", "MOCAGE"],
             lead_times=[15],
-            species=["O67"],
+            species=["O67"],  # pyright: ignore[reportArgumentType]
             levels=[0],
         )
 

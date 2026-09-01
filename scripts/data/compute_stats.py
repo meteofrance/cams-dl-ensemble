@@ -9,11 +9,11 @@ from tqdm import tqdm
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
-from cams.types import AVAILABLE_SPECIES, MODELS_NAMES
+from cams.types import AVAILABLE_SPECIES, MODELS_NAMES, AvailableSpecies
 
 
 def compute_stats(
-    dataset: CAMSDataset, species: list[str] = AVAILABLE_SPECIES
+    dataset: CAMSDataset, species: list[AvailableSpecies] = AVAILABLE_SPECIES
 ) -> dict[str, Any]:
     """Computes min/max over the reanalysis data.
 

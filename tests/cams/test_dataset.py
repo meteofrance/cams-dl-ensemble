@@ -97,7 +97,7 @@ def test_get_run_dates(tmp_dataset_dir: Path):
 def test_cams_dataset_empty_dates(tmp_dataset_dir: Path):
     """Test dataset with empty list of date."""
 
-    dataset = CAMSDataset(run_dates=[], models=["foo"], processed_dir=tmp_dataset_dir)
+    dataset = CAMSDataset(run_dates=[], models=["foo"], processed_dir=tmp_dataset_dir) # pyright: ignore[reportArgumentType]
 
     assert len(dataset) == 0
     assert len(dataset.samples) == 0

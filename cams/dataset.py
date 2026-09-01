@@ -25,7 +25,7 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
             files_not_parsed.append(file)
             print(e)
             continue
-    if len(files_not_parsed) > 0:
+    if files_not_parsed:
         print(
             f"WARNING: {len(files_not_parsed)} files could not be parsed: "
             f"{files_not_parsed}"

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
-from cams.types import MODELS_NAMES, SPECIES_NAMES, SpeciesNames
+from cams.types import LEADTIMES, MODELS_NAMES, SPECIES_NAMES, SpeciesNames
 
 
 def compute_stats(
@@ -64,32 +64,7 @@ if __name__ == "__main__":
             # We compute the stats on the reanalysis,
             # so we only need the first 24h of a sample
             # Else we will have overlaps with next sample, and compute some stats twice
-            lead_times=[
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-            ],
+            lead_times=LEADTIMES[:24],
             species=SPECIES_NAMES,
             levels=[0],
         )

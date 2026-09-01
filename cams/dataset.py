@@ -52,10 +52,10 @@ class CAMSDataset(Dataset):
 
         Args:
             run_dates: The list of date to process.
-            models: the models to load in the dataset.
-            lead_times: the lead_times to load in the dataset.
-            species: the species to load in the dataset.
-            levels: the levels to load in the dataset.
+            models: Models to load in the dataset.
+            lead_times: Leadtimes to load in the dataset.
+            species: Species to load in the dataset.
+            levels: Levels to load in the dataset.
                 '0' corresponds to 'ground' level.
             processed_dir: Path to the CAMS dataset's processed data.
             transform_sequence: transforms sequence applied to the data after loading.

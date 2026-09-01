@@ -34,12 +34,12 @@ from cams.settings import (
     ECMWF_MF_PARAMETER_NAME_MAPPING,
     HAUTEUR_LEVELS,
     KILOGRAM_TO_MICROGRAM,
-    MODEL_NAMES,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
 )
+from cams.types import MODELS_NAMES
 
-PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODEL_NAMES]
+PMACC_MODEL_NAMES = ["PMACC" + model_name for model_name in MODELS_NAMES]
 
 
 INPUT_RE = re.compile(
@@ -342,7 +342,7 @@ def _validate_model_coords(dataset: xr.Dataset) -> None:
 
     """
     present = set(str(name) for name in dataset.model.values)
-    expected = set(MODEL_NAMES)
+    expected = set(MODELS_NAMES)
     missing = (present | expected) - (present & expected)
     if missing:
         raise CAMSCoordinateError(f"Missing model(s): {missing}")
@@ -409,7 +409,7 @@ def _process_input_date(
 
     grib_paths: list[Path] = [
         RAW_DATA_DIR / f"PMACC{mdl}" / f"{run_date_string}_{spc}_{ldt}h_{lvl}.grib"
-        for mdl in MODEL_NAMES
+        for mdl in MODELS_NAMES
         for spc in species
         for ldt in leadtimes
         for lvl in renamed_levels

@@ -1,102 +1,280 @@
 import datetime as dt
 from pathlib import Path
 
+import numpy as np
 import torch
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
 from cams.settings import PROCESSED_DATA_DIR
+from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 
 class Sample:
     """CAMS sample.
 
     Responsibilities:
-    - Load a sample from the CAMS dataset from a given date, specie, level and leadtime.
+        Load a sample from the CAMS dataset from a given run date,
+        and list of species, levels, models and leadtimes.
     """
 
     def __init__(
         self,
-        date_run: dt.datetime,
-        lead_time: int,
-        specie: str,
-        level: int,
+        date_run: dt.date,
+        models: list[ModelsNames],
+        lead_times: list[Leadtimes],
+        species: list[SpeciesNames],
+        levels: list[Levels],
         processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """
         Args:
             date_run: The run date of the CTMs from which to load the sample.
-            lead_time: Which forecast leadtime to load the sample from.
-                The accepted values for lead_time are [0, 1, ..., 96]
-            specie: the specie to load.
-            level: the level to load.
+            models: Models to load.
+            lead_times: Leadtimes to load.
+            species: Species to load.
+            levels: Levels to load.
             processed_dir: Path to the CAMS processed dataset.
         """
         self.date_run = date_run
-        self.lead_time = lead_time
-        self.valid_time = self.date_run + dt.timedelta(hours=self.lead_time)
+        self.models = models
+        self.lead_times = lead_times
+        self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
+        self.species = species
+        self.levels = levels
         self.processed_dir = processed_dir
-        self.specie: str = specie
-        self.level: int = level
 
     @override
     def __str__(self) -> str:
-        date_run_str = self.date_run.strftime("%Y-%m-%d %H:%M")
+        date_run_str = self.date_run.strftime("%Y-%m-%d")
         return (
             f"Sample(date_run={date_run_str}, "
-            f"lead_time=+{self.lead_time}h, "
-            f"specie={self.specie})"
-            f"level={self.level})"
+            f"lead_times=+{self.lead_times}h, "
+            f"species={self.species}), "
+            f"models={self.models}), "
+            f"levels={self.levels})"
         )
 
     @property
-    def input_path(self) -> Path:
-        """The path to the netcdf of input ensemble data."""
+    def input_filename(self) -> str:
+        """The standard filename for all input files."""
         date_run_str = self.date_run.strftime("%Y_%m_%d")
-        return self.processed_dir / f"input/{date_run_str}.netcdf"
+        filename = f"{date_run_str}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+        return filename
 
     @property
-    def target_path(self) -> Path:
-        """The path to the netcdf of target analysis data."""
-        valid_time_str = self.valid_time.strftime("%Y_%m_%d_%H")
-        return self.processed_dir / f"target/{valid_time_str}.netcdf"
+    def input_paths(self) -> list[Path]:
+        """The path to the netcdf of input ensemble data."""
+        return [
+            self.processed_dir / model.lower() / self.input_filename
+            for model in self.models
+        ]
+
+    @property
+    def target_paths(self) -> list[Path]:
+        """The paths to the netcdf of targets reanalysis data.
+        Files are grouped by months and species.
+        """
+        months_str = list(set([date.strftime("%Y-%m") for date in self.valid_times]))
+        if len(months_str) > 1:
+            # The sample is overlapping 2 differents months
+            # TODO: adapt to this case in load_target_data
+            # For now, return a non existing file, so that the sample is not valid
+            # and ignored in dataset and training
+            print(f"WARNING: {self} is overlapping 2 months, not implemented.")
+            return [Path("non_existing_file.nc")]
+        folder = self.processed_dir / "reanalysis"
+        paths = []
+        for month in months_str:
+            for species in self.species:
+                filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
+                if not (folder / filename).exists():
+                    # if VRA Reanalysis file does not exist
+                    # Use Intermediate analysis (IRA) as replacement
+                    filename = filename.replace("vra", "ira")
+                paths.append(folder / filename)
+        return paths
 
     @property
     def is_valid(self) -> bool:
         """Returns True if the Sample is valid: if input and target files exist."""
-        return self.input_path.exists() and self.target_path.exists()
-
-    @property
-    def input_data(self) -> NamedTensor:
-        """Returns the input ensemble data as a NamedTensor."""
-        data = xr.open_dataarray(self.input_path)
-        data_of_interest: xr.DataArray = data.sel(
-            species=self.specie, levels=self.level, leadtime=str(self.lead_time)
+        return all([path.exists() for path in self.input_paths]) and all(
+            [path.exists() for path in self.target_paths]
         )
-        tensor = torch.Tensor(data_of_interest.values)
-        # For now, we work with all models, the first species, level, and leadtime:
-        names = [name.replace("PMACC", "") for name in data.model.values]
-        nt = NamedTensor(tensor, ["features", "lat", "lon"], names)
-        return nt
+
+    def load_input_data_for_one_model(self, model: ModelsNames) -> xr.Dataset:
+        """Loads data for one pollutant model.
+
+        Args:
+            model: The name of the desired pollutant model.
+
+        Returns:
+            A xr.Dataset containing all the input data for this model.
+        """
+        # TODO: adapt when sample is overlapping 2 months
+        # In this case, we need to load valid times from 2 different files
+        # for one species.
+        # Else we get the error 'KeyError: "not all values found in index 'time'"'
+        model_path = self.processed_dir / model.lower() / self.input_filename
+        data = xr.open_dataset(model_path)
+        data = data.sel(level=self.levels, time=self.lead_times)
+        data = data.assign_coords(
+            time=np.datetime64(self.date_run)
+            + data.time.values.astype("timedelta64[h]")
+        )
+        selected_species = [f"{s.lower()}_conc" for s in self.species]
+        data = data[selected_species]
+        # Longitude coords range btw 0° and 360°, we put them btw -180° and 180°:
+        data = data.assign_coords(longitude=((data.longitude + 180) % 360) - 180)
+        data = data.sortby("longitude")
+        return data[selected_species]
+
+    def load_target_data(self) -> xr.Dataset:
+        """Returns the target analysis data."""
+        all_species_da = {}
+        for i, path in enumerate(self.target_paths):
+            data = xr.open_dataset(path)
+            data_of_interest = data.sel(time=self.valid_times)
+            data_of_interest = data_of_interest[self.species[i].lower()]
+            all_species_da[self.species[i]] = data_of_interest
+        target = xr.Dataset(all_species_da)
+        target = target.rename(
+            {
+                "lat": "latitude",
+                "lon": "longitude",
+            }
+        )
+        target = target.sortby("latitude", ascending=False)
+        target = target.expand_dims(level=[0.0])
+        target = target.transpose("time", "level", "latitude", "longitude")
+        return target
 
     @property
-    def target_data(self) -> NamedTensor:
-        """Returns the target analysis data as a NamedTensor."""
-        data: xr.DataArray = xr.open_dataarray(self.target_path)
-        data_of_interest: xr.DataArray = data.sel(species=self.specie, level=self.level)
-        tensor = torch.Tensor(data_of_interest.values)
-        tensor = tensor.unsqueeze(dim=0)
-        nt = NamedTensor(tensor, ["features", "lat", "lon"], [self.specie])
+    def data(self) -> xr.Dataset:
+        """Combination of models and reanalysis data.
+
+        Returns:
+            This methods returns a xarray.Dataset with the format:
+            <xarray.Dataset> Size: 64MB
+            Dimensions:  (latitude: 420, level: 1, time: 3, longitude: 700, species: 6)
+            Coordinates:
+            * latitude  (latitude) float32 2kB 71.95 71.85 71.75 ... 30.25 30.15 30.05
+            * level     (level) float32 4B 0.0
+            * time      (time) datetime64[us] 24B 2025-05-10T15:00:00 ... 2025-05-11T1..
+                lead_time  (time) int64 24B 15 24 36
+            * longitude  (longitude) float32 3kB -24.95 -24.85 -24.75 ... 44.85 44.95
+            * species    (species) <U5 120B 'O3' 'CO' 'NO2' 'PM10' 'PM2P5' 'SO2'
+            Data variables:
+                CHIMERE (species, time, level, latitude, longitude) float32 21MB 66.77..
+                MOCAGE  (species, time, level, latitude, longitude) float32 21MB 69.86..
+                TARGET  (species, time, level, latitude, longitude) float32 21MB 69.72..
+        """
+        models = {
+            model: self.load_input_data_for_one_model(model) for model in self.models
+        }
+        reanalysis = self.load_target_data()
+        first_model = models[self.models[0]]
+        # Align type of coordinates, btw models and reanalysis
+        reanalysis = reanalysis.assign_coords(
+            latitude=first_model.latitude,
+            longitude=first_model.longitude,
+            time=first_model.time,
+            level=first_model.level,
+        )
+        models["TARGET"] = reanalysis
+        combined = xr.Dataset()
+        for model_name, ds in models.items():
+            da = ds.to_array(dim="species")
+            da = da.assign_coords(  # Format name of species
+                species=[s.replace("_conc", "").upper() for s in da.species.values]
+            )
+            combined[model_name] = da
+        combined.coords["lead_time"] = (("time",), self.lead_times)
+        return combined
+
+    @staticmethod
+    def convert_data_to_nt(ds: xr.Dataset) -> NamedTensor:
+        """Converts xarray dataset to a NamedTensor of shape (features, lat, lon).
+        Dimensions other than lat/lon are stacked along the features axis.
+        For example:
+            --- NamedTensor ---
+            Names: ['features', 'lat', 'lon']
+            Tensor Shape: torch.Size([12, 420, 700]))
+            Features:
+            ┌─────────────────────────────┬──────────────┬───────────┐
+            │ Feature name                │          Min │       Max │
+            ├─────────────────────────────┼──────────────┼───────────┤
+            │ CHIMERE - O3 - +15h - 0m    │ 34.9141      │  139.932  │
+            │ CHIMERE - CO - +15h - 0m    │ 84.701       │ 1169.37   │
+            │ CHIMERE - NO2 - +15h - 0m   │  0.00369518  │   61.7275 │
+            │ CHIMERE - PM10 - +15h - 0m  │  0.0479899   │ 1024.85   │
+            │ CHIMERE - PM2P5 - +15h - 0m │  0.0419867   │  144.313  │
+            │ CHIMERE - SO2 - +15h - 0m   │  1.06274e-16 │  198.59   │
+            │ MOCAGE - O3 - +15h - 0m     │ 14.1139      │  165.537  │
+            │ MOCAGE - CO - +15h - 0m     │ 53.1523      │ 2596.93   │
+            │ MOCAGE - NO2 - +15h - 0m    │  0.00493127  │  543.657  │
+            │ MOCAGE - PM10 - +15h - 0m   │  0.0434407   │ 1401.03   │
+            │ MOCAGE - PM2P5 - +15h - 0m  │  0.0391834   │ 1363.39   │
+            │ MOCAGE - SO2 - +15h - 0m    │  1.6078e-09  │ 2427.39   │
+            └─────────────────────────────┴──────────────┴───────────┘
+        """
+        channel_arrays = []
+        channel_names = []
+
+        model_names = list(ds.data_vars)
+        for model in model_names:
+            da = ds[model]
+            da = da.transpose("species", "time", "level", "latitude", "longitude")
+            species_values = da.coords["species"].values
+            time_values = da.coords["time"].values
+            level_values = da.coords["level"].values
+
+            for i_species, species in enumerate(species_values):
+                for i_time in range(len(time_values)):
+                    for i_level, level in enumerate(level_values):
+                        arr = da.isel(
+                            species=i_species, time=i_time, level=i_level
+                        ).values  # extract 2D channel
+                        arr = np.nan_to_num(arr, nan=0.0)
+                        channel_arrays.append(arr)
+                        leadtime = da.coords["lead_time"].values[i_time]
+                        channel_name = (
+                            f"{model} - {species} - +{leadtime}h - {int(level)}m"
+                        )
+                        channel_names.append(channel_name)
+
+        tensor = torch.tensor(np.stack(channel_arrays, axis=0)).to(torch.float32)
+        nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
+
+    def get_input_and_target(self) -> tuple[NamedTensor, NamedTensor]:
+        """Returns inputs and target as NamedTensor"""
+        ds = self.data
+        x = Sample.convert_data_to_nt(ds.drop_vars("TARGET"))
+        y = Sample.convert_data_to_nt(ds[["TARGET"]])
+        return x, y
 
 
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a Sample
 
-    sample = Sample(dt.datetime(2025, 5, 10), lead_time=15, specie="O3", level=0)
+    sample = Sample(
+        dt.datetime(2025, 5, 10),
+        lead_times=[15, 24, 36],
+        species=["O3", "CO", "NO2", "PM10", "PM2P5", "SO2"],
+        levels=[0],
+        models=["CHIMERE", "MOCAGE"],
+    )
     print(sample)
+
     print("Sample is valid ? ->", sample.is_valid)
-    print(sample.input_path)
-    x, y = sample.input_data, sample.target_data
-    print(x, y)
+    for input_path in sample.input_paths:
+        print(input_path, input_path.exists())
+    for target_path in sample.target_paths:
+        print(target_path, target_path.exists())
+
+    print(sample.data)
+    x, y = sample.get_input_and_target()
+    print(x)
+    print(y)

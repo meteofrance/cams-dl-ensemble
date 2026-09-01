@@ -1,4 +1,3 @@
-import datetime as dt
 from pathlib import Path
 
 from lightning.pytorch.cli import LightningCLI
@@ -29,6 +28,10 @@ def fit_model(args: list[str] | None = None) -> None | Path:
     # Train
     cli.trainer.fit(cli.model, datamodule=cli.datamodule)
 
+    # Forward
+    inputs, _ = next(iter(cli.datamodule.train_dataloader()))
+    cli.model(inputs)
+
     if cli.trainer.checkpoint_callback:
         return Path(cli.trainer.checkpoint_callback.dirpath)  # type: ignore[reportAttributeAcessIssue]
 
@@ -47,12 +50,14 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
 
     # Create fake dataset
     img_size = (64, 64)  # Small images to lighten the pipeline
-    dates = [dt.datetime(2000, 1, i) for i in range(1, 32)]
-    for date in dates:
-        input_path = tmp_dataset_dir / f"input/{date.strftime('%Y_%m_%d')}.netcdf"
-        target_path = tmp_dataset_dir / f"target/{date.strftime('%Y_%m_%d_15')}.netcdf"
+    for day in range(1, 32):
+        input_path = (
+            tmp_dataset_dir
+            / f"mocage/2022_07_{day:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+        )
         create_dummy_input_netcdf(input_path, *img_size)
-        create_dummy_target_netcdf(target_path, *img_size)
+    target_path = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+    create_dummy_target_netcdf(target_path, *img_size)
 
     # Train with a test config
     ckpt_folder = fit_model(

@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import math
 import warnings
@@ -8,6 +9,7 @@ import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import xarray as xr
 from cartopy.crs import PlateCarree
 from cartopy.mpl.geoaxes import GeoAxes
 from matplotlib.axes import Axes
@@ -28,7 +30,14 @@ MOSAIC: list[HashableList[str]] = [
     ["MOCAGE", "MONARCH", "EURADIM", "MEDIAN", "MEDIAN", "TARGET", "TARGET", "TARGET"],
     ["EMEP", "GEMAQ", "SILAM", "DEHM", "LOTOS", "TARGET", "TARGET", "TARGET"],
 ]
-UNITS = {"O3": "Ozone (µg/m3)"}
+UNITS = {
+    "O3": "Ozone (µg/m3)",
+    "NO2": "Nitrogen Dioxide (µg/m3",
+    "CO": "Carbone Monoxide (µg/m3)",
+    "PM10": "PM 10 Aerosol (µg/m3)",
+    "PM2P5": "PM 2.5 Aerosol (µg/m3)",
+    "SO2": "Sulphur Dioxide (µg/m3)",
+}
 CMAP = "turbo"
 EXTENT = (-24.95, 44.95, 30.05, 71.95)
 
@@ -69,17 +78,30 @@ def format_axis(ax: GeoAxes | Axes, title: str) -> None:
         ax.coastlines(resolution="50m", color="black", linewidth=1)
 
 
-def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> None:
-    """Plots a sample's input and target data for one parameter only.
+def plot_sample(
+    sample: Sample,
+    save_path: Path,
+    species: str = "O3",
+    lead_time: int = 15,
+    level: int = 0,
+) -> None:
+    """Plots a sample's input and target data for one species, level and leadtime.
 
     Args:
         sample: Sample we want to plot.
-        save_path: The path where the plot will be saved.
-        species_name: The name of the species to plot.
+        save_path: The folder where the plot will be saved.
+        species: The name of the species to plot.
+        lead_time: the forecast lead time to plot.
+        level: the atmosphere level to plot.
     """
-    x, y = sample.input_data, sample.target_data
-    median = torch.median(x.tensor, dim=0).values
-    vmin, vmax = get_vmin_vmax(species_name)
+    vmin, vmax = get_vmin_vmax(species)
+    valid_time = sample.date_run + dt.timedelta(hours=lead_time)
+    ds = sample.data.sel(species=species, level=level, time=valid_time)
+
+    # Compute and add median to xr.dataset
+    model_vars = [v for v in ds.data_vars if v != "Reanalyse"]
+    median = xr.concat([ds[v] for v in model_vars], dim="model").median(dim="model")
+    ds["median"] = median
 
     # Create the different subfigures
     scale = 2.5
@@ -91,35 +113,38 @@ def plot_sample(sample: Sample, save_path: Path, species_name: str = "O3") -> No
         subplot_kw=subplot_kw,
     )
 
-    # Render the 11 models to their corresponding plot cell
+    # Render the 11 models + median + target to their corresponding plot cell
     cell_name: str
     ax: Axes
     for cell_name, ax in axs.items():
-        if cell_name in ["MEDIAN", "TARGET"]:
-            continue
-        ax.imshow(x[cell_name][0], cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT)
-        format_axis(ax, cell_name)
+        # Plot data to their cell
+        model = cell_name.lower()
+        if model in ds.data_vars:
+            img = ax.imshow(
+                ds[model].values, cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT
+            )
+        else:
+            warnings.warn(f"Var {model} not available in dataset.")
 
-    # Render the median to its corresponding plot cell
-    axs["MEDIAN"].imshow(median, cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT)
-    format_axis(axs["MEDIAN"], "Median Ensemble = Baseline")
-
-    # Render the target to its corresponding plot cell
-    img = axs["TARGET"].imshow(
-        y["Analysis"][0], cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT
-    )
-    format_axis(axs["TARGET"], "Analysis = Target")
+        # Format axis and titles
+        if cell_name == "MEDIAN":
+            format_axis(ax, "Median Ensemble = Baseline")
+        elif cell_name == "TARGET":
+            format_axis(axs["TARGET"], "Analysis = Target")
+        else:
+            format_axis(ax, cell_name)
 
     # Add Colorbar
-    cbar = fig.colorbar(img, ax=axs["TARGET"])
-    cbar.set_label(UNITS[species_name], size=13)
+    cbar = fig.colorbar(img, ax=axs["TARGET"])  # pyright: ignore[reportPossiblyUnboundVariable]
+    cbar.set_label(UNITS[species], size=13)
 
     # Add the plot's title
-    run_str = sample.date_run.strftime(r"%Y-%m-%d %Hh")
-    title = f"{species_name} - Run {run_str} - Leadtime +{sample.lead_time}h"
+    run_str = sample.date_run.strftime(r"%Y-%m-%d")
+    title = f"{species} - Run {run_str} - Leadtime +{lead_time}h - Level {level}m"
     fig.suptitle(title, size=16)
 
-    plt.savefig(save_path)
+    filename = f"{run_str}_{lead_time}h_{species}_{level}.png"
+    plt.savefig(save_path / filename)
     plt.close()
 
 
@@ -158,7 +183,10 @@ def plot_y_vs_yhat(
 def plot_y_vs_yhat_vs_median(
     x: NamedTensor, y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
 ) -> None:
-    """Plots the ground truth, prediction, and median of inputs in three rows."""
+    """Plots the ground truth, prediction, and median of inputs in three rows.
+    Only plots for Ozone, level 0m, +15h.
+    TODO: add options to plot other species and leadtimes.
+    """
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 12))
     subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]
@@ -167,7 +195,8 @@ def plot_y_vs_yhat_vs_median(
     ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     vmin, vmax = get_vmin_vmax("O3")
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
-    img_gt = ax_gt.imshow(y.tensor[0].cpu(), **plot_kwargs)
+    ground_truth = y["TARGET - O3 - +15h - 0m"][0].cpu()
+    img_gt = ax_gt.imshow(ground_truth, **plot_kwargs)
     format_axis(ax_gt, "Ground Truth = Analysis")
     cbar_gt = subfigs[0].colorbar(img_gt, ax=ax_gt, fraction=0.023)
     cbar_gt.set_label(UNITS["O3"], size=13)
@@ -177,9 +206,15 @@ def plot_y_vs_yhat_vs_median(
         nrows=1, ncols=2, subplot_kw=subplot_kw
     )
     axs_pred_med = axes_pred_med.flat
-    img_pred = axs_pred_med[0].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
+    prediction = y_hat["TARGET - O3 - +15h - 0m"][0].cpu()
+    img_pred = axs_pred_med[0].imshow(prediction, **plot_kwargs)
     format_axis(axs_pred_med[0], "AI Prediction")
-    axs_pred_med[1].imshow(x.tensor.cpu().median(dim=0).values, **plot_kwargs)
+
+    models_tensors = [
+        x[fname][0] for fname in x.feature_names if "O3 - +15h - 0m" in fname
+    ]
+    median = torch.stack(models_tensors).median(dim=0).values
+    axs_pred_med[1].imshow(median, **plot_kwargs)
     format_axis(axs_pred_med[1], "Median of Inputs")
     cbar_pred = subfigs[1].colorbar(img_pred, ax=axes_pred_med, fraction=0.023)
     cbar_pred.set_label(UNITS["O3"], size=13)
@@ -187,12 +222,12 @@ def plot_y_vs_yhat_vs_median(
     # Plot differences
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs_diff = axes_diff.flat
-    diff_pred = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
+    diff_pred = prediction - ground_truth
     img_diff_pred = axs_diff[0].imshow(
         diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50
     )
     format_axis(axs_diff[0], "Difference (AI Prediction)")
-    diff_med = x.tensor.cpu().median(dim=0).values - y.tensor[0].cpu()
+    diff_med = median - ground_truth
     axs_diff[1].imshow(diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
     format_axis(axs_diff[1], "Difference (Median of Inputs)")
     subfigs[2].colorbar(img_diff_pred, ax=axes_diff, fraction=0.023)
@@ -229,3 +264,29 @@ def plot_named_tensor(
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
+
+
+if __name__ == "__main__":
+    # This is a simple example of how to plot a Sample
+
+    sample = Sample(
+        dt.datetime(2025, 5, 10),
+        lead_times=[15, 24],
+        species=["O3", "CO", "NO2", "PM10", "PM2P5", "SO2"],
+        levels=[0],
+        models=[
+            "CHIMERE",
+            "MOCAGE",
+            "MATCH",
+            "MINNI",
+            "MONARCH",
+            "EURADIM",
+            "GEMAQ",
+            "SILAM",
+            "DEHM",
+            "LOTOS",
+        ],
+    )
+    print(sample)
+
+    plot_sample(sample, Path("."), species="O3", lead_time=24)

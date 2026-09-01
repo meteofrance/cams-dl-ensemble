@@ -23,7 +23,7 @@ processed_target_path: Path = choice(list(PROCESSED_DATA_DIR.glob("target/*.netc
 # Open sample files
 raw_input = xr.open_dataarray(raw_input_path)
 raw_target: xr.DataArray = (
-    ekd.from_source("file", raw_target_path).to_xarray().to_dataarray()[0]
+    ekd.from_source("file", str(raw_target_path)).to_xarray().to_dataarray()[0]
 )
 processed_input = xr.open_dataarray(processed_input_path)
 processed_target = xr.open_dataarray(processed_target_path)

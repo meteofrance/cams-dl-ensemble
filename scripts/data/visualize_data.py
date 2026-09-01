@@ -8,7 +8,8 @@ import matplotlib.ticker as mticker
 import numpy as np
 from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
 
-from cams.settings import MODEL_NAMES, PROCESSED_DATA_DIR, RAW_DATA_DIR
+from cams.settings import PROCESSED_DATA_DIR, RAW_DATA_DIR
+from cams.types import MODELS_NAMES
 
 NETCDF_INPUT_RE = re.compile(
     r"^(?P<year>\d{4})_(?P<month>\d{2})"
@@ -100,7 +101,7 @@ def scan_model_count_per_day(dataset_dir: Path) -> dict[str, int]:
         that have at least 1 file per date.
     """
     model_counts: dict[str, int] = defaultdict(int)
-    for model in MODEL_NAMES:
+    for model in MODELS_NAMES:
         model_dir = dataset_dir / ("PMACC" + model)
         presence = scan_model_presence(model_dir)
         print(f"  {model:<12} -> {len(presence)} days with files")
@@ -120,7 +121,7 @@ def scan_total_counts(dataset_dir: Path) -> dict[str, int]:
         from every model for a date.
     """
     total: dict[str, int] = defaultdict(int)
-    for model in MODEL_NAMES:
+    for model in MODELS_NAMES:
         model_dir = dataset_dir / ("PMACC" + model)
         file_count = 0
         for date_key, _ in iter_grib_files(model_dir):
@@ -140,7 +141,7 @@ def scan_species_per_day(dataset_dir: Path) -> dict[str, int]:
         dict[str, int]: Dictionary with the count of distinct species per date.
     """
     species_per_day: dict[str, set[str]] = defaultdict(set)
-    for model in MODEL_NAMES:
+    for model in MODELS_NAMES:
         model_dir = dataset_dir / ("PMACC" + model)
         for date_key, filename in iter_grib_files(model_dir):
             m = FILENAME_RE.match(filename)
@@ -261,7 +262,7 @@ def plot_presence(model_counts: dict[str, int], output_path: Path) -> None:
         output_path=output_path,
         title="Number of models present per day\n"
         "(at least 1 file — all species / levels / leadtimes combined)",
-        vmax=len(MODEL_NAMES),
+        vmax=len(MODELS_NAMES),
         colorbar_label="Number of models",
     )
 

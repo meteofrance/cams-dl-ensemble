@@ -5,21 +5,30 @@ import pytest
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.datamodule import CAMSDataModule
-from cams.settings import MODEL_NAMES
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
 def test_CAMSDatamodule(tmp_dataset_dir: Path):
     """Test CAMSDataModule initialization."""
     # Create some dummy files to simulate a real dataset
-    for i in range(1,32):
-        create_dummy_input_netcdf(tmp_dataset_dir / f"input/2022_01_{i:02}.netcdf")
-        create_dummy_target_netcdf(tmp_dataset_dir / f"target/2022_01_{i:02}_15.netcdf")
+    for day in range(1, 32):
+        create_dummy_input_netcdf(
+            tmp_dataset_dir
+            / f"mocage/2022_07_{day:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+        )
+    create_dummy_target_netcdf(
+        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+    )
 
-    dates = [dt.datetime(2022, 1, i) for i in range(1, 32)]
-    
+    dates = [dt.datetime(2022, 7, day) for day in range(1, 32)]
+
     dm = CAMSDataModule(
-        batch_size=4, processed_dir=tmp_dataset_dir
+        batch_size=4,
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
     )
 
     # Check default values
@@ -29,7 +38,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert dm.train_dataset is None
     assert dm.val_dataset is None
 
-    val_split_size = 5 # Default
+    val_split_size = 5  # Default
     train_split_size = len(dates) - 4 - val_split_size
 
     # Check date calculations
@@ -45,13 +54,17 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
 
     # Check that train dataset was created
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == train_split_size # Should be 22 (31 - 4 - 5)
-    assert dm.train_dataset.run_dates == dates[:train_split_size] # 2022-01-01 to 2022-01-22
+    assert len(dm.train_dataset) == train_split_size  # Should be 22 (31 - 4 - 5)
+    assert (
+        sorted(dm.train_dataset.run_dates) == dates[:train_split_size]
+    )  # 2022-01-01 to 2022-01-22
 
     # Check that val dataset was also created
     assert dm.val_dataset is not None
-    assert len(dm.val_dataset) == val_split_size # Default 5
-    assert dm.val_dataset.run_dates == dates[-val_split_size:] # 2022-01-27 to 2022-01-31
+    assert len(dm.val_dataset) == val_split_size  # Default 5
+    assert (
+        sorted(dm.val_dataset.run_dates) == dates[-val_split_size:]
+    )  # 2022-01-27 to 2022-01-31
 
     # Get train dataloader
     train_loader = dm.train_dataloader()
@@ -67,8 +80,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     batch = []
     for i in range(2):
         sample = dm.train_dataset.samples[i]
-        input_data = sample.input_data
-        target_data = sample.target_data
+        input_data, target_data = sample.get_input_and_target()  # pyright: ignore[reportGeneralTypeIssues]
         batch.append((input_data, target_data))
 
     # Test collate function
@@ -79,19 +91,23 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert isinstance(targets, NamedTensor)
 
     # Check shapes
-    assert inputs.tensor.shape == (2, 11, 420, 700)
+    assert inputs.tensor.shape == (2, 1, 420, 700)
     assert targets.tensor.shape == (2, 1, 420, 700)
 
     # Check names
-    assert list(inputs.feature_names) == MODEL_NAMES
-    assert list(targets.feature_names) == ["O3"]
+    assert list(inputs.feature_names) == ["MOCAGE - O3 - +15h - 0m"]
+    assert list(targets.feature_names) == ["TARGET - O3 - +15h - 0m"]
 
     # Check custom start and end dates
     val_split_size = 4
     train_split_size = len(dates) - 4 - val_split_size
-    
+
     dm = CAMSDataModule(
         processed_dir=tmp_dataset_dir,
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
         start_date=dt.datetime(2022, 1, 2),
         val_days=4,
         end_date=dt.datetime(2022, 1, 31),
@@ -99,21 +115,30 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     assert len(dm.train_dates) == len(dates) - 4 - 4
     assert len(dm.val_dates) == 4
     dm.setup("fit")
-    
+
     assert dm.train_dataset is not None
-    assert len(dm.train_dataset) == len(dm.train_dates) # Should be 23 (31 - 4 - 4)
-    assert dm.train_dataset.run_dates == dates[:train_split_size] # 2022-01-01 to 2022-01-23
+    assert len(dm.train_dataset) == len(dm.train_dates)  # Should be 23 (31 - 4 - 4)
+    assert (
+        sorted(dm.train_dataset.run_dates) == dates[:train_split_size]
+    )  # 2022-01-01 to 2022-01-23
 
     assert dm.val_dataset is not None
-    assert len(dm.val_dataset) == len(dm.val_dates) # Should be 4 (val_days)
-    assert dm.val_dataset.run_dates == dates[-val_split_size:] # 2022-01-28 to 2022-01-31
+    assert len(dm.val_dataset) == len(dm.val_dates)  # Should be 4 (val_days)
+    assert (
+        sorted(dm.val_dataset.run_dates) == dates[-val_split_size:]
+    )  # 2022-01-28 to 2022-01-31
 
 
 def test_dataloader(tmp_dataset_dir: Path):
     """Test CAMSDataModule initialization."""
 
     dm = CAMSDataModule(
-        batch_size=4, processed_dir=tmp_dataset_dir
+        batch_size=4,
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
     )
     assert dm.train_dataloader() is not None
     assert dm.val_dataloader() is not None

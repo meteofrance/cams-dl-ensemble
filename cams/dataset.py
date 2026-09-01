@@ -41,9 +41,9 @@ class CAMSDataset(Dataset):
         self,
         run_dates: list[dt.datetime],
         models: list[ModelsNames],
-        lead_times: list[Leadtimes] = [15],
-        species: list[SpeciesNames] = ["O3"],
-        levels: list[Levels] = [0],
+        lead_times: list[Leadtimes],
+        species: list[SpeciesNames],
+        levels: list[Levels],
         processed_dir: Path = PROCESSED_DATA_DIR,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:

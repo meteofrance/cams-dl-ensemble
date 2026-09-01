@@ -26,6 +26,10 @@ class CAMSDataModule(LightningDataModule):
 
     def __init__(
         self,
+        models: list[str],
+        lead_times: list[Leadtimes],
+        species: list[SpeciesNames],
+        levels: list[Levels],
         batch_size: int = 2,
         num_workers: int = 1,
         prefetch_factor: int = 2,
@@ -33,10 +37,6 @@ class CAMSDataModule(LightningDataModule):
         end_date: dt.datetime | None = None,
         val_days: int = 5,
         train_val_separation: int = 4,
-        models: list[str] = ["CHIMERE", "MOCAGE"],
-        lead_times: list[Leadtimes] = [15],
-        species: list[SpeciesNames] = ["O3"],
-        levels: list[Levels] = [0],
         processed_dir: Path = PROCESSED_DATA_DIR,
         transforms: list[nn.Module] = [],
     ) -> None:

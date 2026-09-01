@@ -8,7 +8,7 @@ from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
 from cams.settings import PROCESSED_DATA_DIR
-from cams.types import AVAILABLE_SPECIES, AvailableSpecies, ModelsNames
+from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 
 class Sample:
@@ -23,9 +23,9 @@ class Sample:
         self,
         date_run: dt.date,
         models: list[ModelsNames],
-        lead_times: list[int],
-        species: list[AvailableSpecies],
-        levels: list[int],
+        lead_times: list[Leadtimes],
+        species: list[SpeciesNames],
+        levels: list[Levels],
         processed_dir: Path = PROCESSED_DATA_DIR,
     ) -> None:
         """
@@ -43,13 +43,7 @@ class Sample:
         self.lead_times = lead_times
         self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
         self.species = species
-        if any([s not in AVAILABLE_SPECIES for s in species]):
-            raise NotImplementedError(
-                f"For now, only use the following species: {AVAILABLE_SPECIES}."
-            )
         self.levels = levels
-        if levels != [0]:
-            raise NotImplementedError("For now, only use ground level.")
         self.processed_dir = processed_dir
 
     @override

@@ -9,7 +9,7 @@ from typing_extensions import override
 
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR
-from cams.types import AvailableSpecies, ModelsNames
+from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 
 def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
@@ -41,9 +41,9 @@ class CAMSDataset(Dataset):
         self,
         run_dates: list[dt.datetime],
         models: list[ModelsNames],
-        lead_times: list[int] = [15],
-        species: list[AvailableSpecies] = ["O3"],
-        levels: list[int] = [0],
+        lead_times: list[Leadtimes] = [15],
+        species: list[SpeciesNames] = ["O3"],
+        levels: list[Levels] = [0],
         processed_dir: Path = PROCESSED_DATA_DIR,
         transform_sequence: nn.Sequential = nn.Sequential(*[]),
     ) -> None:

@@ -28,7 +28,7 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
     if files_not_parsed:
         print(
             f"WARNING: {len(files_not_parsed)} files could not be parsed: "
-            f"{', '.join(files_not_parsed)}"
+            f"{', '.join([str(f) for f in files_not_parsed])}"
         )
     run_dates = sorted(list(set(run_dates)))  # remove duplicates
     return run_dates

@@ -5,6 +5,7 @@ import pytest
 import xarray as xr
 
 from cams.sample import Sample
+from cams.types import Levels
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
@@ -16,11 +17,11 @@ from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
         (dt.date(2023, 12, 31), 96),
     ],
 )
-def test_sample_creation(run_date: dt.date, lead_time: int):
+def test_sample_creation(run_date: dt.date, lead_time: Levels):
     sample = Sample(
         run_date,
         models=["CHIMERE", "MOCAGE"],
-        lead_times=[lead_time],
+        lead_times=[lead_time], # pyright: ignore[reportArgumentType]
         species=["O3"],
         levels=[0],
     )

@@ -1,17 +1,19 @@
+import datetime as dt
 from collections import defaultdict
 from collections.abc import Generator
 from functools import cache
 from pathlib import Path
-from typing import Any
 
-from calendardataviz import InspectorABC, start_app, RichString
-from calendardataviz.colors import RDYLGN, color_from_pct
-import datetime as dt
-from typing_extensions import override
-from cams.settings import RAW_DATA_DIR
 import xarray as xr
+from typing_extensions import override
 
+# Base directory containing raw NetCDF data
 RAW_DATA_DIR = Path("/scratch/shared/cams-dl-ensemble/all_from_ads/")
+
+from calendardataviz import InspectorABC, RichString, start_app
+from calendardataviz.colors import RDYLGN, color_from_pct
+
+# Colors for out‑of‑range percentages
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
 
@@ -19,24 +21,39 @@ OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
 class DimsInspector(InspectorABC):
     name = "Dimentions"
 
-    def _paths_for_date(self, date: dt.date) -> Generator[Path]:
-        return RAW_DATA_DIR.glob(f"**/{date.strftime(r'%Y_%m_%d')}*.netcdf")
+    def _paths_for_date(self, date: dt.date) -> Generator[Path, None, None]:
+        """Yield all NetCDF files for *date*.
+
+        Uses a glob pattern matching the date prefix (YYYY_MM_DD) anywhere
+        under :data:`RAW_DATA_DIR`.
+        """
+        pattern = f"**/{date.strftime('%Y_%m_%d')}*.netcdf"
+        yield from RAW_DATA_DIR.rglob(pattern)
 
     @cache
     def _dims_coords_for_date(self, date: dt.date) -> tuple[set[str], set[str]]:
-        paths = list(self._paths_for_date(date))
+        """Return the sets of coordinate and variable signatures for *date*.
+
+        The result is cached because the underlying files do not change during a
+        single run of the application.
+        """
         coords: set[str] = set()
         variables: set[str] = set()
-        for path in paths:
-            data = xr.open_dataset(path)
-            coords.add(str(data.coords))
-            variables.add(str(data.variables))
-
+        for path in self._paths_for_date(date):
+            # ``xr.open_dataset`` returns a Dataset that should be closed after use.
+            with xr.open_dataset(path) as ds:
+                coords.add(str(ds.coords))
+                variables.add(str(ds.variables))
         return coords, variables
 
     def _pct_for_date(self, date: dt.date) -> float:
-        coords, variables = self._dims_coords_for_date(date)        
+        """Calculate a quality percentage for *date*.
 
+        The metric is ``(11 - max(num_coords, num_variables)) / 10`` which
+        yields a float where values below 0 or above 1 are considered out of
+        range.
+        """
+        coords, variables = self._dims_coords_for_date(date)
         return (11 - max(len(coords), len(variables))) / 10
 
     @override
@@ -78,7 +95,6 @@ class DimsInspector(InspectorABC):
 
         return colors
 
-
     @override
     def popup_content(self, date: dt.date) -> tuple[str, RichString]:
         """Return the information displayed when a date is selected.
@@ -93,49 +109,53 @@ class DimsInspector(InspectorABC):
 
         # Define the title
         title = (
-            date.strftime(r"%A %d %B %Y")
-            + f" {self._pct_for_date(date) * 100:.2f}%"
+            date.strftime(r"%A %d %B %Y") + f" {self._pct_for_date(date) * 100:.2f}%"
         )
 
-        # Get coords and variables
-        paths = list(self._paths_for_date(date))
+        # Collect coordinate and variable signatures per subdirectory
         coords: dict[str, set[str]] = defaultdict(set)
         variables: dict[str, set[str]] = defaultdict(set)
-        for path in paths:
-            data = xr.open_dataset(path)
-            coords[str(data.coords)].add(path.parent.name)
-            variables[str(data.variables)].add(path.parent.name)
+        for path in self._paths_for_date(date):
+            with xr.open_dataset(path) as ds:
+                coords[str(ds.coords)].add(path.parent.name)
+                variables[str(ds.variables)].add(path.parent.name)
 
-        # Define colors
+        # Colors used for alternating rows and mismatches
         bgs = ["#000000", "#373737"]
         diff_color = "#780000"
 
-        content = RichString("")
-        split_coord = [coord.split(" ") for coord in coords.keys()]
-        coords_headers = list(coords.values())
-        for j, coord in enumerate(split_coord):
-            content += RichString(", ".join(coords_headers[j]) + "\n")
-            for i, word in enumerate(coord):
-                color = bgs[j % 2]
-                if any(i >= len(c) or c[i] != coord[i] for c in split_coord):
-                    color = diff_color
-                content += RichString(word, color)
-            content += RichString("\n\n")
 
-        content += RichString("\n\n")
-        split_variables = [variable.split(" ") for variable in variables.keys()]
-        variables_headers = list(variables.values())
-        for j, variable in enumerate(split_variables):
-            content += RichString(", ".join(variables_headers[j]) + "\n")
-            for i, word in enumerate(variable):
-                color = bgs[(j + len(coords)) % 2]
-                if any(i >= len(v) or v[i] != variable[i] for v in split_variables):
-                    color = diff_color
-                content += RichString(word, color)
-            content += RichString("\n\n")
+        # Helper to render a block (coordinates or variables)
+        def _render_block(items: dict[str, set[str]], offset: int = 0) -> RichString:
+            """Return a RichString representing the formatted block.
 
+            *items* maps a signature string to the set of subdirectory names that
+            contain it. *offset* is added to the block index to keep background
+            colours alternating correctly when rendering multiple blocks.
+            """
+            block_content = RichString("")
+            split_keys = [key.split(" ") for key in items]
+            headers = list(items.values())
+            for block_idx, parts in enumerate(split_keys):
+                # Header line listing the subdirectories containing this signature
+                block_content += RichString(", ".join(headers[block_idx]) + "\n")
+                for idx, word in enumerate(parts):
+                    # Alternate background colours per block
+                    color = bgs[(block_idx + offset) % 2]
+                    # Highlight if any other signature differs at this position
+                    if any(idx >= len(other) or other[idx] != word for other in split_keys):
+                        color = diff_color
+                    block_content += RichString(word, color)
+                block_content += RichString("\n\n")
+            return block_content
+
+
+        # Render coordinates first, then variables (variables offset by number of coord blocks)
+        content = _render_block(coords)
+        content += _render_block(variables, offset=len(coords))
 
         return title, content
+
 
 if __name__ == "__main__":
     start_app(

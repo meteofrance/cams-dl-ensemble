@@ -31,20 +31,20 @@ class DimsInspector(InspectorABC):
         yield from RAW_DATA_DIR.rglob(pattern)
 
     @cache
-    def _dims_coords_for_date(self, date: dt.date) -> tuple[set[str], set[str]]:
-        """Return the sets of coordinate and variable signatures for *date*.
+    def _dims_info_for_date(self, date: dt.date) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+        """Return mappings of coordinate/variable signatures to subdirectory names.
 
-        The result is cached because the underlying files do not change during a
-        single run of the application.
+        The result is cached because the underlying NetCDF files are immutable
+        during a single run. Each key is the stringified signature, and the value
+        is the set of immediate parent directory names that contain that file.
         """
-        coords: set[str] = set()
-        variables: set[str] = set()
+        coords_map: dict[str, set[str]] = defaultdict(set)
+        vars_map: dict[str, set[str]] = defaultdict(set)
         for path in self._paths_for_date(date):
-            # ``xr.open_dataset`` returns a Dataset that should be closed after use.
             with xr.open_dataset(path) as ds:
-                coords.add(str(ds.coords))
-                variables.add(str(ds.variables))
-        return coords, variables
+                coords_map[str(ds.coords)].add(path.parent.name)
+                vars_map[str(ds.variables)].add(path.parent.name)
+        return coords_map, vars_map
 
     def _pct_for_date(self, date: dt.date) -> float:
         """Calculate a quality percentage for *date*.
@@ -53,8 +53,11 @@ class DimsInspector(InspectorABC):
         yields a float where values below 0 or above 1 are considered out of
         range.
         """
-        coords, variables = self._dims_coords_for_date(date)
-        return (11 - max(len(coords), len(variables))) / 10
+        coords_map, vars_map = self._dims_info_for_date(date)
+        # Number of distinct coordinate and variable signatures
+        num_coords = len(coords_map)
+        num_vars = len(vars_map)
+        return (11 - max(num_coords, num_vars)) / 10
 
     @override
     def color_for_date(self, date: dt.date) -> RichString:
@@ -112,13 +115,8 @@ class DimsInspector(InspectorABC):
             date.strftime(r"%A %d %B %Y") + f" {self._pct_for_date(date) * 100:.2f}%"
         )
 
-        # Collect coordinate and variable signatures per subdirectory
-        coords: dict[str, set[str]] = defaultdict(set)
-        variables: dict[str, set[str]] = defaultdict(set)
-        for path in self._paths_for_date(date):
-            with xr.open_dataset(path) as ds:
-                coords[str(ds.coords)].add(path.parent.name)
-                variables[str(ds.variables)].add(path.parent.name)
+        # Retrieve cached coordinate and variable mappings
+        coords, variables = self._dims_info_for_date(date)
 
         # Colors used for alternating rows and mismatches
         bgs = ["#000000", "#373737"]

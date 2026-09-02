@@ -26,10 +26,10 @@ from tqdm import tqdm
 
 from cams.settings import (
     CAMS_DATASET_DIR,
-    MODEL_NAMES,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
 )
+from cams.types import MODELS_NAMES
 
 
 def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
@@ -88,14 +88,14 @@ def validate(raw_dir: Path, processed_dir: Path, plot_save_path: Path) -> None:
     if not len(input_sample.model) == 11:
         raise ValueError(f"Missing model in input for {input_sample.time}")
     if not set(str(model_name) for model_name in input_sample.model.values) == set(
-        MODEL_NAMES
+        MODELS_NAMES
     ):
         coords_model_names = set(
             str(model_name) for model_name in input_sample.model.values
         )
         missing_model_names = set(
             model_name
-            for model_name in MODEL_NAMES
+            for model_name in MODELS_NAMES
             if model_name not in coords_model_names
         )
         raise ValueError(

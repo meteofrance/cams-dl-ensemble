@@ -33,7 +33,24 @@ parser.add_argument(
 args = parser.parse_args()
 
 date = dt.datetime.strptime(args.date, "%Y-%m-%d")
-sample = Sample(date, lead_time=15, specie="O3", level=0)
+sample = Sample(
+    date,
+    models=[
+        "CHIMERE",
+        "MOCAGE",
+        "MATCH",
+        "MINNI",
+        "MONARCH",
+        "EURADIM",
+        "GEMAQ",
+        "SILAM",
+        "DEHM",
+        "LOTOS",
+    ],
+    lead_times=[15],
+    species=["O3"],
+    levels=[0],
+)
 if not sample.is_valid:
     raise ValueError(f"Sample not valid: {sample}")
 

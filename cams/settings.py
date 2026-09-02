@@ -11,24 +11,8 @@ CAMS_DATASET_DIR: Path = (
 
 # Define paths to the CAMS dataset directory content
 RAW_DATA_DIR: Path = CAMS_DATASET_DIR / "raw"
-PROCESSED_DATA_DIR: Path = CAMS_DATASET_DIR / "processed"
+PROCESSED_DATA_DIR: Path = CAMS_DATASET_DIR / "all_from_ads"
 STATS_PATH = CAMS_DATASET_DIR / "species_stats.json"
-
-# Model names
-MODEL_NAMES = [
-    "MATCH",
-    "MINNI",
-    "CHIMERE",
-    "MOCAGE",
-    "MONARCH",
-    "EURADIM",
-    "EMEP",
-    "GEMAQ",
-    "SILAM",
-    "DEHM",
-    "LOTOS",
-]
-
 
 # Parameter name mapping
 ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {

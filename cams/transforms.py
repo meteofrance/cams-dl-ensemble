@@ -11,8 +11,8 @@ from mfai.pytorch.namedtensor import NamedTensor
 from torch import Tensor, nn
 from typing_extensions import override
 
-from cams.settings import MODEL_NAMES, STATS_PATH
-from cams.types import STATISTICS_NAMES, StatisticsNames
+from cams.settings import STATS_PATH
+from cams.types import MODELS_NAMES, STATISTICS_NAMES, StatisticsNames
 
 
 class ExtractInputStatisticalFeatures(nn.Module):
@@ -77,8 +77,10 @@ class ExtractInputStatisticalFeatures(nn.Module):
         )
         for idx, statistic_type in enumerate(self.statistic_types):
             if statistic_type in ["skew", "kurtosis"]:
-                stat_tensor[idx, :, :] = getattr(scipy.stats, statistic_type)(
-                    input_tensor, axis=0, nan_policy="omit"
+                stat_tensor[idx, :, :] = Tensor(
+                    getattr(scipy.stats, statistic_type)(
+                        input_tensor, axis=0, nan_policy="omit"
+                    )
                 )
             elif statistic_type == "median":
                 # Tensor.median() returns a tuple[values, indices], so we keep values
@@ -137,7 +139,7 @@ class FillMissingModels(nn.Module):
         x, y = inputs
         t_final = (
             torch.ones(
-                len(MODEL_NAMES),
+                len(MODELS_NAMES),
                 x.tensor.shape[1],
                 x.tensor.shape[2],
                 dtype=x.tensor.dtype,
@@ -145,11 +147,11 @@ class FillMissingModels(nn.Module):
             )
             * self.fill_value
         )
-        for idx, model in enumerate(MODEL_NAMES):
+        for idx, model in enumerate(MODELS_NAMES):
             if model in x.feature_names:
                 t_final[idx] = x[model]
 
-        return NamedTensor(t_final, x.names, MODEL_NAMES), y
+        return NamedTensor(t_final, x.names, MODELS_NAMES), y
 
 
 class Normalize(nn.Module, ReversibleTransformMixin):
@@ -247,10 +249,16 @@ if __name__ == "__main__":
     from cams.sample import Sample
     from cams.types import STATISTICS_NAMES
 
-    sample = Sample(dt.datetime(2024, 7, 30), lead_time=15, specie="O3", level=0)
-    x, y = sample.input_data, sample.target_data
+    sample = Sample(
+        dt.datetime(2024, 7, 30),
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        models=["CHIMERE", "MOCAGE"],
+    )
+    x, y = sample.get_input_and_target()
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
     nt = NamedTensor.concat([x, x_transformed, y])
     print(nt)
-    plot_named_tensor(nt, "O3", Path("output/test_transform.png"))
+    plot_named_tensor(nt, "O3", Path("test_transform.png"))

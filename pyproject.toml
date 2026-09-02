@@ -31,7 +31,7 @@ dependencies = [
   "pytest-cov==7.1.*",
   "dayplot>=0.5.1",
   "ipython>=9.15.0",
-  "calendardataviz",
+  "calendardataviz==0.2.4",
 ]
 
 [tool.setuptools.packages.find]

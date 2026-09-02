@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import override
 
 from calendardataviz import InspectorABC, start_app, RichString
+from calendardataviz.colors import RDYLGN, color_from_pct
 from cams.settings import RAW_DATA_DIR
 
 RAW_DATA_DIR = Path("/scratch/shared/cams-dl-ensemble/all_from_ads/")
@@ -19,22 +20,6 @@ class FileCountInspector(InspectorABC):
     root_dir = Path("/scratch/shared/cams-dl-ensemble/all_from_ads")
     target_nb_files_total = 3 * 365 * 11
     target_nb_files_per_day = 11
-
-    # Colors from https://colorbargenerator.com/
-    _colors: dict[float, RichString] = {
-        0 / 11: RichString("◦", "#000000", "#b7b7b7"),
-        1 / 11: RichString(" ", "#A50026", "#ffffff"),
-        2 / 11: RichString(" ", "#D22B27", "#ffffff"),
-        3 / 11: RichString(" ", "#EE613D", "#000000"),
-        4 / 11: RichString(" ", "#FA9B58", "#000000"),
-        5 / 11: RichString(" ", "#FECC7A", "#000000"),
-        6 / 11: RichString(" ", "#ECE88B", "#000000"),
-        7 / 11: RichString(" ", "#C5E67E", "#000000"),
-        8 / 11: RichString(" ", "#93D168", "#000000"),
-        9 / 11: RichString(" ", "#57B65F", "#000000"),
-        10 / 11: RichString(" ", "#17934E", "#ffffff"),
-        11 / 11: RichString(" ", "#006837", "#ffffff"),
-    }
 
     def _files_for_date(self, date: dt.date) -> tuple[Path, ...]:
         # Finds files named like:
@@ -54,10 +39,7 @@ class FileCountInspector(InspectorABC):
                 to the given date.
         """
         pct = len(self._files_for_date(date)) / self.target_nb_files_per_day
-        if pct in self._colors:
-            return self._colors[pct]
-
-        return RichString("?", "#ff00ff")
+        return color_from_pct(pct, RDYLGN)
 
     @override
     def as_color_bar(self, size: int) -> list[RichString]:
@@ -75,8 +57,7 @@ class FileCountInspector(InspectorABC):
         # displayed in the color bar
         colors: list[RichString] = []
         for pct in [y / (size - 1) for y in range(size)]:
-            closest_pct = min(self._colors.keys(), key=lambda x: abs(x - pct))
-            colors.append(self._colors[closest_pct])
+            colors.append(color_from_pct(pct, RDYLGN))
 
         return colors
 

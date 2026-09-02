@@ -2,6 +2,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 from calendardataviz import InspectorABC, start_app, RichString
+from calendardataviz.colors import RDYLGN, color_from_pct
 import datetime as dt
 from typing_extensions import override
 from cams.settings import RAW_DATA_DIR
@@ -15,23 +16,6 @@ class FileSizeInspector(InspectorABC):
 
     # model * 11 + reanalysis + weighted_ensemble * 6
     _target_size_one_file = 684439444
-
-    # Colors from https://colorbargenerator.com/
-    _colors: dict[float, RichString] = {
-        0 / 11: RichString("◦", "#000000", "#b7b7b7"),
-        1 / 11: RichString(" ", "#A50026", "#ffffff"),
-        2 / 11: RichString(" ", "#D22B27", "#ffffff"),
-        3 / 11: RichString(" ", "#EE613D", "#000000"),
-        4 / 11: RichString(" ", "#FA9B58", "#000000"),
-        5 / 11: RichString(" ", "#FECC7A", "#000000"),
-        6 / 11: RichString(" ", "#ECE88B", "#000000"),
-        7 / 11: RichString(" ", "#C5E67E", "#000000"),
-        8 / 11: RichString(" ", "#93D168", "#000000"),
-        9 / 11: RichString(" ", "#57B65F", "#000000"),
-        10 / 11: RichString(" ", "#17934E", "#ffffff"),
-        11 / 11: RichString(" ", "#006837", "#ffffff"),
-    }
-
 
     def _paths_for_date(self, date: dt.date) -> Generator[Path]:
         return RAW_DATA_DIR.glob(f"**/{date.strftime(r'%Y_%m_%d')}*.netcdf")
@@ -64,8 +48,7 @@ class FileSizeInspector(InspectorABC):
             return UNDER_0_COLOR
         if pct > 1:
             return OVER_1_COLOR
-        closest_pct = min(self._colors.keys(), key=lambda x: abs(x - pct))
-        return self._colors[closest_pct]
+        return color_from_pct(pct, RDYLGN)
 
     @override
     def as_color_bar(self, size: int) -> list[RichString]:
@@ -83,8 +66,7 @@ class FileSizeInspector(InspectorABC):
         # displayed in the color bar
         colors: list[RichString] = []
         for pct in [y / (size - 1) for y in range(size)]:
-            closest_pct = min(self._colors.keys(), key=lambda x: abs(x - pct))
-            colors.append(self._colors[closest_pct])
+            colors.append(color_from_pct(pct, RDYLGN))
 
         return colors
 

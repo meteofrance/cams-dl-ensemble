@@ -121,6 +121,7 @@ class DimsInspector(InspectorABC):
         # Colors used for alternating rows and mismatches
         bgs = ["#000000", "#373737"]
         diff_color = "#780000"
+        title_color = "#969696"
 
 
         # Helper to render a block (coordinates or variables)
@@ -136,14 +137,16 @@ class DimsInspector(InspectorABC):
             headers = list(items.values())
             for block_idx, parts in enumerate(split_keys):
                 # Header line listing the subdirectories containing this signature
-                block_content += RichString(", ".join(headers[block_idx]) + "\n")
+                block_content += RichString(
+                    ", ".join(headers[block_idx]) + "\n", title_color,
+                )
                 for idx, word in enumerate(parts):
                     # Alternate background colours per block
                     color = bgs[(block_idx + offset) % 2]
                     # Highlight if any other signature differs at this position
                     if any(idx >= len(other) or other[idx] != word for other in split_keys):
                         color = diff_color
-                    block_content += RichString(word, color)
+                    block_content += RichString(word + " ", color)
                 block_content += RichString("\n\n")
             return block_content
 

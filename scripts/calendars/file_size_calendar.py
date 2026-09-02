@@ -1,15 +1,17 @@
+import datetime as dt
 from collections.abc import Generator
 from pathlib import Path
 
-from calendardataviz import InspectorABC, start_app, RichString
+from calendardataviz import InspectorABC, RichString, start_app
 from calendardataviz.colors import RDYLGN, color_from_pct
-import datetime as dt
 from typing_extensions import override
+
 from cams.settings import RAW_DATA_DIR
 
 RAW_DATA_DIR = Path("/scratch/shared/cams-dl-ensemble/all_from_ads/")
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
+
 
 class FileSizeInspector(InspectorABC):
     name = "File size"
@@ -70,7 +72,6 @@ class FileSizeInspector(InspectorABC):
 
         return colors
 
-
     @override
     def popup_content(self, date: dt.date) -> tuple[str, str]:
         """Return the information displayed when a date is selected.
@@ -83,16 +84,15 @@ class FileSizeInspector(InspectorABC):
             str: The pop-up window content.
         """
         title = (
-            date.strftime(r"%A %d %B %Y")
-            + f" {self._pct_for_date(date) * 100:.2f}%"
+            date.strftime(r"%A %d %B %Y") + f" {self._pct_for_date(date) * 100:.2f}%"
         )
         content = "\n".join(
-            f"{path.stat().st_size}B "
-            f"{path.relative_to(path.parents[1])}"
+            f"{path.stat().st_size}B {path.relative_to(path.parents[1])}"
             for path in self._paths_for_date(date)
         )
 
         return title, content
+
 
 if __name__ == "__main__":
     start_app(

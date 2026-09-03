@@ -1,21 +1,57 @@
 import datetime as dt
+import json
 from collections import defaultdict
 from collections.abc import Generator
 from functools import cache
 from pathlib import Path
+from typing import Hashable
 
 import xarray as xr
-from typing_extensions import override
-
 from calendardataviz import InspectorABC, RichString, start_app
 from calendardataviz.colors import RDYLGN, color_from_pct
+from typing_extensions import override
 
-# Base directory containing raw NetCDF data
 RAW_DATA_DIR = Path("/scratch/shared/cams-dl-ensemble/all_from_ads/")
+
+# Path to cached overall species means (JSON)
+OVERALL_MEANS_PATH = Path(__file__).with_name("overall_means.json")
 
 # Colors for out‑of‑range percentages (same palette as dims calendar)
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
+
+
+# Compute or load overall species means (cached across runs)
+def _compute_means() -> dict[Hashable, float]:
+    """Iterate over all NetCDF files and compute the mean value per species.
+
+    The result is a mapping ``species -> mean`` across the whole dataset.
+    """
+    sums: defaultdict[Hashable, float] = defaultdict(float)
+    counts: defaultdict[Hashable, int] = defaultdict(int)
+    for path in RAW_DATA_DIR.rglob("*.netcdf"):
+        with xr.open_dataset(path) as ds:
+            for var in ds.data_vars:
+                val = float(ds[var].mean().item())
+                sums[var] += val
+                counts[var] += 1
+    return {var: sums[var] / counts[var] for var in sums}
+
+
+def _load_overall_means() -> dict[str, float]:
+    """Load cached overall means from JSON or compute them if missing."""
+    if OVERALL_MEANS_PATH.is_file():
+        with open(OVERALL_MEANS_PATH, "r") as f:
+            data = json.load(f)
+        return {k: float(v) for k, v in data.items()}
+    overall = _compute_overall_means()
+    with open(OVERALL_MEANS_PATH, "w") as f:
+        json.dump(overall, f, indent=2)
+    return overall
+
+
+# Load once at import time
+OVERALL_SPECIES_MEANS: dict[str, float] = _load_overall_means()
 
 
 class DistanceToMeanInspector(InspectorABC):
@@ -50,23 +86,14 @@ class DistanceToMeanInspector(InspectorABC):
                     result[(model, var_name)] = mean_val
         return result
 
-    def _overall_species_means(self, date: dt.date) -> dict[str, float]:
-        """Compute the overall mean for each species across all models.
-
-        Returns a ``species -> mean`` mapping.
-        """
-        per_model = self._model_species_means(date)
-        species_sums: defaultdict[str, list[float]] = defaultdict(list)
-        for (_model, species), value in per_model.items():
-            species_sums[species].append(value)
-        return {species: sum(vals) / len(vals) for species, vals in species_sums.items()}
-
     def _distances(self, date: dt.date) -> dict[tuple[str, str], float]:
         """Absolute distance of each model/species mean to the overall species mean."""
-        overall = self._overall_species_means(date)
+        overall = OVERALL_SPECIES_MEANS
         per_model = self._model_species_means(date)
-        return {(model, species): abs(value - overall[species])
-                for (model, species), value in per_model.items()}
+        return {
+            (model, species): abs(value - overall[species])
+            for (model, species), value in per_model.items()
+        }
 
     def _max_distance(self, date: dt.date) -> float:
         """Maximum distance value for the given date (used for colour scaling)."""
@@ -128,6 +155,6 @@ class DistanceToMeanInspector(InspectorABC):
 if __name__ == "__main__":
     start_app(
         inspector_cls=DistanceToMeanInspector,
-        years=[2024, 2025, 2026],
+        years=[2023, 2024, 2025, 2026],
         nb_processes=12,
     )

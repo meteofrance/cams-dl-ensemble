@@ -19,6 +19,13 @@ OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
 
 
 class DimsInspector(InspectorABC):
+    """Inspector showing how consistent the file dimensions are per date.
+
+    For a given date it compares the coordinate and variable signatures across
+    all NetCDF files and derives a quality percentage from how many distinct
+    signatures are found.
+    """
+
     name = "Dimentions"
 
     def _paths_for_date(self, date: dt.date) -> Generator[Path, None, None]:
@@ -31,7 +38,9 @@ class DimsInspector(InspectorABC):
         yield from RAW_DATA_DIR.rglob(pattern)
 
     @cache
-    def _dims_info_for_date(self, date: dt.date) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    def _dims_info_for_date(
+        self, date: dt.date
+    ) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
         """Return mappings of coordinate/variable signatures to subdirectory names.
 
         The result is cached because the underlying NetCDF files are immutable
@@ -123,7 +132,6 @@ class DimsInspector(InspectorABC):
         diff_color = "#780000"
         title_color = "#969696"
 
-
         # Helper to render a block (coordinates or variables)
         def _render_block(items: dict[str, set[str]], offset: int = 0) -> RichString:
             """Return a RichString representing the formatted block.
@@ -138,18 +146,20 @@ class DimsInspector(InspectorABC):
             for block_idx, parts in enumerate(split_keys):
                 # Header line listing the subdirectories containing this signature
                 block_content += RichString(
-                    ", ".join(headers[block_idx]) + "\n", title_color,
+                    ", ".join(headers[block_idx]) + "\n",
+                    title_color,
                 )
                 for idx, word in enumerate(parts):
                     # Alternate background colours per block
                     color = bgs[(block_idx + offset) % 2]
                     # Highlight if any other signature differs at this position
-                    if any(idx >= len(other) or other[idx] != word for other in split_keys):
+                    if any(
+                        idx >= len(other) or other[idx] != word for other in split_keys
+                    ):
                         color = diff_color
                     block_content += RichString(word + " ", color)
                 block_content += RichString("\n\n")
             return block_content
-
 
         # Render coordinates first, then variables (variables offset by number of coord blocks)
         content = _render_block(coords)

@@ -13,7 +13,9 @@ OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
 
 
 class FileCountInspector(InspectorABC):
-    """Implementation of the inspector class for the CAMS dataset."""
+    """Inspector that shows how many files are present for each date in the
+    CAMS dataset.
+    """
 
     name = "Target file count"
     root_dir = Path("/scratch/shared/cams-dl-ensemble/all_from_ads")
@@ -21,8 +23,17 @@ class FileCountInspector(InspectorABC):
     target_nb_files_per_day = 11
 
     def _files_for_date(self, date: dt.date) -> tuple[Path, ...]:
-        # Finds files named like:
-        # `/lotos/2024_07_14-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.zip`
+        """Return all NetCDF files belonging to *date*.
+
+        Uses a glob pattern matching the date prefix (YYYY_MM_DD) anywhere
+        under :data:`root_dir`.
+
+        Args:
+            date: Date to look up.
+
+        Returns:
+            tuple[Path, ...]: The NetCDF files matching the date prefix.
+        """
         date_str = date.strftime(r"%Y_%m_%d")
         return tuple(self.root_dir.glob(f"**/{date_str}*.netcdf"))
 
@@ -86,6 +97,6 @@ class FileCountInspector(InspectorABC):
 if __name__ == "__main__":
     start_app(
         inspector_cls=FileCountInspector,
-        years=[2024, 2025, 2026],
+        years=[2023, 2024, 2025, 2026],
         nb_processes=8,
     )

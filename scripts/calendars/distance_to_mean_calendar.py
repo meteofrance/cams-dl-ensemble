@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections.abc import Generator
 from functools import cache
 from pathlib import Path
+from tqdm import tqdm
 from typing import Hashable
 
 import xarray as xr
@@ -21,37 +22,50 @@ UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
 
 
-# Compute or load overall species means (cached across runs)
-def _compute_means() -> dict[Hashable, float]:
-    """Iterate over all NetCDF files and compute the mean value per species.
+def _compute_means() -> dict[dt.date, dict[Hashable, float]]:
+    """Iterate over all NetCDF files and compute the mean value per species,
+    per date.
 
-    The result is a mapping ``species -> mean`` across the whole dataset.
+    The result is a mapping ``date -> {species: mean}``, where the mean for a
+    given date is computed across all models available that day.
     """
-    sums: defaultdict[Hashable, float] = defaultdict(float)
-    counts: defaultdict[Hashable, int] = defaultdict(int)
-    for path in RAW_DATA_DIR.rglob("*.netcdf"):
+    sums: defaultdict[dt.date, defaultdict[Hashable, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+    counts: defaultdict[dt.date, defaultdict[Hashable, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    for path in tqdm(list(RAW_DATA_DIR.rglob("*.netcdf")), desc="Compute means"):
+        date = dt.datetime.strptime(path.stem[0:10], r"%Y_%m_%d").date()
         with xr.open_dataset(path) as ds:
             for var in ds.data_vars:
                 val = float(ds[var].mean().item())
-                sums[var] += val
-                counts[var] += 1
-    return {var: sums[var] / counts[var] for var in sums}
+                sums[date][var] += val
+                counts[date][var] += 1
+    return {
+        date: {var: sums[date][var] / counts[date][var] for var in sums[date]}
+        for date in sums
+    }
 
 
-def _load_overall_means() -> dict[str, float]:
-    """Load cached overall means from JSON or compute them if missing."""
-    if OVERALL_MEANS_PATH.is_file():
+def load_overall_means() -> dict[dt.date, dict[Hashable, float]]:
+    """Load cached per-date means from JSON or compute them if missing.
+
+    The result maps ``date -> {species: mean}``.
+    """
+    # Load once at import time
+    if OVERALL_MEANS_PATH.exists():
         with open(OVERALL_MEANS_PATH, "r") as f:
-            data = json.load(f)
-        return {k: float(v) for k, v in data.items()}
-    overall = _compute_means()
-    with open(OVERALL_MEANS_PATH, "w") as f:
-        json.dump(overall, f, indent=2)
-    return overall
+            raw = json.load(f)
+        return {
+            dt.date.fromisoformat(date): species_means
+            for date, species_means in raw.items()
+        }
+    else:
+        return _compute_means()
 
 
-# Load once at import time
-OVERALL_SPECIES_MEANS: dict[str, float] = _load_overall_means()
+overall_species_means = load_overall_means()
 
 
 class DistanceToMeanInspector(InspectorABC):
@@ -62,8 +76,11 @@ class DistanceToMeanInspector(InspectorABC):
     from every model's NetCDF file, computes the overall mean per species, and then
     displays the absolute distance of each model's mean to that overall mean.
     """
-
     name = "Distance to Mean"
+
+    def __init__(self) -> None:
+        self._means = load_overall_means()
+
 
     def _paths_for_date(self, date: dt.date) -> Generator[Path, None, None]:
         """Yield all NetCDF files that belong to *date*."""
@@ -88,8 +105,8 @@ class DistanceToMeanInspector(InspectorABC):
         return result
 
     def _distances(self, date: dt.date) -> dict[tuple[str, str], float]:
-        """Absolute distance of each model/species mean to the overall species mean."""
-        overall = OVERALL_SPECIES_MEANS
+        """Absolute distance of each model/species mean to the date species mean."""
+        overall = overall_species_means[date]
         per_model = self._model_species_means(date)
         return {
             (model, species): abs(value - overall[species])

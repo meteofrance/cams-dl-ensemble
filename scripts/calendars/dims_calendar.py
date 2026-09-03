@@ -5,13 +5,11 @@ from functools import cache
 from pathlib import Path
 
 import xarray as xr
-from typing_extensions import override
-
-# Base directory containing raw NetCDF data
-RAW_DATA_DIR = Path("/scratch/shared/cams-dl-ensemble/all_from_ads/")
-
 from calendardataviz import InspectorABC, RichString, start_app
 from calendardataviz.colors import RDYLGN, color_from_pct
+from typing_extensions import override
+
+from cams.settings import RAW_DATA_DIR
 
 # Colors for out‑of‑range percentages
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
@@ -161,7 +159,8 @@ class DimsInspector(InspectorABC):
                 block_content += RichString("\n\n")
             return block_content
 
-        # Render coordinates first, then variables (variables offset by number of coord blocks)
+        # Render coordinates first, then variables (variables offset by number
+        # of coord blocks)
         content = _render_block(coords)
         content += _render_block(variables, offset=len(coords))
 

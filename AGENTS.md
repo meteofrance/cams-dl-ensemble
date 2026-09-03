@@ -28,6 +28,7 @@ These instructions apply to LLM agents writing or editing Python code in this re
 - Write clear, descriptive names for variables, functions, and classes.
 - Keep functions short and focused on a single responsibility.
 - Do not add emojis.
+- Keep line length shorter or equal to 79 characters.
 - Write code following the structure double line break, comment, code pragraph. Like so:
 ```py
 

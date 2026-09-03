@@ -44,7 +44,7 @@ def _load_overall_means() -> dict[str, float]:
         with open(OVERALL_MEANS_PATH, "r") as f:
             data = json.load(f)
         return {k: float(v) for k, v in data.items()}
-    overall = _compute_overall_means()
+    overall = _compute_means()
     with open(OVERALL_MEANS_PATH, "w") as f:
         json.dump(overall, f, indent=2)
     return overall
@@ -55,7 +55,8 @@ OVERALL_SPECIES_MEANS: dict[str, float] = _load_overall_means()
 
 
 class DistanceToMeanInspector(InspectorABC):
-    """Inspector that shows how far each (model, species) mean deviates from the overall mean.
+    """Inspector that shows how far each (model, species) mean deviates from
+    the overall mean.
 
     For a given date the calendar collects the mean value of each variable (species)
     from every model's NetCDF file, computes the overall mean per species, and then

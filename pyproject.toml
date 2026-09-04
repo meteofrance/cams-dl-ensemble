@@ -31,6 +31,7 @@ dependencies = [
   "pytest-cov==7.1.*",
   "dayplot>=0.5.1",
   "ipython>=9.15.0",
+  "calendardataviz==0.2.4",
 ]
 
 [tool.setuptools.packages.find]
@@ -53,6 +54,7 @@ torch = [
 torchvision = [
   { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
+calendardataviz = { path = "../calendar-viz", editable = true }
 
 # Cooldown period for new versions of a package.
 # exclude-newer = "15 days"

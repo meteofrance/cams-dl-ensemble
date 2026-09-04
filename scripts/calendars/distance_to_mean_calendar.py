@@ -79,44 +79,18 @@ class DistanceToMeanInspector(InspectorABC):
     name = "Distance to Mean"
 
     def __init__(self) -> None:
-        self._means = load_overall_means()
+        """Load the per-date species means and compute the summary statistics.
 
-
-    def _paths_for_date(self, date: dt.date) -> Generator[Path, None, None]:
-        """Yield all NetCDF files that belong to *date*."""
-        pattern = f"**/{date.strftime('%Y_%m_%d')}*.netcdf"
-        yield from RAW_DATA_DIR.rglob(pattern)
-
-    @cache
-    def _model_species_means(self, date: dt.date) -> dict[tuple[str, str], float]:
-        """Return a mapping ``(model, species) -> mean value`` for *date*.
-
-        *model* is inferred from the immediate parent directory name of the file.
-        *species* is the variable name inside the dataset.
+        ``self._means`` maps ``date -> {"mean": overall mean distance to mean,
+        "min_distance": ..., "max_distance": ...}`` across all models/species.
         """
-        result: dict[tuple[str, str], float] = {}
-        for path in self._paths_for_date(date):
-            model = path.parent.name
-            with xr.open_dataset(path) as ds:
-                for var_name in ds.data_vars:
-                    # Compute the mean over all dimensions of the variable
-                    mean_val = float(ds[var_name].mean().item())
-                    result[(model, var_name)] = mean_val
-        return result
-
-    def _distances(self, date: dt.date) -> dict[tuple[str, str], float]:
-        """Absolute distance of each model/species mean to the date species mean."""
-        overall = overall_species_means[date]
-        per_model = self._model_species_means(date)
-        return {
-            (model, species): abs(value - overall[species])
-            for (model, species), value in per_model.items()
-        }
-
-    def _max_distance(self, date: dt.date) -> float:
-        """Maximum distance value for the given date (used for colour scaling)."""
-        distances = self._distances(date).values()
-        return max(distances) if distances else 0.0
+        self._means: dict[dt.date, dict[str, float]] = load_overall_means()
+        self.max_dist_to_mean = 0.0
+        self.min_dist_to_mean = 99999999.0
+        for _, means in self._means.items():
+            distances = [abs(v - means[s]) for s, v in means.items()]
+            self.max_dist_to_mean = max(self.max_dist_to_mean, max(distances))
+            self.min_dist_to_mean = min(self.min_dist_to_mean, min(distances))
 
     @override
     def color_for_date(self, date: dt.date) -> RichString:
@@ -125,9 +99,9 @@ class DistanceToMeanInspector(InspectorABC):
         The percentage is ``max_distance / (max_distance + 1)`` to keep the value
         in the ``0‑1`` range; this mirrors the behaviour of the dims calendar.
         """
-        max_dist = self._max_distance(date)
+        dist = max(self._means[date].values())
         # Avoid division by zero – treat zero distance as the middle of the scale
-        pct = (max_dist / (max_dist + 1)) if max_dist else 0.5
+        pct = dist + abs(self.min_dist_to_mean) / (self.max_dist_to_mean - self.min_dist_to_mean)
         if pct < 0:
             return UNDER_0_COLOR
         if pct > 1:
@@ -135,13 +109,26 @@ class DistanceToMeanInspector(InspectorABC):
         return color_from_pct(pct, RDYLGN)
 
     @override
-    def as_color_bar(self, size: int) -> list[RichString]:
+    def as_color_bar(self, size: int) -> tuple[list[RichString], list[str]]:
         """Generate a colour bar from 0 % to 100 % distance.
 
         The bar simply interpolates the colour palette; the caller decides how it
         maps to actual data values.
         """
-        return [color_from_pct(i / (size - 1), RDYLGN) for i in range(size)]
+        colors = [color_from_pct(i / (size - 1), RDYLGN) for i in range(size)]
+        step = (self.max_dist_to_mean - self.min_dist_to_mean) / size
+        labels = []
+        current = self.min_dist_to_mean
+        i = 0
+        while current <= self.max_dist_to_mean:
+            if i != size and i % 5 !=0:
+                labels.append("")
+            else:
+                labels.append(f"{current:.2f}")
+
+            current += step
+
+        return colors, labels
 
     @override
     def popup_content(self, date: dt.date) -> tuple[str, RichString]:

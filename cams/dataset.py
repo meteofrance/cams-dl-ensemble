@@ -31,6 +31,7 @@ def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
             f"{', '.join([str(f) for f in files_not_parsed])}"
         )
     run_dates = sorted(list(set(run_dates)))  # remove duplicates
+    print(f"{len(run_dates)} run dates: {run_dates[0]} to {run_dates[-1]}")
     return run_dates
 
 

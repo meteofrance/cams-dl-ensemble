@@ -53,10 +53,6 @@ can = be_multiple_lines()  # Comment explaining why
 _with = the_next_python_code_paragraph()
 ```
 
-### Respect dev context
-
-You are writting code in the mfai library, wich should be compatible for all versions of python >= 3.10. Keep it easy to maintain. This libairy is unit tested with a coverage > 85 %. When introducing new features, ensure it is tested.
-
 ### Post contribution rules
 
 After any modification to a Python file:

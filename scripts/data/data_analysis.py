@@ -1,22 +1,20 @@
 """Computes min/max of the different species on the Analysis data."""
 
-import json
-from typing import Any
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import xarray as xr
 from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
-from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
-from cams.types import LEADTIMES, MODELS_NAMES, SPECIES_NAMES, SpeciesNames
+from cams.settings import PROCESSED_DATA_DIR
+from cams.types import LEADTIMES, SPECIES_NAMES, SpeciesNames
 
 
 def compute_hourly_concentrations(
     dataset: CAMSDataset, species: list[SpeciesNames] = SPECIES_NAMES
-) -> dict[str, Any]:
+) -> dict[SpeciesNames, dict[int, float]]:
     """Computes max of hourly concentrations of pollutants over the reanalysis data.
 
     Args:
@@ -24,10 +22,13 @@ def compute_hourly_concentrations(
         species: The list of species to compute the statistics on.
 
     Returns:
-        dict: Statistics dict of shape {species: {0: X, 1: X, ..., 23: X}}.
+        dict[SpeciesNames, dict[int, float]]: Statistics dict of shape
+            {species: {0: X, 1: X, ..., 23: X}}.
     """
     # Init min and max for all species
-    stats = {spe: {hour: -np.inf for hour in range(24)} for spe in species}
+    stats: dict[SpeciesNames, dict[int, float]] = {
+        spe: {hour: -np.inf for hour in range(24)} for spe in species
+    }
 
     sample: Sample
     for sample in tqdm(dataset.samples, desc="Computing statistics"):
@@ -37,7 +38,6 @@ def compute_hourly_concentrations(
             print(e)
             print(f"Could not load sample {sample}, skipping to next sample.")
             continue
-        min_values = target.min(dim=["time", "level", "latitude", "longitude"])
         max_values = target.max(dim=["level", "latitude", "longitude"])
 
         for spe in species:
@@ -47,21 +47,18 @@ def compute_hourly_concentrations(
     return stats
 
 
-def plot_pollutants_by_hour(data: dict, figsize=(12, 6)):
+def plot_pollutants_by_hour(
+    data: dict[SpeciesNames, dict[int, float]], figsize: tuple[int, int] = (12, 6)
+) -> None:
     """Plot maximum pollutant concentrations by hour of the day.
 
-    Parameters
-    ----------
-    data : dict
-        Dictionary with the structure:
-        {
-            'CO': {0: val, 1: val, ...},
-            'NO2': {...},
-            ...
-        }
+    Args:
+        data: Dictionary with the structure
+            {species: {hour: value, ...}, ...}.
+        figsize: Matplotlib figure size.
 
-    figsize : tuple
-        Matplotlib figure size.
+    Returns:
+        None: This function displays and saves a plot; it returns nothing.
     """
     # Clean plotting style
     sns.set_style("whitegrid")
@@ -96,23 +93,19 @@ def plot_pollutants_by_hour(data: dict, figsize=(12, 6)):
     plt.savefig("pollutant_max_concentrations.png")
 
 
-def compute_target_climatology(dataset):
+def compute_target_climatology(dataset: CAMSDataset) -> xr.DataArray:
     """Compute climatological mean maps for each chemical species
     using the TARGET field from all samples.
 
-    Parameters
-    ----------
-    dataset : iterable
-        Dataset containing samples accessible through:
-            for sample in dataset.samples
+    Args:
+        dataset: Dataset containing samples accessible through
+            `for sample in dataset.samples`.
 
     Returns:
-    -------
-    xr.DataArray
-        Climatological mean with dimensions:
-        (species, latitude, longitude)
+        xr.DataArray: Climatological mean with dimensions
+            (species, latitude, longitude).
     """
-    accumulated = None
+    accumulated: xr.DataArray | None = None
     n_samples = 0
 
     for sample in tqdm(dataset.samples, desc="Computing climatology"):
@@ -141,21 +134,19 @@ def compute_target_climatology(dataset):
     return climatology
 
 
-def plot_species_climatology(climatology, cmap="RdBu_r"):
+def plot_species_climatology(climatology: xr.DataArray, cmap: str = "RdBu_r") -> None:
     """Plot climatology maps for each species.
 
-    Parameters
-    ----------
-    climatology : xr.DataArray
-        Output from compute_target_climatology()
+    Args:
+        climatology: Output from compute_target_climatology().
+        cmap: Matplotlib colormap.
 
-    cmap : str
-        Matplotlib colormap.
+    Returns:
+        None: This function displays and saves a plot; it returns nothing.
     """
     sns.set_style("white")
 
     species_list = climatology.species.values
-    n_species = len(species_list)
 
     fig, axes = plt.subplots(
         nrows=2, ncols=3, figsize=(18, 10), constrained_layout=True
@@ -192,7 +183,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Analysis data.",
     )
-    species = ["NO2", "PM10", "PM2P5", "SO2", "O3"]
+    species: list[SpeciesNames] = ["NO2", "PM10", "PM2P5", "SO2", "O3"]
 
     dataset = CAMSDataset(
         run_dates=get_run_dates(PROCESSED_DATA_DIR),

@@ -3,8 +3,7 @@
 The project's data is stored in the **dataset directory**, whose location is
 given by the `CAMS_DATASET_DIR` constant in the
 [`cams/settings.py`](../cams/settings.py) file (default
-`/scratch/shared/cams-dl-ensemble/`). The data itself is expected to live in the
-`all_from_ads` sub-folder (`RAW_DATA_DIR` in `cams/settings.py`):
+`/scratch/shared/cams-dl-ensemble/`):
 
 ```txt
 CAMS_DATASET_DIR

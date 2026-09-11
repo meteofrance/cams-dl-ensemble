@@ -25,7 +25,7 @@ from cams.types import (
 )
 
 
-def compute_sample_error(sample: Sample) -> tuple[np.array, np.array, int]:
+def compute_sample_error(sample: Sample) -> tuple[np.ndarray, np.ndarray, int]:
     """Compute the models MEA and Bias for one sample of the dataset."""
     n_models = len(sample.models)
     n_species = len(sample.species)
@@ -131,7 +131,7 @@ def plot_model_error(
         ax.set_title(spe)
         ax.set_xlabel("Lead time (h)")
         ax.set_ylabel(metric.upper())
-        ax.legend(title="Models", loc="upper left", frameon=True)
+        ax.legend(title="Models", loc="lower right", frameon=True)
 
     fig.suptitle(f"Model {metric} versus VRA", fontsize=16)
     plt.savefig(f"model_{metric}.png")

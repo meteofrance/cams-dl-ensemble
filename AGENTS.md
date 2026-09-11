@@ -53,6 +53,10 @@ can = be_multiple_lines()  # Comment explaining why
 _with = the_next_python_code_paragraph()
 ```
 
+### Respect dev context
+
+You are writting code in the cams-dl-ensemble project, wich should be compatible for python 3.12. Keep it easy to maintain. This libairy is unit tested with a coverage > 95 %. When introducing a new feature, ensure it is tested.
+
 ### Post contribution rules
 
 After any modification to a Python file:

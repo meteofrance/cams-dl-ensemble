@@ -117,7 +117,7 @@ class Sample:
         # for one species.
         # Else we get the error 'KeyError: "not all values found in index 'time'"'
         model_path = self.processed_dir / model.lower() / self.input_filename
-        data = xr.open_dataset(model_path)
+        data = xr.open_dataset(model_path, chunks={})
         data = data.sel(level=self.levels, time=self.lead_times)
         data = data.assign_coords(
             time=np.datetime64(self.date_run)
@@ -134,7 +134,7 @@ class Sample:
         """Returns the target analysis data."""
         all_species_da = {}
         for i, path in enumerate(self.target_paths):
-            data = xr.open_dataset(path)
+            data = xr.open_dataset(path, chunks={})
             data_of_interest = data.sel(time=self.valid_times)
             data_of_interest = data_of_interest[self.species[i].lower()]
             all_species_da[self.species[i]] = data_of_interest

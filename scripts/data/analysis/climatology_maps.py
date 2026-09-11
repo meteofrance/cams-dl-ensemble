@@ -6,9 +6,8 @@ import xarray as xr
 from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates
-from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR
-from cams.types import LEADTIMES, SPECIES_NAMES, SpeciesNames
+from cams.types import LEADTIMES, SpeciesNames
 
 
 def compute_target_climatology(dataset: CAMSDataset) -> xr.DataArray:

@@ -4,7 +4,6 @@ on the reanalysis data.
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import xarray as xr
 from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates

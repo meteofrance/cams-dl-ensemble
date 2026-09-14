@@ -1,9 +1,9 @@
 import datetime as dt
 from pathlib import Path
-from typing import override
 
 from calendardataviz import InspectorABC, RichString, start_app
 from calendardataviz.colors import RDYLGN, color_from_pct
+from typing_extensions import override
 
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")

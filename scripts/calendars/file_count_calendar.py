@@ -93,7 +93,7 @@ class FileCountInspector(InspectorABC):
 
 if __name__ == "__main__":
     start_app(
-        inspector_cls=FileCountInspector,
+        inspector=FileCountInspector(),
         years=[2023, 2024, 2025, 2026],
         nb_processes=8,
     )

@@ -169,7 +169,7 @@ class DimsInspector(InspectorABC):
 
 if __name__ == "__main__":
     start_app(
-        inspector_cls=DimsInspector,
+        inspector=DimsInspector(),
         years=[2024, 2025, 2026],
         nb_processes=12,
     )

@@ -40,7 +40,7 @@ class CAMSDataset(Dataset):
 
     def __init__(
         self,
-        run_dates: list[dt.datetime],
+        run_dates: list[dt.date],
         models: list[ModelsNames],
         lead_times: list[Leadtimes],
         species: list[SpeciesNames],
@@ -98,7 +98,7 @@ class CAMSDataset(Dataset):
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a CAMSDataset
 
-    run_dates: list[dt.datetime] = get_run_dates(PROCESSED_DATA_DIR)
+    run_dates: list[dt.date] = get_run_dates(PROCESSED_DATA_DIR)
     print(len(run_dates))
     dataset = CAMSDataset(
         run_dates,

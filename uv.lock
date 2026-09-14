@@ -245,21 +245,16 @@ wheels = [
 
 [[package]]
 name = "calendardataviz"
-source = { editable = "../calendar-viz" }
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ffcount" },
     { name = "pytermtk" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "ffcount", specifier = ">=0.2.3" },
-    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = ">=1.1.411" },
-    { name = "pytermtk", specifier = ">=0.50.0a0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.1" },
+sdist = { url = "https://files.pythonhosted.org/packages/aa/48/741a988f31fe58df4c2629802e187db357239590ec29ecafa3ccb79d4e07/calendardataviz-0.3.0.tar.gz", hash = "sha256:b7d36d69dcd6efccea4817196184004329ab923a8a50690bfcf2207159ce97fe", size = 25986, upload-time = "2026-09-07T12:37:55.275Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b2/9f/7943ed90e72e821da58513ad1e4bc86d695153c283c9938db1d2465db232/calendardataviz-0.3.0-py3-none-any.whl", hash = "sha256:a91d5ac47ad2debe9263b0cc41fd53dfce623477beb598f8c30117f2d9b3484e", size = 25605, upload-time = "2026-09-07T12:37:54.029Z" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "cams-dl-ensemble"
@@ -292,7 +287,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "calendardataviz", editable = "../calendar-viz" },
+    { name = "calendardataviz", specifier = "==0.3.0" },
     { name = "cartopy", specifier = "==0.25.*" },
     { name = "cfgrib", specifier = "==0.9.15.1" },
     { name = "dayplot", specifier = ">=0.5.1" },

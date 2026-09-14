@@ -5,7 +5,7 @@ import pytest
 import xarray as xr
 
 from cams.sample import Sample
-from cams.types import Levels
+from cams.types import Leadtimes
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
 
 
@@ -17,17 +17,19 @@ from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
         (dt.date(2023, 12, 31), 96),
     ],
 )
-def test_sample_creation(run_date: dt.date, lead_time: Levels):
+def test_sample_creation(run_date: dt.date, lead_time: Leadtimes):
     sample = Sample(
         run_date,
         models=["CHIMERE", "MOCAGE"],
-        lead_times=[lead_time], # pyright: ignore[reportArgumentType]
+        lead_times=[lead_time],
         species=["O3"],
         levels=[0],
     )
     assert sample.date_run == run_date
     assert sample.lead_times == [lead_time]
-    expected_valid_times = [run_date + dt.timedelta(hours=lead_time)]
+    expected_valid_times = [
+        dt.datetime.combine(run_date, dt.time()) + dt.timedelta(hours=lead_time)
+    ]
     assert sample.valid_times == expected_valid_times
 
 

@@ -40,7 +40,10 @@ class Sample:
         self.date_run = date_run
         self.models = models
         self.lead_times = lead_times
-        self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
+        self.valid_times = [
+            dt.datetime.combine(self.date_run, dt.time()) + dt.timedelta(hours=lt)
+            for lt in lead_times
+        ]
         self.species = species
         self.levels = levels
         self.processed_dir = processed_dir

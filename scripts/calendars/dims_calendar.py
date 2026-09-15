@@ -24,13 +24,16 @@ class DimsInspector(InspectorABC):
     signatures are found.
     """
 
-    name = "Dimentions"
+    name = "Dimensions"
 
     def _paths_for_date(self, date: dt.date) -> Generator[Path, None, None]:
-        """Yield all NetCDF files for *date*.
+        """Returns the files associated with the given date.
 
-        Uses a glob pattern matching the date prefix (YYYY_MM_DD) anywhere
-        under :data:`RAW_DATA_DIR`.
+        Args:
+            date: Date for wich to return paths.
+        
+        Yields:
+            Path: Paths to the different files associated to the given date.
         """
         pattern = f"**/{date.strftime('%Y_%m_%d')}*.netcdf"
         yield from RAW_DATA_DIR.rglob(pattern)
@@ -39,11 +42,16 @@ class DimsInspector(InspectorABC):
     def _dims_info_for_date(
         self, date: dt.date
     ) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
-        """Return mappings of coordinate/variable signatures to subdirectory names.
+        """Return mappings of coordinate/variable string representation to
+        model names. Cached to avoid opening multiple times the same netcdf
+        file.
 
-        The result is cached because the underlying NetCDF files are immutable
-        during a single run. Each key is the stringified signature, and the value
-        is the set of immediate parent directory names that contain that file.
+        Args:
+            date: Date for wich to return dimension informations.
+        
+        Returns:
+            dict[str, set[str]]: {coordinates: set of model names}
+            dict[str, set[str]]: {variables: set of model names}
         """
         coords_map: dict[str, set[str]] = defaultdict(set)
         vars_map: dict[str, set[str]] = defaultdict(set)
@@ -56,15 +64,27 @@ class DimsInspector(InspectorABC):
     def _pct_for_date(self, date: dt.date) -> float:
         """Calculate a quality percentage for *date*.
 
-        The metric is ``(11 - max(num_coords, num_variables)) / 10`` which
-        yields a float where values below 0 or above 1 are considered out of
-        range.
+        The percentage represents the similarity between the files for a date.
+        If all the files have the same coordinates and variables, returns 1.
+        if all the files have different coordinates and variables, returns 0.
+
+        Args:
+            date: Date for wich to return a percentage.
+
+        Returns:
+            float: Percentage in [0, 1] of similarity between files for a date.
         """
+
+        # Get the number of distinct coordinate and variable signatures
         coords_map, vars_map = self._dims_info_for_date(date)
-        # Number of distinct coordinate and variable signatures
-        num_coords = len(coords_map)
-        num_vars = len(vars_map)
-        return (11 - max(num_coords, num_vars)) / 10
+        nb_different_coords_variables = max(len(coords_map), len(vars_map))
+
+        # Represent the number of different files as a percentage.
+        # If all our files have the same coordinates and variables, we have
+        # nb_different_coords_variables = 1 -> 100%.
+        # If all our files have different coordinates and/or variables:
+        # nb_different_coords_variables = 11 -> 0%
+        return (11 - nb_different_coords_variables) / 10
 
     @override
     def color_for_date(self, date: dt.date) -> RichString:
@@ -107,14 +127,20 @@ class DimsInspector(InspectorABC):
 
     @override
     def popup_content(self, date: dt.date) -> tuple[str, RichString]:
-        """Return the information displayed when a date is selected.
+        """Returns the popup's title and content displayed when clicking a date.
+
+        The pop-up window's content displays the different coordinates and
+        variables present in the files for a date. They are displayed with
+        Alternating grey background color to differentiate successive entries,
+        and if there are more than one coordinate or variable, the differences
+        between them are highlighted with a red background.
 
         Args:
             date: Date selected.
 
         Returns:
             str: The pop-up window title.
-            str: The pop-up window content.
+            RichString: The pop-up window content.
         """
 
         # Define the title
@@ -132,11 +158,16 @@ class DimsInspector(InspectorABC):
 
         # Helper to render a block (coordinates or variables)
         def _render_block(items: dict[str, set[str]], offset: int = 0) -> RichString:
-            """Return a RichString representing the formatted block.
+            """Returns a RichString representing the formatted block.
 
             *items* maps a signature string to the set of subdirectory names that
             contain it. *offset* is added to the block index to keep background
             colours alternating correctly when rendering multiple blocks.
+
+            Args:
+                items:  {representation of a coord or variable: set of model names}.
+                offset: The position offset, necessary for consistent background color
+                    alternating.
             """
             block_content = RichString("")
             split_keys = [key.split(" ") for key in items]

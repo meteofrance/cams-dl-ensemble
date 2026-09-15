@@ -20,7 +20,7 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
         tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
     )
 
-    dates = [dt.datetime(2022, 7, day).date() for day in range(1, 32)]
+    dates = [dt.date(2022, 7, day) for day in range(1, 32)]
 
     dm = CAMSDataModule(
         batch_size=4,
@@ -108,9 +108,9 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
         lead_times=[15],
         species=["O3"],
         levels=[0],
-        start_date=dt.datetime(2022, 1, 2).date(),
+        start_date=dt.date(2022, 1, 2),
         val_days=4,
-        end_date=dt.datetime(2022, 1, 31).date(),
+        end_date=dt.date(2022, 1, 31),
     )
     assert len(dm.train_dates) == len(dates) - 4 - 4
     assert len(dm.val_dates) == 4

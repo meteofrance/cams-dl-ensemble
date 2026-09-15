@@ -19,7 +19,7 @@ def test_cams_dataset_creation(tmp_dataset_dir: Path):
         tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
     )
 
-    dates = [dt.datetime(2022, 7, i).date() for i in range(1, 32)]
+    dates = [dt.date(2022, 7, i) for i in range(1, 32)]
 
     dataset = CAMSDataset(
         dates,
@@ -63,7 +63,7 @@ def test_cams_dataset_no_valid_samples(tmp_dataset_dir: Path):
         tmp_dataset_dir / "mocage/CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
     )
 
-    dates = [dt.datetime(2023, 1, i).date() for i in range(1, 32)]
+    dates = [dt.date(2023, 1, i) for i in range(1, 32)]
 
     dataset = CAMSDataset(
         dates,
@@ -91,7 +91,7 @@ def test_get_run_dates(tmp_dataset_dir: Path):
     )
 
     run_dates = get_run_dates(tmp_dataset_dir)
-    assert run_dates == [dt.datetime(2022, 7, i).date() for i in range(1, 32)]
+    assert run_dates == [dt.date(2022, 7, i) for i in range(1, 32)]
 
 
 def test_cams_dataset_empty_dates(tmp_dataset_dir: Path):

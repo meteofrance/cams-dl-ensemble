@@ -1,6 +1,6 @@
 """Lightning CLI for CAMS training."""
 
-from lightning.pytorch.cli import LightningCLI
+from lightning.pytorch.cli import LightningArgumentParser, LightningCLI
 from typing_extensions import override
 
 
@@ -13,10 +13,17 @@ class CAMSLightningCLI(LightningCLI):
     """
 
     @override
-    def after_instantiate_classes(self) -> None:
+    def add_arguments_to_parser(self, parser: LightningArgumentParser) -> None:
         """Copy the data selection arguments from the datamodule to the module."""
-        super().after_instantiate_classes()
-        self.model.models = self.datamodule.models
-        self.model.lead_times = self.datamodule.lead_times
-        self.model.species = self.datamodule.species
-        self.model.levels = self.datamodule.levels
+        parser.link_arguments(
+            source="data.lead_times",
+            target="model.lead_times",
+        )
+        parser.link_arguments(
+            source="data.species",
+            target="model.species",
+        )
+        parser.link_arguments(
+            source="data.levels",
+            target="model.levels",
+        )

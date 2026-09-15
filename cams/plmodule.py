@@ -40,16 +40,12 @@ class CAMSLightningModule(LightningModule):
         self,
         model: BaseModel | ModelABC,
         loss: torch.nn.Module,
-        # We don't use ModelsNames type because of jsonargparse error:
-        # "Parser key 'model.models': Cannot take a Union of no types".
-        # Default to None: the CLI maps these values from the datamodule after
-        # instantiation, so they are not required at parse time.
-        models: list[str] | None = None,
-        lead_times: list[Leadtimes] | None = None,
-        species: list[SpeciesNames] | None = None,
-        levels: list[Levels] | None = None,
+        lead_times: list[Leadtimes],
+        species: list[SpeciesNames],
+        levels: list[Levels],
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
+        val_leadtimes: list[Leadtimes] = [3, 9, 15, 21, 39, 63, 87],
     ) -> None:
         """CAMS lightning module
 
@@ -71,10 +67,16 @@ class CAMSLightningModule(LightningModule):
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
 
-        self.models = models
-        self.lead_times = lead_times
         self.species = species
         self.levels = levels
+        self.lead_times = lead_times
+        self.val_leadtimes = val_leadtimes
+        if not all(val_leadtime in self.lead_times for val_leadtime in val_leadtimes):
+            raise ValueError(
+                "Requested validation leadtimes are not all present in the "
+                f"selected leadtimes\n\tleadtimes: {lead_times}\n\t"
+                f"validation leadtimes: {val_leadtimes}"
+            )
 
     ####################################################################################
     #                                      SETUP                                       #
@@ -103,17 +105,20 @@ class CAMSLightningModule(LightningModule):
             [
                 MetricCollection(
                     [MeanSquaredError(squared=False), MeanAbsoluteError()]
-                ),
+                )
+            ] + [
                 MetricCollection(
                     [
-                        Accuracy("TARGET - O3 - +15h - 0m", threshold=120),
-                        F1Score("TARGET - O3 - +15h - 0m", threshold=120),
-                        FalseAlarmRate("TARGET - O3 - +15h - 0m", threshold=120),
-                        FalsePositiveRate("TARGET - O3 - +15h - 0m", threshold=120),
+                        Accuracy(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
+                        F1Score(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
+                        FalseAlarmRate(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
+                        FalsePositiveRate(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
                     ],
-                    prefix="O3-15h-0m/",
+                    prefix=f"{species}-{leadtime}h-0m/",
                     postfix="_120",
-                ),
+                )
+                for species in self.species
+                for leadtime in self.val_leadtimes
             ]
         )
         return metrics

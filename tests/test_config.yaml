@@ -41,6 +41,8 @@ model:
   loss:
     class_path: torch.nn.MSELoss
   training_mode: classic  # y = f(x)
+  val_leadtimes:
+    - 15
 
 data:
   models:

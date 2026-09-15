@@ -3,6 +3,7 @@ from typing import cast
 import pytest
 import torch
 from mfai.pytorch.models.half_unet import HalfUNet
+from mfai.pytorch.namedtensor import NamedTensor
 from torchmetrics import MetricCollection
 
 from cams.plmodule import CAMSLightningModule
@@ -137,3 +138,67 @@ def test_get_metrics_all_species_cross_product(
     names = metric_names(module.metrics)
     accuracy_keys = [name for name in names if name.endswith("/Accuracy_120")]
     assert len(accuracy_keys) == 4
+
+
+def test_get_metrics_compute_groups_do_not_share_state(
+    model: HalfUNet, loss: torch.nn.Module
+) -> None:
+    """Metrics across species/leadtimes keep independent states and values.
+
+    With the default ``compute_groups=True``, torchmetrics merges metrics whose
+    binary states coincide into a single compute group, sharing their state by
+    reference and only updating the group's first member. That silently forces
+    every merged species/leadtime metric to report the same value. The metrics
+    must be built with ``compute_groups=False`` to keep them independent.
+    """
+
+    module = instantiate(
+        model,
+        loss,
+        lead_times=[3, 9],
+        species=["O3", "NO2"],
+        levels=[0],
+        val_leadtimes=[3, 9],
+    )
+    metrics = module.get_metrics()
+    assert metrics.compute_groups == {}
+
+    features = [
+        "TARGET - O3 - +3h - 0m",
+        "TARGET - O3 - +9h - 0m",
+        "TARGET - NO2 - +3h - 0m",
+        "TARGET - NO2 - +9h - 0m",
+    ]
+    names = ["batch", "features", "x", "y"]
+
+    def _update(
+        preds: list[float],
+        targets: list[float],
+        subsample: int = 4,
+    ) -> None:
+        """Feed ``subsample`` batches of identical spatially uniform data."""
+        spatial = torch.Size([subsample, 4, 4])
+
+        def _build(values: list[float]) -> torch.Tensor:
+            features_t = torch.stack(
+                [torch.full(spatial, value, dtype=torch.float32) for value in values]
+            )
+            return features_t.permute(1, 0, 2, 3).contiguous()
+
+        metrics.update(
+            NamedTensor(_build(preds), names=names, feature_names=features),
+            NamedTensor(_build(targets), names=names, feature_names=features),
+        )
+
+    # Phase 1: every feature has identical binary state. Under compute_groups=True
+    # this is what makes torchmetrics merge the metrics into one compute group.
+    _update([200.0] * 4, [200.0] * 4, subsample=2)
+    # Phase 2: NO2 targets stay high while O3 targets drop, so NO2 accuracy must
+    # not be equal to O3 accuracy.
+    _update([200.0] * 4, [0.0, 0.0, 200.0, 200.0], subsample=2)
+
+    output = metrics.compute()
+    o3_acc = float(output["O3-3h-0m/Accuracy_120"])
+    no2_acc = float(output["NO2-3h-0m/Accuracy_120"])
+    assert no2_acc == 1.0
+    assert o3_acc != no2_acc

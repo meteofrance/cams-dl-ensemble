@@ -130,8 +130,9 @@ class CAMSLightningModule(LightningModule):
                 )
                 for species in self.species
                 for leadtime in self.val_leadtimes
-                if (threshold:=SPECIES_THRESHOLDS[species]) is not None
-            ]
+                if (threshold := SPECIES_THRESHOLDS[species]) is not None
+            ],
+            compute_groups=False,
         )
         return metrics
 

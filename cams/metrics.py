@@ -8,8 +8,8 @@ from torch import Tensor
 from torchmetrics import Metric
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score
 from typing_extensions import override
-from cams.types import SpeciesNames
 
+from cams.types import SpeciesNames
 
 SPECIES_THRESHOLDS: dict[SpeciesNames, float | None] = {
     "O3": 120,

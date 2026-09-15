@@ -15,6 +15,7 @@ from torchmetrics import MetricCollection
 from typing_extensions import override
 
 from cams.metrics import (
+    SPECIES_THRESHOLDS,
     Accuracy,
     F1Score,
     FalseAlarmRate,
@@ -108,16 +109,20 @@ class CAMSLightningModule(LightningModule):
                 MetricCollection(
                     [
                         Accuracy(
-                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
                         ),
                         F1Score(
-                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
                         ),
                         FalseAlarmRate(
-                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
                         ),
                         FalsePositiveRate(
-                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
                         ),
                     ],
                     prefix=f"{species}-{leadtime}h-0m/",
@@ -125,6 +130,7 @@ class CAMSLightningModule(LightningModule):
                 )
                 for species in self.species
                 for leadtime in self.val_leadtimes
+                if (threshold:=SPECIES_THRESHOLDS[species]) is not None
             ]
         )
         return metrics

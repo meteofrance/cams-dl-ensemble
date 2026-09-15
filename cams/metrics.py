@@ -8,6 +8,33 @@ from torch import Tensor
 from torchmetrics import Metric
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score
 from typing_extensions import override
+from cams.types import SpeciesNames
+
+
+SPECIES_THRESHOLDS: dict[SpeciesNames, float | None] = {
+    "O3": 120,
+    "CO": 10,
+    "NO2": 40,
+    "SO2": 50,
+    "NO": None,
+    "PM2P5": 10,
+    "PM10": 30,
+    "NH3": None,
+    "NMVOC": None,
+    "PANS": None,
+    "SIA": None,
+    "DUST": None,
+    "PM_WF": None,
+    "EC_TOT": None,
+    "EC_RES": None,
+    "HCHO": None,
+    "CHOCHO": None,
+    "DYNSAL": None,
+    "PM25_OM": None,
+    "NO3_DRY": None,
+    "NH4_DRY": None,
+    "SO4_DRY": None,
+}
 
 
 class MeanSquaredError(tm.MeanSquaredError):

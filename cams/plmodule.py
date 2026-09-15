@@ -58,15 +58,14 @@ class CAMSLightningModule(LightningModule):
             levels: Levels loaded in the dataset.
             learning_rate: The optimizer's learning rate. Defaults to 0.0001.
             training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
+            val_leadtimes: Leadtimes used for validation metrics. Must be a subset
+                of ``lead_times``. Defaults to [3, 9, 15, 21, 39, 63, 87].
         """
         super().__init__()
         self.model = model
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
-        self.metrics = self.get_metrics()
-        self.save_hyperparameters()
-
         self.species = species
         self.levels = levels
         self.lead_times = lead_times
@@ -77,6 +76,8 @@ class CAMSLightningModule(LightningModule):
                 f"selected leadtimes\n\tleadtimes: {lead_times}\n\t"
                 f"validation leadtimes: {val_leadtimes}"
             )
+        self.metrics = self.get_metrics()
+        self.save_hyperparameters()
 
     ####################################################################################
     #                                      SETUP                                       #
@@ -102,17 +103,22 @@ class CAMSLightningModule(LightningModule):
     def get_metrics(self) -> MetricCollection:
         """Defines the metrics that will be computed during train and valid steps."""
         metrics = MetricCollection(
-            [
-                MetricCollection(
-                    [MeanSquaredError(squared=False), MeanAbsoluteError()]
-                )
-            ] + [
+            [MetricCollection([MeanSquaredError(squared=False), MeanAbsoluteError()])]
+            + [
                 MetricCollection(
                     [
-                        Accuracy(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
-                        F1Score(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
-                        FalseAlarmRate(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
-                        FalsePositiveRate(f"TARGET - {species} - +{leadtime}h - 0m", threshold=120),
+                        Accuracy(
+                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                        ),
+                        F1Score(
+                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                        ),
+                        FalseAlarmRate(
+                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                        ),
+                        FalsePositiveRate(
+                            f"TARGET - {species} - +{leadtime}h - 0m", threshold=120
+                        ),
                     ],
                     prefix=f"{species}-{leadtime}h-0m/",
                     postfix="_120",

@@ -28,7 +28,10 @@ def test_sample_creation(run_date: dt.date, lead_time: Leadtimes):
     assert sample.date_run == run_date
     assert sample.lead_times == [lead_time]
     expected_valid_times = [
-        dt.datetime.combine(run_date, dt.time()) + dt.timedelta(hours=lead_time)
+        (
+            dt.datetime(run_date.year, run_date.month, run_date.day, 0, 0, 0)
+            + dt.timedelta(hours=lead_time)
+        )
     ]
     assert sample.valid_times == expected_valid_times
 

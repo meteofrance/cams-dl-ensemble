@@ -41,7 +41,10 @@ class Sample:
         self.models = models
         self.lead_times = lead_times
         self.valid_times = [
-            dt.datetime.combine(self.date_run, dt.time()) + dt.timedelta(hours=lt)
+            (
+                dt.datetime(date_run.year, date_run.month, date_run.day, 0, 0, 0)
+                + dt.timedelta(hours=lt)
+            )
             for lt in lead_times
         ]
         self.species = species

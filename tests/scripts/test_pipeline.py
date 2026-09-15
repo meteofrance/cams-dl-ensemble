@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from lightning.pytorch.cli import LightningCLI
-
+from cams.cli import CAMSLightningCLI
 from cams.datamodule import CAMSDataModule
 from cams.plmodule import CAMSLightningModule
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
@@ -17,7 +16,7 @@ def fit_model(args: list[str] | None = None) -> None | Path:
     """
     # Create cli object with `run=False` to parse and instantiate
     # LightningModule and DataModule, but not run subcommands
-    cli = LightningCLI(
+    cli = CAMSLightningCLI(
         model_class=CAMSLightningModule,
         datamodule_class=CAMSDataModule,
         save_config_kwargs={"overwrite": True},

@@ -24,6 +24,7 @@ from cams.metrics import (
 )
 from cams.plots import plot_y_vs_yhat_vs_median
 from cams.transforms import ExtractInputStatisticalFeatures
+from cams.types import Leadtimes, Levels, SpeciesNames
 
 
 class CAMSLightningModule(LightningModule):
@@ -39,6 +40,14 @@ class CAMSLightningModule(LightningModule):
         self,
         model: BaseModel | ModelABC,
         loss: torch.nn.Module,
+        # We don't use ModelsNames type because of jsonargparse error:
+        # "Parser key 'model.models': Cannot take a Union of no types".
+        # Default to None: the CLI maps these values from the datamodule after
+        # instantiation, so they are not required at parse time.
+        models: list[str] | None = None,
+        lead_times: list[Leadtimes] | None = None,
+        species: list[SpeciesNames] | None = None,
+        levels: list[Levels] | None = None,
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
     ) -> None:
@@ -47,6 +56,10 @@ class CAMSLightningModule(LightningModule):
         Args:
             model: A model inheriting from mfai.BaseModel
             loss: The loss function.
+            models: Models loaded in the dataset.
+            lead_times: Leadtimes loaded in the dataset.
+            species: Species loaded in the dataset.
+            levels: Levels loaded in the dataset.
             learning_rate: The optimizer's learning rate. Defaults to 0.0001.
             training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
         """
@@ -57,6 +70,11 @@ class CAMSLightningModule(LightningModule):
         self.training_mode = training_mode
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
+
+        self.models = models
+        self.lead_times = lead_times
+        self.species = species
+        self.levels = levels
 
     ####################################################################################
     #                                      SETUP                                       #

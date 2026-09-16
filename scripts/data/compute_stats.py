@@ -9,11 +9,11 @@ from tqdm import tqdm
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
-from cams.types import LEADTIMES, MODELS_NAMES, SPECIES_NAMES, SpeciesNames
+from cams.types import LEADTIMES, MODELS_NAMES, SPECIES_NAMES, ModelsNames, SpeciesNames
 
 
 def compute_stats(
-    dataset: CAMSDataset, species: list[SpeciesNames] = SPECIES_NAMES
+    dataset: CAMSDataset, species: list[SpeciesNames]
 ) -> dict[str, Any]:
     """Computes min/max over the reanalysis data.
 
@@ -28,7 +28,7 @@ def compute_stats(
     stats = {spe: {"min": np.inf, "max": -np.inf} for spe in species}
 
     sample: Sample
-    for sample in tqdm(dataset.samples, desc="Computing statistics"):
+    for sample in tqdm(dataset.samples, desc="Computing statistics", total=len(dataset)):
         print(sample.data)
         try:
             target = sample.data["TARGET"]
@@ -56,18 +56,21 @@ if __name__ == "__main__":
         description="Computes min/max of the different species on the Analysis data.",
     )
 
+    species: list[SpeciesNames] = ["CO", "NO2", "PM10", "PM2P5", "SO2", "O3"]
+
     # Compute stats
     stats = compute_stats(
         dataset=CAMSDataset(
             run_dates=get_run_dates(PROCESSED_DATA_DIR),
-            models=MODELS_NAMES,
+            models=[MODELS_NAMES[0]],
             # We compute the stats on the reanalysis,
             # so we only need the first 24h of a sample
             # Else we will have overlaps with next sample, and compute some stats twice
             lead_times=LEADTIMES[:24],
-            species=SPECIES_NAMES,
+            species=species,
             levels=[0],
-        )
+        ),
+        species=species,
     )
     for k, v in stats.items():
         print(k, v)

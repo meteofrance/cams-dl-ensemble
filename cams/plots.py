@@ -89,10 +89,10 @@ def plot_sample(
 
     Args:
         sample: Sample we want to plot.
-        save_path: The folder where the plot will be saved.
+        save_path: Path to either a directory or file.
         species: The name of the species to plot.
-        lead_time: the forecast lead time to plot.
-        level: the atmosphere level to plot.
+        lead_time: The forecast lead time to plot.
+        level: The atmosphere level to plot.
     """
     vmin, vmax = get_vmin_vmax(species)
     valid_time = sample.date_run + dt.timedelta(hours=lead_time)
@@ -101,7 +101,7 @@ def plot_sample(
     # Compute and add median to xr.dataset
     model_vars = [v for v in ds.data_vars if v != "Reanalyse"]
     median = xr.concat([ds[v] for v in model_vars], dim="model").median(dim="model")
-    ds["median"] = median
+    ds["MEDIAN"] = median
 
     # Create the different subfigures
     scale = 2.5
@@ -118,13 +118,12 @@ def plot_sample(
     ax: Axes
     for cell_name, ax in axs.items():
         # Plot data to their cell
-        model = cell_name.lower()
-        if model in ds.data_vars:
+        if cell_name in ds.data_vars:
             img = ax.imshow(
-                ds[model].values, cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT
+                ds[cell_name].values, cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT
             )
         else:
-            warnings.warn(f"Var {model} not available in dataset.")
+            warnings.warn(f"Var {cell_name} not available in dataset.")
 
         # Format axis and titles
         if cell_name == "MEDIAN":
@@ -143,8 +142,10 @@ def plot_sample(
     title = f"{species} - Run {run_str} - Leadtime +{lead_time}h - Level {level}m"
     fig.suptitle(title, size=16)
 
-    filename = f"{run_str}_{lead_time}h_{species}_{level}.png"
-    plt.savefig(save_path / filename)
+    if save_path.is_dir():
+        filename = f"{run_str}_{lead_time}h_{species}_{level}.png"
+        save_path /= filename
+    plt.savefig(save_path)
     plt.close()
 
 

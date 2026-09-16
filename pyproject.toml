@@ -140,7 +140,7 @@ verboseOutput = true
 reportMissingImports = "error"
 reportMissingTypeStubs = false
 
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 pythonPlatform = "Linux"
 
 useLibraryCodeForTypes = true

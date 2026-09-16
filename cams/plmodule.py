@@ -1,6 +1,7 @@
+from itertools import product
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import torch
 from lightning import LightningModule
@@ -41,12 +42,15 @@ class CAMSLightningModule(LightningModule):
         self,
         model: BaseModel | ModelABC,
         loss: torch.nn.Module,
-        lead_times: list[Leadtimes],
-        species: list[SpeciesNames],
-        levels: list[Levels],
+        # We don't use Leadtimes, SpeciesNames and Levels types
+        # because of jsonargparse error:
+        # "Parser key 'data.models': Cannot take a Union of no types".
+        lead_times: list[int],
+        species: list[str],
+        levels: list[int],
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
-        val_leadtimes: list[Leadtimes] = [3, 9, 15, 21, 39, 63, 87],
+        val_leadtimes: list[int] = [3, 9, 15, 21, 39, 63, 87],
     ) -> None:
         """CAMS lightning module
 
@@ -67,10 +71,10 @@ class CAMSLightningModule(LightningModule):
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
-        self.species = species
-        self.levels = levels
-        self.lead_times = lead_times
-        self.val_leadtimes = val_leadtimes
+        self.species = cast(list[SpeciesNames], species)
+        self.levels = cast(list[Levels], levels)
+        self.lead_times = cast(list[Leadtimes], lead_times)
+        self.val_leadtimes = cast(list[Leadtimes], val_leadtimes)
         if not all(val_leadtime in self.lead_times for val_leadtime in val_leadtimes):
             raise ValueError(
                 "Requested validation leadtimes are not all present in the "
@@ -126,7 +130,7 @@ class CAMSLightningModule(LightningModule):
                         ),
                     ],
                     prefix=f"{species}-{leadtime}h-0m/",
-                    postfix="_120",
+                    postfix=f"_{threshold}",
                 )
                 for species in self.species
                 for leadtime in self.val_leadtimes
@@ -227,9 +231,10 @@ class CAMSLightningModule(LightningModule):
         if (
             # Skip  if no mlflow logger
             not isinstance(self.logger, MLFlowLogger)
-            # Only plot every 15 epochs and the 2 last epochs
+            # Only plot every 15 epochs and the 2 last epochs but not the first
             or (
                 self.trainer.max_epochs is not None
+                and self.trainer.current_epoch == 0
                 and self.trainer.current_epoch % 15 != 0
                 and self.trainer.current_epoch != self.trainer.max_epochs
                 and self.trainer.current_epoch != self.trainer.max_epochs - 1
@@ -241,28 +246,40 @@ class CAMSLightningModule(LightningModule):
         ):
             return
 
-        # Open temporary file
-        with NamedTemporaryFile(
-            prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
-        ) as file:
-            # First save the plot in a temporary PNG file
-            plot_y_vs_yhat_vs_median(
-                x.select_dim("batch", 0),
-                y.select_dim("batch", 0),
-                y_hat.select_dim("batch", 0),
-                Path(file.name),
-                f"Epoch {self.trainer.current_epoch}",
-            )
-
-            # Then open the image with PIL and log it in mlflow
-            with Image.open(file.name) as img:
-                mlf_logger: MlflowClient = self.logger.experiment
-                mlf_logger.log_image(
-                    self.logger.run_id,
-                    image=img,
-                    key="val_plot",
-                    step=self.current_epoch,
+        def _log_graph(species: SpeciesNames, lead_time: Leadtimes, level: Levels) -> None:
+            # Open temporary file
+            with NamedTemporaryFile(
+                prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
+            ) as file:
+                # First save the plot in a temporary PNG file
+                plot_y_vs_yhat_vs_median(
+                    x=x.select_dim("batch", 0),
+                    y=y.select_dim("batch", 0),
+                    y_hat=y_hat.select_dim("batch", 0),
+                    save_path=Path(file.name),
+                    title=f"Epoch {self.trainer.current_epoch}, {species=}, {lead_time=}, {level=}",
+                    species=species,
+                    lead_time=lead_time,
+                    level=level,
                 )
+
+                # Then open the image with PIL and log it in mlflow
+                with Image.open(file.name) as img:
+                    mlf_logger: MlflowClient = self.logger.experiment
+                    mlf_logger.log_image(
+                        self.logger.run_id,
+                        image=img,
+                        key="val_plot",
+                        step=self.current_epoch,
+                    )
+
+        # Log for every species, every val_leadtime and level 0
+        for species, lead_time, level in product(self.species, self.val_leadtimes, [0]):
+            _log_graph(
+                species,
+                lead_time,
+                level,
+            )
 
     @override
     def validation_step(

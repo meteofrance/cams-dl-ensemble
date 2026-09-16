@@ -61,7 +61,7 @@ if not sample.is_valid:
 
 pbar = tqdm(species, desc="Plotting...")
 for species_name in pbar:
-    save_path = args.save_dir / f"{date.strftime('%Y-%m-%d_O3')}_{species_name}.png"
+    save_path = args.save_dir / f"{date.strftime('%Y-%m-%d')}_{species_name}.png"
     plot_sample(
         sample=sample,
         save_path=save_path,

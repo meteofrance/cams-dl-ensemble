@@ -242,7 +242,7 @@ def plot_y_vs_yhat_vs_median(
     format_axis(axs_pred_med[0], "AI Prediction")
 
     models_tensors = [
-        x[fname][0] for fname in x.feature_names if feature_substr in fname
+        x[fname][0].cpu() for fname in x.feature_names if feature_substr in fname
     ]
     median = torch.stack(models_tensors).median(dim=0).values
     axs_pred_med[1].imshow(median, **plot_kwargs)

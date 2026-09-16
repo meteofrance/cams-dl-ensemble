@@ -43,12 +43,12 @@ def compute_monthly_concentrations(
             continue
         month = sample.date_run.month
         for spe in species:
-            value = float(target.sel(species=spe).isel(time=hour).mean())
+            value = float(target.sel(species=spe).mean())
             stats[spe][month] += value
             counts[spe][month] += 1
 
     for spe in species:
-        for month in range(24):
+        for month in range(1, 13):
             stats[spe][month] /= counts[spe][month]
     return stats
 
@@ -89,24 +89,29 @@ def plot_pollutants_by_month(
         )
 
     # Figure formatting
-    plt.xticks(range(24))
+    plt.xticks(range(1, 13))
     plt.ylim(bottom=1)
-    plt.xlabel("Hour of the day")
+    plt.xlabel("Month")
     plt.ylabel("Mean concentration")
-    plt.title("Hourly evolution of mean pollutant concentrations")
+    plt.title("Monthly evolution of mean pollutant concentrations")
     plt.legend(title="Pollutants", bbox_to_anchor=(1.02, 1), loc="upper left")
     plt.tight_layout()
 
     species_str = "-".join(data.keys())
-    plt.savefig(f"pollutant_mean_concentrations_{species_str}.png")
+    plt.savefig(f"pollutant_mean_month_concentrations_{species_str}.png")
 
 
 if __name__ == "__main__":
-    # species: list[SpeciesNames] = ["NO2", "PM10", "PM2P5", "SO2"]
-    species: list[SpeciesNames] = ["CO"]
+    import datetime as dt
+
+    species: list[SpeciesNames] = ["CO", "O3", "NO2", "PM10", "PM2P5", "SO2"]
+    run_dates = get_run_dates(PROCESSED_DATA_DIR)
+
+    # Dates when VRA is available
+    run_dates = [date for date in run_dates if date < dt.datetime(2025, 1, 1)]
 
     dataset = CAMSDataset(
-        run_dates=get_run_dates(PROCESSED_DATA_DIR),
+        run_dates=run_dates,
         models=["MOCAGE"],
         # We compute the stats on the reanalysis,
         # so we only need the first 24h of a sample

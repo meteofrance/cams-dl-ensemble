@@ -270,16 +270,16 @@ class CAMSLightningModule(LightningModule):
 
                 # Then open the image with PIL and log it in mlflow
                 with Image.open(file.name) as img:
-                    mlf_logger: MlflowClient = self.logger.experiment
+                    mlf_logger: MlflowClient = self.logger.experiment  # type: ignore[reportAttributeAccessIssue]
                     mlf_logger.log_image(
-                        self.logger.run_id,
+                        self.logger.run_id,  # type: ignore[reportAttributeAccessIssue]
                         image=img,
                         key="val_plot",
                         step=self.current_epoch,
                     )
 
         # Log for every species, every val_leadtime and level 0
-        for species, lead_time, level in product(self.species, self.val_leadtimes, [0]):
+        for species, lead_time, level in product(self.species, self.val_leadtimes, self.levels):
             _log_graph(
                 species,
                 lead_time,

@@ -6,10 +6,10 @@ Example:
     python scripts/data/analysis/model_error.py --metric bias --species O3 NO2
 """
 
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import xarray as xr
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
@@ -27,7 +27,7 @@ from cams.types import (
 
 def compute_sample_error(sample: Sample) -> tuple[np.ndarray, np.ndarray, int]:
     """Compute the models MEA and Bias for one sample of the dataset."""
-    n_models = len(sample.models)
+    n_models = len(sample.models) + 1  # +1 for median
     n_species = len(sample.species)
     n_lt = len(sample.lead_times)
     try:
@@ -40,9 +40,13 @@ def compute_sample_error(sample: Sample) -> tuple[np.ndarray, np.ndarray, int]:
             np.zeros((n_models, n_species, n_lt)),
             0,
         )
+    # Compute and add median to xr.dataset
+    model_vars = [v for v in data.data_vars if v != "TARGET"]
+    median = xr.concat([data[v] for v in model_vars], dim="model").median(dim="model")
+    data["MEDIAN"] = median
     target = data["TARGET"]
     models_mae, models_bias = [], []
-    for m, model in enumerate(dataset.models):
+    for m, model in enumerate([v for v in data.data_vars if v != "TARGET"]):
         diff = data[model] - target
         spatial_dims = [d for d in diff.dims if d not in ["species", "time"]]
         mae = np.abs(diff).mean(dim=spatial_dims).values
@@ -67,7 +71,7 @@ def compute_model_error(
             Statistics dict of shape
             {model: {species: {lead_time: {"mae": X, "bias": Y}}}}.
     """
-    res = Parallel(n_jobs=15)(
+    res = Parallel(n_jobs=20)(
         delayed(compute_sample_error)(sample)
         for sample in tqdm(dataset.samples, desc="Computing model error")
     )
@@ -87,7 +91,7 @@ def compute_model_error(
             }
             for j, spe in enumerate(dataset.species)
         }
-        for k, model in enumerate(dataset.models)
+        for k, model in enumerate(dataset.models + ["MEDIAN"])
     }
     return error
 
@@ -97,7 +101,7 @@ def plot_model_error(
     metric: str,
     lead_times: list[Leadtimes],
     species: list[SpeciesNames],
-    figsize: tuple[int, int] = (10, 20),
+    figsize: tuple[int, int] = (10, 25),
 ) -> None:
     """Plot the chosen error metric of each model as a function of lead time,
     for each species.
@@ -124,10 +128,18 @@ def plot_model_error(
         axes = [axes]
     sns.set_style("whitegrid")
 
+    cmap = plt.get_cmap("tab20")
     for ax, spe in zip(axes, species):
-        for model in error:
+        for i, model in enumerate(error):
             values = [error[model][spe][lt][metric] for lt in lead_times]
-            ax.plot(lead_times, values, linewidth=2, markersize=4, label=model)
+            ax.plot(
+                lead_times,
+                values,
+                linewidth=2,
+                markersize=4,
+                label=model,
+                color=cmap(i),
+            )
         ax.set_title(spe)
         ax.set_xlabel("Lead time (h)")
         ax.set_ylabel(metric.upper())
@@ -160,8 +172,9 @@ if __name__ == "__main__":
     models: list[ModelsNames] = args.models
 
     run_dates = get_run_dates(PROCESSED_DATA_DIR)
+
+    # Dates when VRA is available
     run_dates = [date for date in run_dates if date < dt.datetime(2025, 1, 1)]
-    # run_dates = [date for date in run_dates if date < dt.datetime(2023, 9, 4)]
 
     dataset = CAMSDataset(
         run_dates=run_dates,

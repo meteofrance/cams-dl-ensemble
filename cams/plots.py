@@ -89,7 +89,7 @@ def plot_sample(
 
     Args:
         sample: Sample we want to plot.
-        save_path: Path to either a directory or file.
+        save_path: Path to the file where the plot will be saved.
         species: The name of the species to plot.
         lead_time: The forecast lead time to plot.
         level: The atmosphere level to plot.
@@ -99,7 +99,7 @@ def plot_sample(
     ds = sample.data.sel(species=species, level=level, time=valid_time)
 
     # Compute and add median to xr.dataset
-    model_vars = [v for v in ds.data_vars if v != "Reanalyse"]
+    model_vars = [v for v in ds.data_vars if v != "TARGET"]
     median = xr.concat([ds[v] for v in model_vars], dim="model").median(dim="model")
     ds["MEDIAN"] = median
 
@@ -142,17 +142,30 @@ def plot_sample(
     title = f"{species} - Run {run_str} - Leadtime +{lead_time}h - Level {level}m"
     fig.suptitle(title, size=16)
 
-    if save_path.is_dir():
-        filename = f"{run_str}_{lead_time}h_{species}_{level}.png"
-        save_path /= filename
     plt.savefig(save_path)
     plt.close()
 
 
 def plot_y_vs_yhat(
-    y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
+    y: NamedTensor,
+    y_hat: NamedTensor,
+    save_path: Path,
+    title: str = "",
+    species: str = "O3",
+    lead_time: int = 15,
+    level: int = 0,
 ) -> None:
-    """Plots the ground truth VS the prediction from a model."""
+    """Plots the ground truth VS the prediction from a model.
+
+    Args:
+        y: The ground truth NamedTensor.
+        y_hat: The prediction NamedTensor.
+        save_path: Path to the file where the plot will be saved.
+        title: The plot title.
+        species: The name of the species to plot.
+        lead_time: The forecast lead time to plot.
+        level: The atmosphere level to plot.
+    """
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 8))
     subfig: np.typing.NDArray = fig.subfigures(nrows=2, ncols=1)  # type: ignore [reportAssignmentType]
@@ -160,14 +173,14 @@ def plot_y_vs_yhat(
     # Plot maps of species
     axes = subfig[0].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs = axes.flat
-    vmin, vmax = get_vmin_vmax("O3")
+    vmin, vmax = get_vmin_vmax(species)
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
     axs[0].imshow(y.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[0], "Ground Truth = Analysis")
     img = axs[1].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[1], "Prediction")
     cbar = subfig[0].colorbar(img, ax=axes, fraction=0.023)
-    cbar.set_label(UNITS["O3"], size=13)
+    cbar.set_label(UNITS[species], size=13)
 
     # Plot difference btw y and y_hat
     ax = subfig[1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
@@ -182,43 +195,60 @@ def plot_y_vs_yhat(
 
 
 def plot_y_vs_yhat_vs_median(
-    x: NamedTensor, y: NamedTensor, y_hat: NamedTensor, save_path: Path, title: str = ""
+    x: NamedTensor,
+    y: NamedTensor,
+    y_hat: NamedTensor,
+    save_path: Path,
+    title: str = "",
+    species: str = "O3",
+    lead_time: int = 15,
+    level: int = 0,
 ) -> None:
     """Plots the ground truth, prediction, and median of inputs in three rows.
-    Only plots for Ozone, level 0m, +15h.
-    TODO: add options to plot other species and leadtimes.
+
+    Args:
+        x: The input NamedTensor.
+        y: The ground truth NamedTensor.
+        y_hat: The prediction NamedTensor.
+        save_path: Path to the file where the plot will be saved.
+        title: The plot title.
+        species: The name of the species to plot.
+        lead_time: The forecast lead time to plot.
+        level: The atmosphere level to plot.
     """
+    target_name = f"TARGET - {species} - +{lead_time}h - {level}m"
+    feature_substr = f"{species} - +{lead_time}h - {level}m"
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 12))
     subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]
 
     # Plot ground truth (full size)
     ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
-    vmin, vmax = get_vmin_vmax("O3")
+    vmin, vmax = get_vmin_vmax(species)
     plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
-    ground_truth = y["TARGET - O3 - +15h - 0m"][0].cpu()
+    ground_truth = y[target_name][0].cpu()
     img_gt = ax_gt.imshow(ground_truth, **plot_kwargs)
     format_axis(ax_gt, "Ground Truth = Analysis")
     cbar_gt = subfigs[0].colorbar(img_gt, ax=ax_gt, fraction=0.023)
-    cbar_gt.set_label(UNITS["O3"], size=13)
+    cbar_gt.set_label(UNITS[species], size=13)
 
     # Plot prediction and median side by side
     axes_pred_med: np.ndarray = subfigs[1].subplots(
         nrows=1, ncols=2, subplot_kw=subplot_kw
     )
     axs_pred_med = axes_pred_med.flat
-    prediction = y_hat["TARGET - O3 - +15h - 0m"][0].cpu()
+    prediction = y_hat[target_name][0].cpu()
     img_pred = axs_pred_med[0].imshow(prediction, **plot_kwargs)
     format_axis(axs_pred_med[0], "AI Prediction")
 
     models_tensors = [
-        x[fname][0] for fname in x.feature_names if "O3 - +15h - 0m" in fname
+        x[fname][0] for fname in x.feature_names if feature_substr in fname
     ]
     median = torch.stack(models_tensors).median(dim=0).values
     axs_pred_med[1].imshow(median, **plot_kwargs)
     format_axis(axs_pred_med[1], "Median of Inputs")
     cbar_pred = subfigs[1].colorbar(img_pred, ax=axes_pred_med, fraction=0.023)
-    cbar_pred.set_label(UNITS["O3"], size=13)
+    cbar_pred.set_label(UNITS[species], size=13)
 
     # Plot differences
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
@@ -241,7 +271,14 @@ def plot_y_vs_yhat_vs_median(
 def plot_named_tensor(
     nt: NamedTensor, species_name: str, save_path: Path, title: str = ""
 ) -> None:
-    """Plots a NamedTensor where all features are from the same species."""
+    """Plots a NamedTensor where all features are from the same species.
+
+    Args:
+        nt: The NamedTensor to plot.
+        species_name: The name of the species being plotted.
+        save_path: Path to the file where the plot will be saved.
+        title: The plot title.
+    """
     num_plots = len(nt.feature_names)
     nrows = int(math.sqrt(num_plots))
     ncols = math.ceil(num_plots / nrows)
@@ -290,4 +327,4 @@ if __name__ == "__main__":
     )
     print(sample)
 
-    plot_sample(sample, Path("."), species="O3", lead_time=24)
+    plot_sample(sample, Path("sample_O3.png"), species="O3", lead_time=24)

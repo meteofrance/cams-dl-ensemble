@@ -12,7 +12,6 @@ requires-python = "==3.12.3"
 dependencies = [
   "cartopy==0.25.*",
   "netcdf4==1.7.2",
-  "pyright>=1.1.405",
   "tornado>=6.5.4",
   "xarray>=2026.1.0",
   "torch==2.11.*",
@@ -23,9 +22,9 @@ dependencies = [
   "cfgrib==0.9.15.1",
   "lightning==2.6.1",
   "jsonargparse[signatures]<=4.41.0",
-  "mlflow==3.12.*",
+  "mlflow==3.15.1",
   # Dev dependencies
-  "pyright[nodejs]",
+  "pyright[nodejs]>=1.1.405",
   "ruff==0.15.9",
   "pytest==9.0.*",
   "pytest-cov==7.1.*",

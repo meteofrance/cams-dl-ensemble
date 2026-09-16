@@ -1,6 +1,11 @@
+import os
 from pathlib import Path
 
 import pytest
+
+# MLflow 3.x blocks the filesystem tracking backend (used by MLflowLogger with
+# save_dir) unless explicitly allowed. Keep the test config behaviour stable.
+os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
 
 from cams.cli import CAMSLightningCLI
 from cams.datamodule import CAMSDataModule

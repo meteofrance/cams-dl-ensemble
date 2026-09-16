@@ -1,0 +1,54 @@
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      experiment_name: test_to_validate_plots
+      run_name: UNetRPP
+      log_model: True
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+  max_epochs: 500
+  log_every_n_steps: 10
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.UNetRPP
+    init_args:
+      in_channels: 8
+      out_channels: 4
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.L1Loss
+  val_leadtimes:
+    - 3
+    - 9
+
+data:
+  models:
+    - match
+    - minni
+  lead_times:
+    - 3
+    - 9
+  species:
+    - CO
+    - NO2
+  levels:
+    - 0
+  batch_size: 32
+  num_workers: 10
+  prefetch_factor: 2
+  transforms:
+    - class_path: cams.transforms.Normalize
+    # - class_path: cams.transforms.FillMissingModels
+      # init_args:
+      #   fill_value: -1

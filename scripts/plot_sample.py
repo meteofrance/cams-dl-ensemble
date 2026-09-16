@@ -13,8 +13,11 @@ import argparse
 import datetime as dt
 from pathlib import Path
 
+from tqdm import tqdm
+
 from cams.plots import plot_sample
 from cams.sample import Sample
+from cams.types import SpeciesNames
 
 parser = argparse.ArgumentParser(description="Plots a CAMS sample.")
 parser.add_argument(
@@ -33,6 +36,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 date = dt.datetime.strptime(args.date, "%Y-%m-%d")
+species: list[SpeciesNames] = ["CO", "NO2", "PM10", "PM2P5", "SO2", "O3"]
 sample = Sample(
     date,
     models=[
@@ -46,15 +50,23 @@ sample = Sample(
         "SILAM",
         "DEHM",
         "LOTOS",
+        "EMEP",
     ],
     lead_times=[15],
-    species=["O3"],
+    species=species,
     levels=[0],
 )
 if not sample.is_valid:
     raise ValueError(f"Sample not valid: {sample}")
 
-print(f"Plotting sample for {date}...")
-save_path = args.save_dir / f"{date.strftime('%Y-%m-%d_O3')}.png"
-plot_sample(sample, args.save_dir / f"{date.strftime('%Y-%m-%d_O3')}.png")
-print(f"Plot saved at {save_path}")
+pbar = tqdm(species, desc="Plotting...")
+for species_name in pbar:
+    save_path = args.save_dir / f"{date.strftime('%Y-%m-%d')}_{species_name}.png"
+    plot_sample(
+        sample=sample,
+        save_path=save_path,
+        species=species_name,
+        lead_time=15,
+        level=0,
+    )
+    pbar.write(f"{species_name} saved at {save_path}")

@@ -9,12 +9,10 @@ from tqdm import tqdm
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
-from cams.types import LEADTIMES, MODELS_NAMES, SPECIES_NAMES, ModelsNames, SpeciesNames
+from cams.types import LEADTIMES, MODELS_NAMES, SpeciesNames
 
 
-def compute_stats(
-    dataset: CAMSDataset, species: list[SpeciesNames]
-) -> dict[str, Any]:
+def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str, Any]:
     """Computes min/max over the reanalysis data.
 
     Args:
@@ -28,7 +26,9 @@ def compute_stats(
     stats = {spe: {"min": np.inf, "max": -np.inf} for spe in species}
 
     sample: Sample
-    for sample in tqdm(dataset.samples, desc="Computing statistics", total=len(dataset)):
+    for sample in tqdm(
+        dataset.samples, desc="Computing statistics", total=len(dataset)
+    ):
         print(sample.data)
         try:
             target = sample.data["TARGET"]

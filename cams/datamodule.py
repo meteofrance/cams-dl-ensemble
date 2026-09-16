@@ -12,7 +12,6 @@ from typing_extensions import override
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.settings import PROCESSED_DATA_DIR
 from cams.transforms import ReversibleTransformMixin
-from cams.types import Leadtimes, Levels, SpeciesNames
 
 
 class CAMSDataModule(LightningDataModule):

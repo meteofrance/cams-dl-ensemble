@@ -246,7 +246,9 @@ class CAMSLightningModule(LightningModule):
         ):
             return
 
-        def _log_graph(species: SpeciesNames, lead_time: Leadtimes, level: Levels) -> None:
+        def _log_graph(
+            species: SpeciesNames, lead_time: Leadtimes, level: Levels
+        ) -> None:
             # Open temporary file
             with NamedTemporaryFile(
                 prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
@@ -257,7 +259,10 @@ class CAMSLightningModule(LightningModule):
                     y=y.select_dim("batch", 0),
                     y_hat=y_hat.select_dim("batch", 0),
                     save_path=Path(file.name),
-                    title=f"Epoch {self.trainer.current_epoch}, {species=}, {lead_time=}, {level=}",
+                    title=(
+                        f"Epoch {self.trainer.current_epoch}, {species=}, "
+                        f"{lead_time=}, {level=}"
+                    ),
                     species=species,
                     lead_time=lead_time,
                     level=level,

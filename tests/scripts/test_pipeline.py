@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from lightning.pytorch.cli import LightningCLI
+import pytest
 
+from cams.cli import CAMSLightningCLI
 from cams.datamodule import CAMSDataModule
 from cams.plmodule import CAMSLightningModule
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
@@ -17,7 +18,7 @@ def fit_model(args: list[str] | None = None) -> None | Path:
     """
     # Create cli object with `run=False` to parse and instantiate
     # LightningModule and DataModule, but not run subcommands
-    cli = LightningCLI(
+    cli = CAMSLightningCLI(
         model_class=CAMSLightningModule,
         datamodule_class=CAMSDataModule,
         save_config_kwargs={"overwrite": True},
@@ -74,3 +75,21 @@ def test_full_pipeline(tmp_dataset_dir: Path) -> None:
     assert ckpt_folder.exists()
     ckpt_paths = list(ckpt_folder.glob("*.ckpt"))
     assert len(ckpt_paths) > 0
+
+
+def test_pipeline_invalid_val_leadtimes(tmp_dataset_dir: Path) -> None:
+    """Raises ValueError when a validation leadtime is not in the selected ones.
+
+    The CLI links the data selection arguments onto the module, so a validation
+    leadtime absent from ``data.lead_times`` must fail at module instantiation.
+    """
+    with pytest.raises(ValueError):
+        fit_model(
+            args=[
+                "--config",
+                "tests/test_config.yaml",
+                "--data.processed_dir",
+                str(tmp_dataset_dir),
+                "--model.val_leadtimes=[15,24]",
+            ],
+        )

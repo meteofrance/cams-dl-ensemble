@@ -15,6 +15,7 @@ from torchmetrics import MetricCollection
 from typing_extensions import override
 
 from cams.metrics import (
+    SPECIES_THRESHOLDS,
     Accuracy,
     F1Score,
     FalseAlarmRate,
@@ -24,6 +25,7 @@ from cams.metrics import (
 )
 from cams.plots import plot_y_vs_yhat_vs_median
 from cams.transforms import ExtractInputStatisticalFeatures
+from cams.types import Leadtimes, Levels, SpeciesNames
 
 
 class CAMSLightningModule(LightningModule):
@@ -39,22 +41,42 @@ class CAMSLightningModule(LightningModule):
         self,
         model: BaseModel | ModelABC,
         loss: torch.nn.Module,
+        lead_times: list[Leadtimes],
+        species: list[SpeciesNames],
+        levels: list[Levels],
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
+        val_leadtimes: list[Leadtimes] = [3, 9, 15, 21, 39, 63, 87],
     ) -> None:
         """CAMS lightning module
 
         Args:
             model: A model inheriting from mfai.BaseModel
             loss: The loss function.
+            models: Models loaded in the dataset.
+            lead_times: Leadtimes loaded in the dataset.
+            species: Species loaded in the dataset.
+            levels: Levels loaded in the dataset.
             learning_rate: The optimizer's learning rate. Defaults to 0.0001.
             training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
+            val_leadtimes: Leadtimes used for validation metrics. Must be a subset
+                of ``lead_times``. Defaults to [3, 9, 15, 21, 39, 63, 87].
         """
         super().__init__()
         self.model = model
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
+        self.species = species
+        self.levels = levels
+        self.lead_times = lead_times
+        self.val_leadtimes = val_leadtimes
+        if not all(val_leadtime in self.lead_times for val_leadtime in val_leadtimes):
+            raise ValueError(
+                "Requested validation leadtimes are not all present in the "
+                f"selected leadtimes\n\tleadtimes: {lead_times}\n\t"
+                f"validation leadtimes: {val_leadtimes}"
+            )
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
 
@@ -82,21 +104,35 @@ class CAMSLightningModule(LightningModule):
     def get_metrics(self) -> MetricCollection:
         """Defines the metrics that will be computed during train and valid steps."""
         metrics = MetricCollection(
-            [
-                MetricCollection(
-                    [MeanSquaredError(squared=False), MeanAbsoluteError()]
-                ),
+            [MetricCollection([MeanSquaredError(squared=False), MeanAbsoluteError()])]
+            + [
                 MetricCollection(
                     [
-                        Accuracy("TARGET - O3 - +15h - 0m", threshold=120),
-                        F1Score("TARGET - O3 - +15h - 0m", threshold=120),
-                        FalseAlarmRate("TARGET - O3 - +15h - 0m", threshold=120),
-                        FalsePositiveRate("TARGET - O3 - +15h - 0m", threshold=120),
+                        Accuracy(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
+                        F1Score(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
+                        FalseAlarmRate(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
+                        FalsePositiveRate(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
                     ],
-                    prefix="O3-15h-0m/",
+                    prefix=f"{species}-{leadtime}h-0m/",
                     postfix="_120",
-                ),
-            ]
+                )
+                for species in self.species
+                for leadtime in self.val_leadtimes
+                if (threshold := SPECIES_THRESHOLDS[species]) is not None
+            ],
+            compute_groups=False,
         )
         return metrics
 

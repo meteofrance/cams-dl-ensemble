@@ -231,3 +231,6 @@ slurm-*.out
 
 # Output folder
 output/
+
+# Kilo code config
+.kilo/kilo.jsonc

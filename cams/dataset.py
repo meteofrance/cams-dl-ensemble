@@ -12,17 +12,18 @@ from cams.settings import PROCESSED_DATA_DIR
 from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 
-def get_run_dates(processed_dir: Path) -> list[dt.datetime]:
+def get_run_dates(processed_dir: Path) -> list[dt.date]:
     """Retrieves the dates of all the runs available in a directory."""
     print("--> Retrieving run dates...")
-    files = sorted(list(set(processed_dir.glob("**/*.netcdf"))))
-    run_dates, files_not_parsed = [], []
-    for file in files:
+
+    run_dates: list[dt.date] = []
+    files_not_parsed: list[Path] = []
+    for path in sorted(list(set(processed_dir.glob("**/*.netcdf")))):
         try:
-            date = dt.datetime.strptime(file.stem.split("-")[0], r"%Y_%m_%d")
+            date = dt.datetime.strptime(path.stem.split("-")[0], r"%Y_%m_%d").date()
             run_dates.append(date)
         except Exception as e:
-            files_not_parsed.append(file)
+            files_not_parsed.append(path)
             print(e)
             continue
     if files_not_parsed:
@@ -39,7 +40,7 @@ class CAMSDataset(Dataset):
 
     def __init__(
         self,
-        run_dates: list[dt.datetime],
+        run_dates: list[dt.date],
         models: list[ModelsNames],
         lead_times: list[Leadtimes],
         species: list[SpeciesNames],
@@ -97,7 +98,7 @@ class CAMSDataset(Dataset):
 if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a CAMSDataset
 
-    run_dates: list[dt.datetime] = get_run_dates(PROCESSED_DATA_DIR)
+    run_dates: list[dt.date] = get_run_dates(PROCESSED_DATA_DIR)
     print(len(run_dates))
     dataset = CAMSDataset(
         run_dates,

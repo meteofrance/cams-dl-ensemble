@@ -130,6 +130,62 @@ class Sample:
         data = data.sortby("longitude")
         return data[selected_species]
 
+    @property
+    def wensemble_paths(self) -> list[Path]:
+        """Returns the list of files for the weighted ensemble, one per species.
+
+        Returns:
+            list[Path]: The list of file paths
+        """
+        paths = []
+        for species in self.species:
+            date_run_str = self.date_run.strftime("%Y_%m_%d")
+            filename = f"{date_run_str}-{species}-0m-0-96h.grib"
+            path = self.processed_dir / "weighted_ensemble" / filename
+            paths.append(path)
+        return paths
+
+    @property
+    def is_wensemble_available(self) -> bool:
+        """Returns True if all files needed for weighted ensemble exist."""
+        return all([path.exists() for path in self.wensemble_paths])
+
+    def load_wensemble(self) -> xr.Dataset:
+        """Returns the weighted ensemble as a xarray Dataset.
+
+        Returns:
+            xr.Dataset: The dataset has the following shape:
+                <xarray.Dataset> Size: 18MB
+                Dimensions:           (level: 1, time: 3, latitude: 420, longitude: 700,
+                                        species: 5)
+                Coordinates:
+                * level              (level) float64 8B 0.0
+                * time               (time) datetime64[ns] 24B 2025-12-12T15:00:00 ...
+                * latitude           (latitude) float64 3kB 71.95 71.85 71.75 ... 30...
+                * longitude          (longitude) float64 6kB -24.95 -24.85 ... 44.85...
+                * species            (species) object 40B 'O3' 'CO' 'NO2' 'PM10' 'SO2'
+                Data variables:
+                    WEIGHTED_ENSEMBLE  (species, time, level, latitude, longitude) fl...
+        """
+        all_species_da = {}
+        for path in self.wensemble_paths:
+            data = xr.open_dataset(path, chunks={})
+            data_of_interest = data.sel(
+                step=[dt.timedelta(hours=lt) for lt in self.lead_times]
+            )
+            species = path.name.split("-")[1]
+            all_species_da[species] = data_of_interest["unknown"]
+        data = xr.Dataset(all_species_da)
+        data = (
+            data.to_array(dim="species")
+            .expand_dims(level=[0.0], axis=2)
+            .to_dataset(name="WEIGHTED_ENSEMBLE")
+        )
+        data = data.assign_coords(time=("step", data.valid_time.values))
+        data = data.swap_dims({"step": "time"})
+        data = data.drop_vars(["step", "valid_time", "surface"], errors="ignore")
+        return data
+
     def load_target_data(self) -> xr.Dataset:
         """Returns the target analysis data."""
         all_species_da = {}
@@ -260,9 +316,9 @@ if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a Sample
 
     sample = Sample(
-        dt.datetime(2025, 5, 10),
+        dt.datetime(2025, 12, 12),
         lead_times=[15, 24, 36],
-        species=["O3", "CO", "NO2", "PM10", "PM2P5", "SO2"],
+        species=["O3", "CO", "NO2", "PM10", "SO2"],
         levels=[0],
         models=["CHIMERE", "MOCAGE"],
     )
@@ -273,6 +329,10 @@ if __name__ == "__main__":
         print(input_path, input_path.exists())
     for target_path in sample.target_paths:
         print(target_path, target_path.exists())
+    for path in sample.wensemble_paths:
+        print(path, path.exists())
+
+    sample.load_wensemble()
 
     print(sample.data)
     x, y = sample.get_input_and_target()

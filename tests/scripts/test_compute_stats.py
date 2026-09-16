@@ -20,7 +20,7 @@ def test_compute_stats(tmp_dataset_dir: Path):
     create_dummy_input_netcdf(input_path2)
     create_dummy_target_netcdf(target_path1)
 
-    dates = [dt.datetime(2022, 7, i) for i in range(1, 3)]
+    dates = [dt.date(2022, 7, i) for i in range(1, 3)]
 
     dataset = CAMSDataset(
         dates,

@@ -216,8 +216,8 @@ def plot_y_vs_yhat_vs_median(
         lead_time: The forecast lead time to plot.
         level: The atmosphere level to plot.
     """
-    target_name = f"TARGET - {species} - +{lead_time}h - {level}m"
     feature_substr = f"{species} - +{lead_time}h - {level}m"
+    target_name = f"TARGET - {feature_substr}"
     subplot_kw = {"projection": PlateCarree()}
     fig = plt.figure(constrained_layout=True, figsize=(9, 12))
     subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]

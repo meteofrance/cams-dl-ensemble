@@ -279,7 +279,9 @@ class CAMSLightningModule(LightningModule):
                     )
 
         # Log for every species, every val_leadtime and level 0
-        for species, lead_time, level in product(self.species, self.val_leadtimes, self.levels):
+        for species, lead_time, level in product(
+            self.species, self.val_leadtimes, self.levels
+        ):
             _log_graph(
                 species,
                 lead_time,

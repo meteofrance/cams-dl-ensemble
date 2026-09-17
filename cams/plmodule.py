@@ -1,6 +1,7 @@
+from itertools import product
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import torch
 from lightning import LightningModule
@@ -15,6 +16,7 @@ from torchmetrics import MetricCollection
 from typing_extensions import override
 
 from cams.metrics import (
+    SPECIES_THRESHOLDS,
     Accuracy,
     F1Score,
     FalseAlarmRate,
@@ -24,6 +26,7 @@ from cams.metrics import (
 )
 from cams.plots import plot_y_vs_yhat_vs_median
 from cams.transforms import ExtractInputStatisticalFeatures
+from cams.types import Leadtimes, Levels, SpeciesNames
 
 
 class CAMSLightningModule(LightningModule):
@@ -39,22 +42,45 @@ class CAMSLightningModule(LightningModule):
         self,
         model: BaseModel | ModelABC,
         loss: torch.nn.Module,
+        # We don't use Leadtimes, SpeciesNames and Levels types
+        # because of jsonargparse error:
+        # "Parser key 'data.models': Cannot take a Union of no types".
+        lead_times: list[int],
+        species: list[str],
+        levels: list[int],
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
+        val_leadtimes: list[int] = [3, 9, 15, 21, 39, 63, 87],
     ) -> None:
         """CAMS lightning module
 
         Args:
             model: A model inheriting from mfai.BaseModel
             loss: The loss function.
+            models: Models loaded in the dataset.
+            lead_times: Leadtimes loaded in the dataset.
+            species: Species loaded in the dataset.
+            levels: Levels loaded in the dataset.
             learning_rate: The optimizer's learning rate. Defaults to 0.0001.
             training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
+            val_leadtimes: Leadtimes used for validation metrics. Must be a subset
+                of ``lead_times``. Defaults to [3, 9, 15, 21, 39, 63, 87].
         """
         super().__init__()
         self.model = model
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
+        self.species = cast(list[SpeciesNames], species)
+        self.levels = cast(list[Levels], levels)
+        self.lead_times = cast(list[Leadtimes], lead_times)
+        self.val_leadtimes = cast(list[Leadtimes], val_leadtimes)
+        if not all(val_leadtime in self.lead_times for val_leadtime in val_leadtimes):
+            raise ValueError(
+                "Requested validation leadtimes are not all present in the "
+                f"selected leadtimes\n\tleadtimes: {lead_times}\n\t"
+                f"validation leadtimes: {val_leadtimes}"
+            )
         self.metrics = self.get_metrics()
         self.save_hyperparameters()
 
@@ -82,21 +108,35 @@ class CAMSLightningModule(LightningModule):
     def get_metrics(self) -> MetricCollection:
         """Defines the metrics that will be computed during train and valid steps."""
         metrics = MetricCollection(
-            [
-                MetricCollection(
-                    [MeanSquaredError(squared=False), MeanAbsoluteError()]
-                ),
+            [MetricCollection([MeanSquaredError(squared=False), MeanAbsoluteError()])]
+            + [
                 MetricCollection(
                     [
-                        Accuracy("TARGET - O3 - +15h - 0m", threshold=120),
-                        F1Score("TARGET - O3 - +15h - 0m", threshold=120),
-                        FalseAlarmRate("TARGET - O3 - +15h - 0m", threshold=120),
-                        FalsePositiveRate("TARGET - O3 - +15h - 0m", threshold=120),
+                        Accuracy(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
+                        F1Score(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
+                        FalseAlarmRate(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
+                        FalsePositiveRate(
+                            f"TARGET - {species} - +{leadtime}h - 0m",
+                            threshold=threshold,
+                        ),
                     ],
-                    prefix="O3-15h-0m/",
-                    postfix="_120",
-                ),
-            ]
+                    prefix=f"{species}-{leadtime}h-0m/",
+                    postfix=f"_{threshold}",
+                )
+                for species in self.species
+                for leadtime in self.val_leadtimes
+                if (threshold := SPECIES_THRESHOLDS[species]) is not None
+            ],
+            compute_groups=False,
         )
         return metrics
 
@@ -191,9 +231,10 @@ class CAMSLightningModule(LightningModule):
         if (
             # Skip  if no mlflow logger
             not isinstance(self.logger, MLFlowLogger)
-            # Only plot every 15 epochs and the 2 last epochs
+            # Only plot every 15 epochs and the 2 last epochs but not the first
             or (
                 self.trainer.max_epochs is not None
+                and self.trainer.current_epoch == 0
                 and self.trainer.current_epoch % 15 != 0
                 and self.trainer.current_epoch != self.trainer.max_epochs
                 and self.trainer.current_epoch != self.trainer.max_epochs - 1
@@ -205,28 +246,47 @@ class CAMSLightningModule(LightningModule):
         ):
             return
 
-        # Open temporary file
-        with NamedTemporaryFile(
-            prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
-        ) as file:
-            # First save the plot in a temporary PNG file
-            plot_y_vs_yhat_vs_median(
-                x.select_dim("batch", 0),
-                y.select_dim("batch", 0),
-                y_hat.select_dim("batch", 0),
-                Path(file.name),
-                f"Epoch {self.trainer.current_epoch}",
-            )
-
-            # Then open the image with PIL and log it in mlflow
-            with Image.open(file.name) as img:
-                mlf_logger: MlflowClient = self.logger.experiment
-                mlf_logger.log_image(
-                    self.logger.run_id,
-                    image=img,
-                    key="val_plot",
-                    step=self.current_epoch,
+        def _log_graph(
+            species: SpeciesNames, lead_time: Leadtimes, level: Levels
+        ) -> None:
+            # Open temporary file
+            with NamedTemporaryFile(
+                prefix=f"epoch_{self.trainer.current_epoch}_", suffix=".png"
+            ) as file:
+                # First save the plot in a temporary PNG file
+                plot_y_vs_yhat_vs_median(
+                    x=x.select_dim("batch", 0),
+                    y=y.select_dim("batch", 0),
+                    y_hat=y_hat.select_dim("batch", 0),
+                    save_path=Path(file.name),
+                    title=(
+                        f"Epoch {self.trainer.current_epoch}, {species=}, "
+                        f"{lead_time=}, {level=}"
+                    ),
+                    species=species,
+                    lead_time=lead_time,
+                    level=level,
                 )
+
+                # Then open the image with PIL and log it in mlflow
+                with Image.open(file.name) as img:
+                    mlf_logger: MlflowClient = self.logger.experiment  # type: ignore[reportAttributeAccessIssue]
+                    mlf_logger.log_image(
+                        self.logger.run_id,  # type: ignore[reportAttributeAccessIssue]
+                        image=img,
+                        key="val_plot",
+                        step=self.current_epoch,
+                    )
+
+        # Log for every species, every val_leadtime and level 0
+        for species, lead_time, level in product(
+            self.species, self.val_leadtimes, self.levels
+        ):
+            _log_graph(
+                species,
+                lead_time,
+                level,
+            )
 
     @override
     def validation_step(

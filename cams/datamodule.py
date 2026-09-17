@@ -12,7 +12,6 @@ from typing_extensions import override
 from cams.dataset import CAMSDataset, get_run_dates
 from cams.settings import PROCESSED_DATA_DIR
 from cams.transforms import ReversibleTransformMixin
-from cams.types import Leadtimes, Levels, SpeciesNames
 
 
 class CAMSDataModule(LightningDataModule):
@@ -26,17 +25,18 @@ class CAMSDataModule(LightningDataModule):
 
     def __init__(
         self,
-        # We don't use ModelsNames type because of jsonargparse error:
+        # We don't use ModelsNames, Leadtimes, SpeciesNames and Levels types
+        # because of jsonargparse error:
         # "Parser key 'data.models': Cannot take a Union of no types".
         models: list[str],
-        lead_times: list[Leadtimes],
-        species: list[SpeciesNames],
-        levels: list[Levels],
+        lead_times: list[int],
+        species: list[str],
+        levels: list[int],
         batch_size: int = 2,
         num_workers: int = 1,
         prefetch_factor: int = 2,
-        start_date: dt.datetime | None = None,
-        end_date: dt.datetime | None = None,
+        start_date: dt.date | None = None,
+        end_date: dt.date | None = None,
         val_days: int = 5,
         train_val_separation: int = 4,
         processed_dir: Path = PROCESSED_DATA_DIR,
@@ -94,7 +94,7 @@ class CAMSDataModule(LightningDataModule):
         }
 
         # Gather run dates available
-        run_dates: list[dt.datetime] = get_run_dates(self.processed_dir)
+        run_dates: list[dt.date] = get_run_dates(self.processed_dir)
         if len(run_dates) == 0:
             raise FileNotFoundError("CAMS dataset empty: no run found.")
 
@@ -105,8 +105,8 @@ class CAMSDataModule(LightningDataModule):
         self.val_dates = []
         for date in run_dates:
             _, last_day_month = calendar.monthrange(date.year, date.month)
-            last_date_month = dt.datetime(date.year, date.month, last_day_month)
-            first_date_month = dt.datetime(date.year, date.month, 1)
+            last_date_month = dt.date(date.year, date.month, last_day_month)
+            first_date_month = dt.date(date.year, date.month, 1)
 
             val_start_date = last_date_month - dt.timedelta(days=val_days)
             train_end_date = last_date_month - dt.timedelta(

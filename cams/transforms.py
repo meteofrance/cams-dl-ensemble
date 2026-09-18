@@ -5,14 +5,18 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, cast
 
+import numpy as np
 import scipy.stats
 import torch
+import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
-from torch import Tensor, nn
+from torch import nn
 from typing_extensions import override
 
 from cams.settings import STATS_PATH
 from cams.types import MODELS_NAMES, STATISTICS_NAMES, StatisticsNames
+
+SPATIAL_DIMS = ["latitude", "longitude"]
 
 
 class ExtractInputStatisticalFeatures(nn.Module):
@@ -59,45 +63,50 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     @override
     def forward(
-        self, inputs: tuple[NamedTensor, NamedTensor]
-    ) -> tuple[NamedTensor, NamedTensor]:
+        self, inputs: tuple[xr.Dataset, xr.Dataset]
+    ) -> tuple[xr.Dataset, xr.Dataset]:
         """Compute statistical features from input and return them with target.
 
         Args:
-            inputs: tuple NamedTensor containing ensemble data with spatial dimensions.
+            inputs: Tuple of input and target xarray datasets.
 
         Returns:
-            NamedTensor: Computed statistics as features.
-            NamedTensor: Target unchanged.
+            xr.Dataset: Computed statistics as features.
+            xr.Dataset: Target unchanged.
 
         Note:
             For skew and kurtosis, scipy.stats is used with nan_policy="omit".
-            For median, only the values are returned (not indices) from torch.median().
+            For the other statistics, NaN values propagate like with torch,
+            so skipna is deactivated.
         """
         x, y = inputs
-        input_tensor: Tensor = x.tensor
-        stat_tensor: Tensor = torch.empty(
-            len(self.statistic_types),
-            *[input_tensor.shape[idx] for idx in x.spatial_dim_idx],
-        )
-        for idx, statistic_type in enumerate(self.statistic_types):
+        ensemble = x.to_array(dim="model")
+        feature_dims = [dim for dim in ensemble.dims if dim not in SPATIAL_DIMS]
+        ensemble = ensemble.stack(feature=feature_dims)
+        stat_ds = xr.Dataset()
+        for statistic_type in self.statistic_types:
             if statistic_type in ["skew", "kurtosis"]:
-                stat_tensor[idx, :, :] = Tensor(
-                    getattr(scipy.stats, statistic_type)(
-                        input_tensor, axis=0, nan_policy="omit"
-                    )
+                statistic = xr.apply_ufunc(
+                    getattr(scipy.stats, statistic_type),
+                    ensemble,
+                    input_core_dims=[["feature"]],
+                    kwargs={"nan_policy": "omit", "axis": -1},
                 )
-            elif statistic_type == "median":
-                # Tensor.median() returns a tuple[values, indices], so we keep values
-                stat_tensor[idx, :, :] = getattr(input_tensor, statistic_type)(dim=0)[0]
+            elif statistic_type in ["argmin", "argmax"]:
+                statistic = xr.apply_ufunc(
+                    getattr(np, statistic_type),
+                    ensemble,
+                    input_core_dims=[["feature"]],
+                    kwargs={"axis": -1},
+                )
             else:
-                stat_tensor[idx, :, :] = getattr(input_tensor, statistic_type)(dim=0)
-        stat_nt = NamedTensor(
-            stat_tensor,
-            names=["features", "lat", "lon"],
-            feature_names=self.statistic_types,
-        )
-        return stat_nt, y
+                xarray_method = "min" if statistic_type == "amin" else statistic_type
+                xarray_method = "max" if statistic_type == "amax" else xarray_method
+                statistic = getattr(ensemble, xarray_method)(
+                    dim="feature", skipna=False
+                )
+            stat_ds[statistic_type] = statistic.astype(float)
+        return stat_ds, y
 
 
 class ReversibleTransformMixin:
@@ -130,33 +139,24 @@ class FillMissingModels(nn.Module):
 
     @override
     def forward(
-        self, inputs: tuple[NamedTensor, NamedTensor]
-    ) -> tuple[NamedTensor, NamedTensor]:
-        """Create a new NamedTensor that have the 11 models.
+        self, inputs: tuple[xr.Dataset, xr.Dataset]
+    ) -> tuple[xr.Dataset, xr.Dataset]:
+        """Create an xarray Dataset that has all the 11 models.
 
         Args:
-            inputs: NamedTensor containing missing models
+            inputs: Tuple of input and target xarray datasets. The input may
+                contain missing models.
 
         Returns:
-            NamedTensor: NamedTensor containing all the 11 models
-
+            xr.Dataset: Input dataset containing all the 11 models.
+            xr.Dataset: Target unchanged.
         """
         x, y = inputs
-        t_final = (
-            torch.ones(
-                len(MODELS_NAMES),
-                x.tensor.shape[1],
-                x.tensor.shape[2],
-                dtype=x.tensor.dtype,
-                device=x.tensor.device,
-            )
-            * self.fill_value
-        )
-        for idx, model in enumerate(MODELS_NAMES):
-            if model in x.feature_names:
-                t_final[idx] = x[model]
-
-        return NamedTensor(t_final, x.names, MODELS_NAMES), y
+        model_template = x[next(iter(x.data_vars))]
+        for model in MODELS_NAMES:
+            if model not in x:
+                x[model] = xr.full_like(model_template, self.fill_value)
+        return x, y
 
 
 class Normalize(nn.Module, ReversibleTransformMixin):
@@ -185,29 +185,19 @@ class Normalize(nn.Module, ReversibleTransformMixin):
         """Another transform that reverses the current transform."""
         return ReverseNormalize(self.stats_file_path)
 
-    def normalize_namedtensor(self, nt: NamedTensor) -> NamedTensor:
-        """Normalize a NamedTensor btw 0 and 1 with min/max normalization."""
-        normalized_features: list[Tensor] = []
-        for feature_name in nt.feature_names:
-            mini = self.stats_dict["O3"]["min"]
-            maxi = self.stats_dict["O3"]["max"]
-            normalized_feature = (nt[feature_name] - mini) / (maxi - mini)
-            normalized_features.append(normalized_feature)
-
-        # Build normalized feature tensor
-        normalized_features_tensor = torch.cat(
-            tensors=normalized_features, dim=nt.feature_dim_idx
-        )
-        # Recreate a NamedTensor with the normalized features
-        return NamedTensor.new_like(tensor=normalized_features_tensor, other=nt)
+    def normalize_xarray(self, ds: xr.Dataset) -> xr.Dataset:
+        """Normalize an xarray Dataset btw 0 and 1 with min/max normalization."""
+        mini = self.stats_dict["O3"]["min"]
+        maxi = self.stats_dict["O3"]["max"]
+        return (ds - mini) / (maxi - mini)
 
     @override
     def forward(
-        self, inputs: tuple[NamedTensor, NamedTensor]
-    ) -> tuple[NamedTensor, NamedTensor]:
+        self, inputs: tuple[xr.Dataset, xr.Dataset]
+    ) -> tuple[xr.Dataset, xr.Dataset]:
         """Applies normalization."""
         x, y = inputs
-        return self.normalize_namedtensor(x), self.normalize_namedtensor(y)
+        return self.normalize_xarray(x), self.normalize_xarray(y)
 
 
 class ReverseNormalize(nn.Module):
@@ -224,7 +214,7 @@ class ReverseNormalize(nn.Module):
 
     def denormalize_namedtensor(self, nt: NamedTensor) -> NamedTensor:
         """Undoes min/max normalization."""
-        denormalized_features: list[Tensor] = []
+        denormalized_features: list[torch.Tensor] = []
         for feature_name in nt.feature_names:
             mini = self.stats_dict["O3"]["min"]
             maxi = self.stats_dict["O3"]["max"]
@@ -248,8 +238,6 @@ if __name__ == "__main__":
     import datetime as dt
     from pathlib import Path
 
-    from mfai.pytorch.namedtensor import NamedTensor
-
     from cams.plots import plot_named_tensor
     from cams.sample import Sample
     from cams.types import STATISTICS_NAMES
@@ -261,9 +249,10 @@ if __name__ == "__main__":
         levels=[0],
         models=["CHIMERE", "MOCAGE"],
     )
-    x, y = sample.get_input_and_target()
+    ds = sample.data
+    x, y = ds.drop_vars("TARGET"), ds[["TARGET"]]
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
-    nt = NamedTensor.concat([x, x_transformed, y])
+    nt = Sample.convert_data_to_nt(xr.concat([x, x_transformed], dim="model"))
     print(nt)
     plot_named_tensor(nt, "O3", Path("test_transform.png"))

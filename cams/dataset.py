@@ -2,6 +2,9 @@ import datetime as dt
 from functools import cached_property
 from pathlib import Path
 
+import numpy as np
+import torch
+import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import nn
 from torch.utils.data import Dataset
@@ -9,6 +12,7 @@ from typing_extensions import override
 
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR
+from cams.transforms import SPATIAL_DIMS
 from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 
@@ -33,6 +37,47 @@ def get_run_dates(processed_dir: Path) -> list[dt.date]:
         )
     run_dates = sorted(list(set(run_dates)))  # remove duplicates
     return run_dates
+
+
+def dataset_to_namedtensor(ds: xr.Dataset) -> NamedTensor:
+    """Converts an xarray dataset into a NamedTensor of shape (features, lat, lon).
+
+    Model-like variables (with species, time and level dims) are expanded into
+    one channel per (species, leadtime, level) combination. Variables reduced to
+    the spatial dims only (e.g. statistics) become a single channel named after
+    the variable.
+
+    Args:
+        ds: The xarray dataset to convert.
+
+    Returns:
+        NamedTensor: The converted data.
+    """
+    channel_arrays: list[np.ndarray] = []
+    channel_names: list[str] = []
+    for var_name in ds.data_vars:
+        da = ds[var_name]
+        if not any(dim not in SPATIAL_DIMS for dim in da.dims):
+            channel_arrays.append(np.nan_to_num(da.values, nan=0.0))
+            channel_names.append(str(var_name))
+            continue
+        da = da.transpose("species", "time", "level", "latitude", "longitude")
+        species_values = da.coords["species"].values
+        time_values = da.coords["time"].values
+        level_values = da.coords["level"].values
+        for i_species, species in enumerate(species_values):
+            for i_time in range(len(time_values)):
+                for i_level, level in enumerate(level_values):
+                    arr = da.isel(species=i_species, time=i_time, level=i_level).values
+                    channel_arrays.append(np.nan_to_num(arr, nan=0.0))
+                    leadtime = da.coords["lead_time"].values[i_time]
+                    channel_name = (
+                        f"{var_name} - {species} - +{leadtime}h - {int(level)}m"
+                    )
+                    channel_names.append(channel_name)
+
+    tensor = torch.tensor(np.stack(channel_arrays, axis=0)).to(torch.float32)
+    return NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
 
 
 class CAMSDataset(Dataset):
@@ -91,8 +136,11 @@ class CAMSDataset(Dataset):
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
-        x, y = self.samples[idx].get_input_and_target()
-        return self.transform_sequence((x, y))
+        ds = self.samples[idx].data
+        x_ds = ds.drop_vars("TARGET")
+        y_ds = ds[["TARGET"]]
+        x_ds, y_ds = self.transform_sequence((x_ds, y_ds))
+        return dataset_to_namedtensor(x_ds), dataset_to_namedtensor(y_ds)
 
 
 if __name__ == "__main__":

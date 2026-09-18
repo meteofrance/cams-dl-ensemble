@@ -127,10 +127,6 @@ class Sample:
         Returns:
             A xr.Dataset containing all the input data for this model.
         """
-        # TODO: adapt when sample is overlapping 2 months
-        # In this case, we need to load valid times from 2 different files
-        # for one species.
-        # Else we get the error 'KeyError: "not all values found in index 'time'"'
         model_path = self.processed_dir / model.lower() / self.input_filename
         data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)

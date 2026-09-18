@@ -3,7 +3,7 @@ import os
 from abc import abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import scipy.stats
 import torch
@@ -32,7 +32,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
         -> https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html
     """
 
-    def __init__(self, statistic_types: Sequence[StatisticsNames]):
+    def __init__(self, statistic_types: Sequence[str]):
         """
         Args:
             statistic_types: List of statistical measures to compute.
@@ -40,7 +40,12 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 'argmax', 'median', 'skew', 'kurtosis', 'std'.
         """
         super().__init__()
-        self.statistic_types = statistic_types
+        if not all(stat in STATISTICS_NAMES for stat in statistic_types):
+            raise ValueError(
+                "Transform ExtractInputStatisticalFeatures init parameter "
+                f"statistic_types to contain values {STATISTICS_NAMES} "
+            )
+        self.statistic_types = cast(StatisticsNames, statistic_types)
 
         if "skew" in self.statistic_types or "kurtosis" in self.statistic_types:
             scipy_array_api = os.getenv("SCIPY_ARRAY_API")

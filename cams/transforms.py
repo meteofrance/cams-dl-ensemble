@@ -18,6 +18,8 @@ from cams.types import MODELS_NAMES, STATISTICS_NAMES, StatisticsNames
 
 SPATIAL_DIMS = ["latitude", "longitude"]
 
+REDUCIBLE_STATISTICS = {"mean", "amin", "amax"}
+
 
 class ExtractInputStatisticalFeatures(nn.Module):
     """Replace ensemble data by statistical features.
@@ -80,33 +82,84 @@ class ExtractInputStatisticalFeatures(nn.Module):
             so skipna is deactivated.
         """
         x, y = inputs
-        ensemble = x.to_array(dim="model")
-        feature_dims = [dim for dim in ensemble.dims if dim not in SPATIAL_DIMS]
-        ensemble = ensemble.stack(feature=feature_dims)
         stat_ds = xr.Dataset()
         for statistic_type in self.statistic_types:
-            if statistic_type in ["skew", "kurtosis"]:
-                statistic = xr.apply_ufunc(
-                    getattr(scipy.stats, statistic_type),
-                    ensemble,
-                    input_core_dims=[["feature"]],
-                    kwargs={"nan_policy": "omit", "axis": -1},
-                )
-            elif statistic_type in ["argmin", "argmax"]:
-                statistic = xr.apply_ufunc(
-                    getattr(np, statistic_type),
-                    ensemble,
-                    input_core_dims=[["feature"]],
-                    kwargs={"axis": -1},
-                )
+            if statistic_type in REDUCIBLE_STATISTICS:
+                statistic = self._reduce_per_model(x, statistic_type)
             else:
-                xarray_method = "min" if statistic_type == "amin" else statistic_type
-                xarray_method = "max" if statistic_type == "amax" else xarray_method
-                statistic = getattr(ensemble, xarray_method)(
-                    dim="feature", skipna=False
-                )
+                ensemble = self._stack_ensemble(x)
+                statistic = self._reduce_full_feature(ensemble, statistic_type)
             stat_ds[statistic_type] = statistic.astype(float)
         return stat_ds, y
+
+    def _reduce_per_model(self, x: xr.Dataset, statistic_type: str) -> xr.DataArray:
+        """Compute a statistic by reducing each model then combining across models.
+
+        This avoids materializing a stacked array over all non-spatial dims, which
+        is the dominant cost for statistics (mean, amin, amax) that are fully
+        reducible per model.
+
+        Args:
+            x: The input dataset with one data_var per model.
+            statistic_type: One of 'mean', 'amin' or 'amax'.
+
+        Returns:
+            xr.DataArray: The statistic over spatial dims.
+        """
+        xarray_method = "min" if statistic_type == "amin" else statistic_type
+        xarray_method = "max" if statistic_type == "amax" else xarray_method
+        per_model = []
+        for var in x.data_vars:
+            data_var = x[var]
+            reduced = getattr(data_var, xarray_method)(
+                dim=[d for d in data_var.dims if d not in SPATIAL_DIMS],
+                skipna=False,
+            )
+            per_model.append(reduced)
+        combined = xr.concat(per_model, dim="model")
+        return getattr(combined, xarray_method)(dim="model", skipna=False)
+
+    def _stack_ensemble(self, x: xr.Dataset) -> xr.DataArray:
+        """Return the ensemble as a DataArray stacked over all non-spatial dims.
+
+        Args:
+            x: The input dataset with one data_var per model.
+
+        Returns:
+            xr.DataArray: The ensemble with non-spatial dims stacked into 'feature'.
+        """
+        ensemble = x.to_array(dim="model")
+        feature_dims = [dim for dim in ensemble.dims if dim not in SPATIAL_DIMS]
+        return ensemble.stack(feature=feature_dims)
+
+    def _reduce_full_feature(
+        self, ensemble: xr.DataArray, statistic_type: str
+    ) -> xr.DataArray:
+        """Compute a statistic requiring the full stacked feature axis.
+
+        Args:
+            ensemble: Stacked ensemble with a 'feature' dim.
+            statistic_type: One of 'median', 'skew', 'kurtosis', 'argmin' or
+                'argmax'.
+
+        Returns:
+            xr.DataArray: The statistic over spatial dims.
+        """
+        if statistic_type in ["skew", "kurtosis"]:
+            return xr.apply_ufunc(
+                getattr(scipy.stats, statistic_type),
+                ensemble,
+                input_core_dims=[["feature"]],
+                kwargs={"nan_policy": "omit", "axis": -1},
+            )
+        if statistic_type in ["argmin", "argmax"]:
+            return xr.apply_ufunc(
+                getattr(np, statistic_type),
+                ensemble,
+                input_core_dims=[["feature"]],
+                kwargs={"axis": -1},
+            )
+        return getattr(ensemble, statistic_type)(dim="feature", skipna=False)
 
 
 class ReversibleTransformMixin:

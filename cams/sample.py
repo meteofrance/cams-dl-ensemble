@@ -82,25 +82,34 @@ class Sample:
         """The paths to the netcdf of targets reanalysis data.
         Files are grouped by months and species.
         """
-        months_str = list(set([date.strftime("%Y-%m") for date in self.valid_times]))
-        if len(months_str) > 1:
-            # The sample is overlapping 2 differents months
-            # TODO: adapt to this case in load_target_data
-            # For now, return a non existing file, so that the sample is not valid
-            # and ignored in dataset and training
-            print(f"WARNING: {self} is overlapping 2 months, not implemented.")
-            return [Path("non_existing_file.nc")]
+        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
+        return [
+            self._target_path(species, month)
+            for month in months_str
+            for species in self.species
+        ]
+
+    def _target_path(self, species: SpeciesNames, month: str) -> Path:
+        """Return the reanalysis file path for a species and month.
+
+        Falls back to the Intermediate analysis (IRA) file when the
+        VRA file does not exist.
+
+        Args:
+            folder: Directory containing the reanalysis files.
+            species: The species to load.
+            month: The month (YYYY-MM) of the desired file.
+
+        Returns:
+            Path to the reanalysis file for the given species and month.
+        """
         folder = self.processed_dir / "reanalysis"
-        paths = []
-        for month in months_str:
-            for species in self.species:
-                filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
-                if not (folder / filename).exists():
-                    # if VRA Reanalysis file does not exist
-                    # Use Intermediate analysis (IRA) as replacement
-                    filename = filename.replace("vra", "ira")
-                paths.append(folder / filename)
-        return paths
+        filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
+        if not (folder / filename).exists():
+            # if VRA Reanalysis file does not exist
+            # Use Intermediate analysis (IRA) as replacement
+            filename = filename.replace("vra", "ira")
+        return folder / filename
 
     @property
     def is_valid(self) -> bool:
@@ -118,10 +127,6 @@ class Sample:
         Returns:
             A xr.Dataset containing all the input data for this model.
         """
-        # TODO: adapt when sample is overlapping 2 months
-        # In this case, we need to load valid times from 2 different files
-        # for one species.
-        # Else we get the error 'KeyError: "not all values found in index 'time'"'
         model_path = self.processed_dir / model.lower() / self.input_filename
         data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)
@@ -139,11 +144,18 @@ class Sample:
     def load_target_data(self) -> xr.Dataset:
         """Returns the target analysis data."""
         all_species_da = {}
-        for i, path in enumerate(self.target_paths):
-            data = xr.open_dataset(path)
-            data_of_interest = data.sel(time=self.valid_times)
-            data_of_interest = data_of_interest[self.species[i].lower()]
-            all_species_da[self.species[i]] = data_of_interest
+        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
+        for species in self.species:
+            species_das = []
+            for month in months_str:
+                month_times = [
+                    time for time in self.valid_times if time.strftime("%Y-%m") == month
+                ]
+                data = xr.open_dataset(self._target_path(species, month))
+                data_of_interest = data.sel(time=month_times)[species.lower()]
+                species_das.append(data_of_interest)
+            combined = xr.concat(species_das, dim="time")
+            all_species_da[species] = combined.sel(time=self.valid_times)
         target = xr.Dataset(all_species_da)
         target = target.rename(
             {

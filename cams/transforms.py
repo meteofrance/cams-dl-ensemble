@@ -187,9 +187,13 @@ class Normalize(nn.Module, ReversibleTransformMixin):
 
     def normalize_xarray(self, ds: xr.Dataset) -> xr.Dataset:
         """Normalize an xarray Dataset btw 0 and 1 with min/max normalization."""
-        mini = self.stats_dict["O3"]["min"]
-        maxi = self.stats_dict["O3"]["max"]
-        return (ds - mini) / (maxi - mini)
+        all_species_da = {}
+        for species in ds["species"].values:
+            mini = self.stats_dict[species]["min"]
+            maxi = self.stats_dict[species]["max"]
+            all_species_da[species] = (ds.sel(species=species) - mini) / (maxi - mini)
+
+        return xr.Dataset(all_species_da)
 
     @override
     def forward(
@@ -216,8 +220,8 @@ class ReverseNormalize(nn.Module):
         """Undoes min/max normalization."""
         denormalized_features: list[torch.Tensor] = []
         for feature_name in nt.feature_names:
-            mini = self.stats_dict["O3"]["min"]
-            maxi = self.stats_dict["O3"]["max"]
+            mini = self.stats_dict[feature_name]["min"]
+            maxi = self.stats_dict[feature_name]["max"]
             denormalized_features.append(nt[feature_name] * (maxi - mini) + mini)
         denormalized_features_tensor = torch.cat(
             tensors=denormalized_features, dim=nt.feature_dim_idx

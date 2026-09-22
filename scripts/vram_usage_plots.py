@@ -1,24 +1,28 @@
 """Plots the GPU VRAM usage of several mfai models versus their input channels.
 
-For each model in a fixed selection, ``in_channels`` starts at 1 and increases
-until the GPU runs out of memory. At each value the model is built, moved to GPU
-and a full forward + backward pass with an AdamW optimizer step is run on a
-fixed-size input tensor. The peak VRAM (maximum memory allocated by the PyTorch
-caching allocator) is recorded, and the largest ``in_channels`` that fits on the
-card is the end of the curve. One curve per model is plotted on a single PNG.
+For each model in a fixed selection, ``in_channels`` grows until the GPU runs
+out of memory. At each value the model is built, moved to GPU and a full forward
++ backward pass with an AdamW optimizer step is run on a fixed-size input
+tensor. The model output has ``in_channels // nb_models`` channels (the number
+of species, levels and leadtimes to predict). The peak VRAM (maximum memory
+allocated by the PyTorch caching allocator) is recorded, and the largest
+``in_channels`` that fits on the card is the end of the curve. One curve per
+model is plotted on a single PNG.
 
 The models swept are: DeepLabV3Plus, HalfUNet, Segformer, SwinUNetR, UNet and
 UNetRPP.
 
 usage: vram_usage_plots.py [-h] [--save_dir SAVE_DIR] [--in_channels_step N]
-                           [--max_in_channels N] [--batch_size N]
-                           [--height N] [--width N]
+                           [--batch_size N] [--nb_models N] [--nb_species N]
+                           [--nb_levels N] [--height N] [--width N]
 
 options:
   --save_dir SAVE_DIR       Directory where the plot will be saved
   --in_channels_step N      Increment of in_channels between measurements
-  --max_in_channels N       Upper bound of the in_channels search
   --batch_size N            Fixed batch size used for every measurement
+  --nb_models Size of the model dimension
+  --nb_species Size of the species dimension
+  --nb_levels Size of the levels dimension
   --height N                Fixed input height used for every measurement
   --width N                 Fixed input width used for every measurement
 """
@@ -42,10 +46,12 @@ from mfai.pytorch.models.swinunetr import SwinUNetR, SwinUNetRSettings
 from mfai.pytorch.models.unet import UNet, UNetSettings
 from mfai.pytorch.models.unetrpp import UNetRPP, UNetRPPSettings
 
-ModelBuilder = Callable[[int, tuple[int, int]], nn.Module]
+ModelBuilder = Callable[[int, int, tuple[int, int]], nn.Module]
 
 
-def _deeplabv3_builder(in_channels: int, input_shape: tuple[int, int]) -> DeepLabV3Plus:
+def _deeplabv3_builder(
+    in_channels: int, out_channels: int, input_shape: tuple[int, int]
+) -> DeepLabV3Plus:
     """Build a DeepLabV3Plus without pretrained encoder weights.
 
     The pretrained weights are disabled to keep the measurement deterministic
@@ -54,6 +60,7 @@ def _deeplabv3_builder(in_channels: int, input_shape: tuple[int, int]) -> DeepLa
 
     Args:
         in_channels: Number of input channels of the model.
+        out_channels: Number of output channels of the model.
         input_shape: Spatial ``(height, width)`` shape of the model input.
 
     Returns:
@@ -62,7 +69,7 @@ def _deeplabv3_builder(in_channels: int, input_shape: tuple[int, int]) -> DeepLa
     settings = DeepLabV3PlusSettings(encoder_weights=False, autopad_enabled=True)
     return DeepLabV3Plus(
         in_channels=in_channels,
-        out_channels=1,
+        out_channels=out_channels,
         input_shape=input_shape,
         settings=settings,
     )
@@ -80,15 +87,17 @@ def _settings_builder(model_kls: type[nn.Module], settings_kls: type) -> ModelBu
         settings_kls: Dataclass type used to configure the model.
 
     Returns:
-        ModelBuilder: A builder taking the number of input channels and the
-            spatial input shape.
+        ModelBuilder: A builder taking the number of input channels, the number
+            of output channels and the spatial input shape.
     """
 
-    def _build(in_channels: int, input_shape: tuple[int, int]) -> nn.Module:
+    def _build(
+        in_channels: int, out_channels: int, input_shape: tuple[int, int]
+    ) -> nn.Module:
         settings = settings_kls(autopad_enabled=True)
         return model_kls(
             in_channels=in_channels,
-            out_channels=1,
+            out_channels=out_channels,
             input_shape=input_shape,
             settings=settings,
         )
@@ -105,13 +114,12 @@ MODELS: dict[str, ModelBuilder] = {
     "UNetRPP": _settings_builder(UNetRPP, UNetRPPSettings),
 }
 
-HEIGHT = 128
-WIDTH = 128
-
 
 def measure_vram(
     builder: ModelBuilder,
+    *,
     in_channels: int,
+    out_channels: int,
     batch_size: int,
     height: int,
     width: int,
@@ -128,6 +136,7 @@ def measure_vram(
         builder: Callable building the model for a given number of channels and
             input shape.
         in_channels: Number of input channels of the model.
+        out_channels: Number of output channels of the model.
         batch_size: Batch size of the synthetic input tensor.
         height: Spatial height of the synthetic input tensor.
         width: Spatial width of the synthetic input tensor.
@@ -135,11 +144,11 @@ def measure_vram(
     Returns:
         int: Peak number of bytes allocated on the GPU during the pass.
     """
-    model = builder(in_channels, (height, width)).train()
+    model = builder(in_channels, out_channels, (height, width)).train()
     model.cuda()
 
     x = torch.randn(batch_size, in_channels, height, width, device="cuda")
-    y = torch.randn(batch_size, 1, height, width, device="cuda")
+    y = torch.randn(batch_size, out_channels, height, width, device="cuda")
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.AdamW(model.parameters())
 
@@ -161,21 +170,24 @@ def measure_vram_curve(
     builder: ModelBuilder,
     *,
     in_channels_step: int,
-    max_in_channels: int,
+    nb_models: int,
     batch_size: int,
     height: int,
     width: int,
 ) -> tuple[list[int], list[int]]:
     """Measure peak VRAM for increasing input channels until the GPU is full.
 
-    ``in_channels`` starts at 1 and increases by ``in_channels_step`` up to
-    ``max_in_channels``. The search stops as soon as a training step runs out of
-    GPU memory; the last value that fit defines the end of the curve.
+    The ``in_channels`` values start at ``nb_models`` (the smallest value for
+    which ``out_channels = in_channels // nb_models`` is at least one) and
+    increase by ``in_channels_step``. The model output has
+    ``in_channels // nb_models`` channels. The search stops as soon as a
+    training step runs out of GPU memory; the last value that fit defines the
+    end of the curve.
 
     Args:
         builder: Callable building the model for a given number of channels.
         in_channels_step: Increment of ``in_channels`` between measurements.
-        max_in_channels: Upper bound of the ``in_channels`` search.
+        nb_models: Size of the model dimension of the input data.
         batch_size: Fixed batch size used for every measurement.
         height: Fixed input height used for every measurement.
         width: Fixed input width used for every measurement.
@@ -186,22 +198,36 @@ def measure_vram_curve(
     """
     channels: list[int] = []
     vram_bytes: list[int] = []
-    for in_channels in range(1, max_in_channels + 1, in_channels_step):
+    in_channels = nb_models
+    while True:
+        out_channels = in_channels // nb_models
         try:
-            peak = measure_vram(builder, in_channels, batch_size, height, width)
+            peak = measure_vram(
+                builder,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                batch_size=batch_size,
+                height=height,
+                width=width,
+            )
         except torch.cuda.OutOfMemoryError:
             torch.cuda.empty_cache()
             break
         channels.append(in_channels)
         vram_bytes.append(peak)
         print(f"  {in_channels} channels: {peak / 1024**2:.0f} MB", file=sys.stderr)
+        in_channels += in_channels_step
     return channels, vram_bytes
 
 
 def plot_vram_curves(
     measurements: dict[str, tuple[list[int], list[int]]],
     save_path: Path,
+    *,
     batch_size: int,
+    nb_models: int,
+    nb_species: int,
+    nb_levels: int,
     height: int,
     width: int,
 ) -> None:
@@ -211,21 +237,47 @@ def plot_vram_curves(
         measurements: Mapping of model name to a ``(channels, vram_bytes)`` pair.
         save_path: Path where to save the PNG plot.
         batch_size: Batch size used for the measurements.
+        nb_models: Size of the model dimension of the input data.
+        nb_species: Size of the species dimension of the input data.
+        nb_levels: Size of the levels dimension of the input data.
         height: Input height used for the measurements.
         width: Input width used for the measurements.
     """
+    channels_per_leadtime = nb_models * nb_species * nb_levels
+
+    all_channels = sorted(
+        {c for channels, _ in measurements.values() for c in channels}
+    )
+    tick_step = max(1, len(all_channels) // 8)
+    tick_channels = all_channels[::tick_step]
+
     fig, ax = plt.subplots(figsize=(12, 8))
     ax.set_title(
-        "Model VRAM usage vs input channels\n"
-        f"(batch={batch_size}, input_shape={height}x{width})"
+        "Peak VRAM usage for a full training step vs number of leadtimes\n"
+        f"(batch={batch_size}, input_shape={height}x{width}, "
+        f"{nb_models} models, {nb_species} species, {nb_levels} level)"
     )
     for name, (channels, vram_bytes) in measurements.items():
-        vram_mb = [b / (1024**2) for b in vram_bytes]
-        ax.plot(channels, vram_mb, marker="o", label=name)
+        vram_gb = [b / (1024**3) for b in vram_bytes]
+        ax.plot(channels, vram_gb, marker="o", label=name)
     ax.set_xlabel("Number of input channels")
-    ax.set_ylabel("Peak VRAM usage (MB)")
+    ax.set_ylabel("Peak VRAM usage (GB)")
     ax.grid(True)
     ax.legend()
+    ax.set_xlim(tick_channels[0], tick_channels[-1])
+    ax.set_xticks(tick_channels)
+
+    ax_top = ax.twiny()
+    ax_top.set_xlim(ax.get_xlim())
+    ax_top.set_xticks(tick_channels)
+    ax_top.set_xticklabels(
+        [str(round(c / channels_per_leadtime)) for c in tick_channels]
+    )
+    ax_top.set_xlabel(
+        "Number of leadtimes "
+        f"({nb_models} models, {nb_species} species, {nb_levels} level)"
+    )
+
     fig.tight_layout()
     fig.savefig(save_path, dpi=150)
     plt.close(fig)
@@ -249,13 +301,6 @@ def main(argv: list[str] | None = None) -> None:
         help="Increment of in_channels between measurements",
     )
     parser.add_argument(
-        "--max_in_channels",
-        type=int,
-        default=4096,
-        dest="max_in_channels",
-        help="Upper bound of the in_channels search",
-    )
-    parser.add_argument(
         "--batch_size",
         type=int,
         default=2,
@@ -264,16 +309,37 @@ def main(argv: list[str] | None = None) -> None:
         "BatchNorm-based models)",
     )
     parser.add_argument(
+        "--nb_models",
+        type=int,
+        default=11,
+        dest="nb_models",
+        help="Size of the model dimension",
+    )
+    parser.add_argument(
+        "--nb_species",
+        type=int,
+        default=6,
+        dest="nb_species",
+        help="Size of the species dimension",
+    )
+    parser.add_argument(
+        "--nb_levels",
+        type=int,
+        default=1,
+        dest="nb_levels",
+        help="Size of the levels dimension",
+    )
+    parser.add_argument(
         "--height",
         type=int,
-        default=HEIGHT,
+        default=128,
         dest="height",
         help="Fixed input height used for every measurement",
     )
     parser.add_argument(
         "--width",
         type=int,
-        default=WIDTH,
+        default=128,
         dest="width",
         help="Fixed input width used for every measurement",
     )
@@ -290,7 +356,7 @@ def main(argv: list[str] | None = None) -> None:
         measurements[name] = measure_vram_curve(
             builder,
             in_channels_step=args.in_channels_step,
-            max_in_channels=args.max_in_channels,
+            nb_models=args.nb_models,
             batch_size=args.batch_size,
             height=args.height,
             width=args.width,
@@ -300,6 +366,9 @@ def main(argv: list[str] | None = None) -> None:
         measurements=measurements,
         save_path=save_path,
         batch_size=args.batch_size,
+        nb_models=args.nb_models,
+        nb_species=args.nb_species,
+        nb_levels=args.nb_levels,
         height=args.height,
         width=args.width,
     )

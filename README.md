@@ -81,6 +81,15 @@ python scripts/main.py fit --config configs/dummy.yaml --ckpt_path PATH_TO_CKPT 
 
 Don't forget to increase the maximum number of epochs (or steps), or the model will not train more than before.
 
+### Carbon emission tracking
+
+We use a carbon emission tracker to monitor training sessions. This is achieved using the codecarbon library, which calculates carbon emissions based on CPU, RAM, and GPU consumption. If you want to modify the current configuration, edit the `.codecarbon.config` file.
+
+To visualize all the project's consumption data on a website, please run:
+```bash
+uv run carbonboard /scratch/labia/shared/codecarbon/emissions.csv --port=3333
+```
+
 ## Required data
 Before using this project to train a model, you will need to gather the necessary weather data. A full description of the data required is available in [doc/dataset.md](doc/dataset.md).
 

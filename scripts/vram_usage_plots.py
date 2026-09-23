@@ -12,13 +12,12 @@ model is plotted on a single PNG.
 The models swept are: DeepLabV3Plus, HalfUNet, Segformer, SwinUNetR, UNet and
 UNetRPP.
 
-usage: vram_usage_plots.py [-h] [--save_dir SAVE_DIR] [--in_channels_step N]
-                           [--batch_size N] [--nb_models N] [--nb_species N]
+usage: vram_usage_plots.py [-h] [--save_dir SAVE_DIR] [--batch_size N]
+                           [--nb_models N] [--nb_species N]
                            [--nb_levels N] [--height N] [--width N]
 
 options:
   --save_dir SAVE_DIR       Directory where the plot will be saved
-  --in_channels_step N      Increment of in_channels between measurements
   --batch_size N            Fixed batch size used for every measurement
   --nb_models Size of the model dimension
   --nb_species Size of the species dimension
@@ -169,25 +168,27 @@ def measure_vram(
 def measure_vram_curve(
     builder: ModelBuilder,
     *,
-    in_channels_step: int,
     nb_models: int,
+    nb_species: int,
+    nb_levels: int,
     batch_size: int,
     height: int,
     width: int,
 ) -> tuple[list[int], list[int]]:
-    """Measure peak VRAM for increasing input channels until the GPU is full.
+    """Measure peak VRAM for increasing leadtimes until the GPU is full.
 
-    The ``in_channels`` values start at ``nb_models`` (the smallest value for
-    which ``out_channels = in_channels // nb_models`` is at least one) and
-    increase by ``in_channels_step``. The model output has
-    ``in_channels // nb_models`` channels. The search stops as soon as a
-    training step runs out of GPU memory; the last value that fit defines the
-    end of the curve.
+    ``nb_leadtimes`` starts at 1 and increases by 1 at each step. A single
+    leadtime contributes ``channels_per_leadtime = nb_models * nb_species *
+    nb_levels`` input channels, so ``in_channels = channels_per_leadtime *
+    nb_leadtimes`` and ``out_channels = nb_species * nb_levels * nb_leadtimes``.
+    The search stops as soon as a training step runs out of GPU memory; the last
+    value that fit defines the end of the curve.
 
     Args:
         builder: Callable building the model for a given number of channels.
-        in_channels_step: Increment of ``in_channels`` between measurements.
         nb_models: Size of the model dimension of the input data.
+        nb_species: Size of the species dimension of the input data.
+        nb_levels: Size of the levels dimension of the input data.
         batch_size: Fixed batch size used for every measurement.
         height: Fixed input height used for every measurement.
         width: Fixed input width used for every measurement.
@@ -196,11 +197,13 @@ def measure_vram_curve(
         tuple[list[int], list[int]]: The successful ``in_channels`` values and
             the associated peak VRAM during a full training step in bytes.
     """
+    channels_per_leadtime = nb_models * nb_species * nb_levels
     channels: list[int] = []
     vram_bytes: list[int] = []
-    in_channels = nb_models
+    nb_leadtimes = 1
     while True:
-        out_channels = in_channels // nb_models
+        in_channels = channels_per_leadtime * nb_leadtimes
+        out_channels = nb_species * nb_levels * nb_leadtimes
         try:
             peak = measure_vram(
                 builder,
@@ -216,7 +219,7 @@ def measure_vram_curve(
         channels.append(in_channels)
         vram_bytes.append(peak)
         print(f"  {in_channels} channels: {peak / 1024**2:.0f} MB", file=sys.stderr)
-        in_channels += in_channels_step
+        nb_leadtimes += 1
     return channels, vram_bytes
 
 
@@ -270,9 +273,7 @@ def plot_vram_curves(
     ax_top = ax.twiny()
     ax_top.set_xlim(ax.get_xlim())
     ax_top.set_xticks(tick_channels)
-    ax_top.set_xticklabels(
-        [str(round(c / channels_per_leadtime)) for c in tick_channels]
-    )
+    ax_top.set_xticklabels([str(int(c / channels_per_leadtime)) for c in tick_channels])
     ax_top.set_xlabel(
         "Number of leadtimes "
         f"({nb_models} models, {nb_species} species, {nb_levels} level)"
@@ -292,13 +293,6 @@ def main(argv: list[str] | None = None) -> None:
         default=Path("output/vram"),
         dest="save_dir",
         help="Directory where the plot will be saved",
-    )
-    parser.add_argument(
-        "--in_channels_step",
-        type=int,
-        default=1,
-        dest="in_channels_step",
-        help="Increment of in_channels between measurements",
     )
     parser.add_argument(
         "--batch_size",
@@ -355,13 +349,20 @@ def main(argv: list[str] | None = None) -> None:
         print(f"Measuring {name}...", file=sys.stderr)
         measurements[name] = measure_vram_curve(
             builder,
-            in_channels_step=args.in_channels_step,
             nb_models=args.nb_models,
+            nb_species=args.nb_species,
+            nb_levels=args.nb_levels,
             batch_size=args.batch_size,
             height=args.height,
             width=args.width,
         )
-    save_path = args.save_dir / "vram_vs_in_channels.png"
+    save_path = args.save_dir / (
+        f"{args.batch_size}_batch_size-"
+        f"{args.nb_models}_models-"
+        f"{args.nb_species}_species-"
+        f"{args.nb_levels}_levels-"
+        f"{args.height}x{args.width}_input_shape.png"
+    )
     plot_vram_curves(
         measurements=measurements,
         save_path=save_path,

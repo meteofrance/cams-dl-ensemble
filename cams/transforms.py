@@ -186,13 +186,22 @@ class Normalize(nn.Module, ReversibleTransformMixin):
         return ReverseNormalize(self.stats_file_path)
 
     def normalize_xarray(self, ds: xr.Dataset) -> xr.Dataset:
-        """Normalize an xarray Dataset btw 0 and 1 with min/max normalization."""
-        all_species_da = {}
-        for species in ds["species"].values:
-            mini = self.stats_dict[species]["min"]
-            maxi = self.stats_dict[species]["max"]
-            all_species_da[species] = (ds.sel(species=species) - mini) / (maxi - mini)
+        """Normalize an xarray Dataset btw 0 and 1 with min/max normalization.
 
+        The dataset has one data variable per model, with a ``species``
+        dimension. Each species is normalized with its own min/max statistics.
+        """
+        all_species_da = {}
+        for model in ds.data_vars:
+            da = ds[model]
+            normalized_channels = []
+            for species in da["species"].values:
+                mini = self.stats_dict[species]["min"]
+                maxi = self.stats_dict[species]["max"]
+                normalized_channels.append(
+                    (da.sel(species=species) - mini) / (maxi - mini)
+                )
+            all_species_da[model] = xr.concat(normalized_channels, dim="species")
         return xr.Dataset(all_species_da)
 
     @override

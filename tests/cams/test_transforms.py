@@ -117,18 +117,23 @@ def x_named_ds() -> xr.Dataset:
     """Fixture used by the transform tests that returns fake input data."""
     return xr.Dataset(
         {
-            "O3": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
-            "NO2": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
-        }
+            "CHIMERE": (
+                ["species", "latitude", "longitude"],
+                np.array([[[float("nan"), 1.0], [2.0, float("nan")]]]),
+            )
+        },
+        coords={"species": ["O3"]},
     )
-
 
 
 @pytest.fixture
 def y_named_ds() -> xr.Dataset:
     """Fixture used by the transform tests that returns fake target data."""
     tensor = np.array([[float("nan"), 5.0], [9.0, float("nan")]])
-    return xr.Dataset({"O3": (["latitude", "longitude"], tensor)})
+    return xr.Dataset(
+        {"TARGET": (["species", "latitude", "longitude"], tensor[None, ...])},
+        coords={"species": ["O3"]},
+    )
 
 
 @pytest.fixture
@@ -160,10 +165,10 @@ def test_normalize(
     transform = Normalize(stats_file_path=stats_file_path)
     x_processed, y_processed = transform((x_named_ds, y_named_ds))
     np.testing.assert_allclose(
-        np.nan_to_num(x_processed["O3"].values), np.nan_to_num(expected_x)
+        np.nan_to_num(x_processed["CHIMERE"].values[0]), np.nan_to_num(expected_x)
     )
     np.testing.assert_allclose(
-        np.nan_to_num(y_processed["O3"].values), np.nan_to_num(expected_y)
+        np.nan_to_num(y_processed["TARGET"].values[0]), np.nan_to_num(expected_y)
     )
 
 
@@ -173,7 +178,7 @@ def test_reverse_normalize(x_named_ds: xr.Dataset, stats_file_path: Path):
     x_processed, _ = transform((x_named_ds, x_named_ds))
 
     x_nt = NamedTensor(
-        tensor=torch.tensor(x_processed["O3"].values[None, ...]).float(),
+        tensor=torch.tensor(x_processed["CHIMERE"].values[0][None, ...]).float(),
         names=["features", "lat", "lon"],
         feature_names=["O3"],
     )
@@ -186,7 +191,7 @@ def test_reverse_normalize(x_named_ds: xr.Dataset, stats_file_path: Path):
     reversed_transform = transform.reverse_transform()
     x_reversed, _ = reversed_transform((x_nt, y_nt))
 
-    expected = torch.tensor(x_named_ds["O3"].values[None, ...]).float()
+    expected = torch.tensor(x_named_ds["CHIMERE"].values[0][None, ...]).float()
     assert torch.allclose(torch.isnan(x_reversed.tensor), torch.isnan(expected))
     assert torch.allclose(
         torch.nan_to_num(x_reversed.tensor), torch.nan_to_num(expected)

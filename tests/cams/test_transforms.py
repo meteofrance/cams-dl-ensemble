@@ -115,8 +115,13 @@ def test_FillMissingModels():
 @pytest.fixture
 def x_named_ds() -> xr.Dataset:
     """Fixture used by the transform tests that returns fake input data."""
-    tensor = np.array([[float("nan"), 1.0], [2.0, float("nan")]])
-    return make_input_ds({"O3": tensor})
+    return xr.Dataset(
+        {
+            "O3": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
+            "NO2": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
+        }
+    )
+
 
 
 @pytest.fixture

@@ -7,6 +7,8 @@ import xarray as xr
 from cams.sample import Sample
 from cams.types import Leadtimes
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+from mfai.pytorch.namedtensor import NamedTensor
+import numpy as np
 
 
 @pytest.mark.parametrize(
@@ -119,3 +121,20 @@ def test_sample_data(tmp_dataset_dir: Path):
     assert isinstance(data, xr.Dataset)
     assert list(data.data_vars) == ["MOCAGE", "TARGET"]
     assert data["MOCAGE"].values.shape == (1, 1, 1, 420, 700)
+
+
+def testdataset_to_namedtensor_single_channel():
+    """Test conversion of a statistically reduced dataset (spatial dims only)."""
+    ds = xr.Dataset(
+        {
+            "median": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
+            "mean": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
+        }
+    )
+    nt = Sample.convert_data_to_nt(ds)
+
+    assert isinstance(nt, NamedTensor)
+    assert nt.tensor.shape == (2, 2, 2)
+    assert list(nt.feature_names) == ["median", "mean"]
+    np.testing.assert_allclose(nt["median"], np.ones((1, 2, 2)))
+    np.testing.assert_allclose(nt["mean"], np.full((1, 2, 2), 2.0))

@@ -5,25 +5,8 @@ import numpy as np
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 
-from cams.dataset import CAMSDataset, dataset_to_namedtensor, get_run_dates
+from cams.dataset import CAMSDataset, get_run_dates
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
-
-
-def testdataset_to_namedtensor_single_channel():
-    """Test conversion of a statistically reduced dataset (spatial dims only)."""
-    ds = xr.Dataset(
-        {
-            "median": (["latitude", "longitude"], np.ones((2, 2))),
-            "mean": (["latitude", "longitude"], np.full((2, 2), 2.0)),
-        }
-    )
-    nt = dataset_to_namedtensor(ds)
-
-    assert isinstance(nt, NamedTensor)
-    assert nt.tensor.shape == (2, 2, 2)
-    assert list(nt.feature_names) == ["median", "mean"]
-    np.testing.assert_allclose(nt["median"], np.ones((1, 2, 2)))
-    np.testing.assert_allclose(nt["mean"], np.full((1, 2, 2), 2.0))
 
 
 def test_cams_dataset_creation(tmp_dataset_dir: Path):

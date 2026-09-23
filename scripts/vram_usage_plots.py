@@ -213,7 +213,12 @@ def measure_vram_curve(
                 height=height,
                 width=width,
             )
-        except torch.cuda.OutOfMemoryError:
+        except (torch.cuda.OutOfMemoryError, torch.AcceleratorError):
+            # Out-of-memory during backward can surface as a different CUDA
+            # error (e.g. cudaErrorInvalidValue) instead of a clean
+            # OutOfMemoryError, depending on where the failed allocation
+            # happens. Both mean the GPU ran out of memory, i.e. the end of
+            # the curve.
             torch.cuda.empty_cache()
             break
         channels.append(in_channels)

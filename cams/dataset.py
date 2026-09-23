@@ -2,9 +2,6 @@ import datetime as dt
 from functools import cached_property
 from pathlib import Path
 
-import numpy as np
-import torch
-import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import nn
 from torch.utils.data import Dataset
@@ -12,7 +9,6 @@ from typing_extensions import override
 
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR
-from cams.transforms import SPATIAL_DIMS
 from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 

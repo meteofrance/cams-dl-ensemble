@@ -8,6 +8,7 @@ import torch
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 
+from cams.sample import Sample
 from cams.transforms import (
     ExtractInputStatisticalFeatures,
     FillMissingModels,
@@ -180,12 +181,12 @@ def test_reverse_normalize(x_named_ds: xr.Dataset, stats_file_path: Path):
     x_nt = NamedTensor(
         tensor=torch.tensor(x_processed["CHIMERE"].values[0][None, ...]).float(),
         names=["features", "lat", "lon"],
-        feature_names=["O3"],
+        feature_names=[Sample._channel_name("model", "O3", "leadtime", "level")],  # type: ignore[reportPrivateAttributeUsage]
     )
     y_nt = NamedTensor(
         tensor=torch.ones(1, 2, 2),
         names=["features", "lat", "lon"],
-        feature_names=["O3"],
+        feature_names=[Sample._channel_name("model", "O3", "leadtime", "level")],  # type: ignore[reportPrivateAttributeUsage]
     )
 
     reversed_transform = transform.reverse_transform()

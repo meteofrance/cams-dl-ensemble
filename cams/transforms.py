@@ -229,8 +229,9 @@ class ReverseNormalize(nn.Module):
         """Undoes min/max normalization."""
         denormalized_features: list[torch.Tensor] = []
         for feature_name in nt.feature_names:
-            mini = self.stats_dict[feature_name]["min"]
-            maxi = self.stats_dict[feature_name]["max"]
+            species = feature_name.split(" - ")[1]
+            mini = self.stats_dict[species]["min"]
+            maxi = self.stats_dict[species]["max"]
             denormalized_features.append(nt[feature_name] * (maxi - mini) + mini)
         denormalized_features_tensor = torch.cat(
             tensors=denormalized_features, dim=nt.feature_dim_idx

@@ -2,6 +2,7 @@ import datetime as dt
 from functools import cached_property
 from pathlib import Path
 
+import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import nn
 from torch.utils.data import Dataset

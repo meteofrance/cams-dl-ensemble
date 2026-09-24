@@ -1,8 +1,6 @@
 import datetime as dt
 from pathlib import Path
 
-import numpy as np
-import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.dataset import CAMSDataset, get_run_dates

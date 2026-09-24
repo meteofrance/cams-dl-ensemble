@@ -1,4 +1,4 @@
-"""Computes min/max of the different species on the Analysis data."""
+"""Compute climatological mean maps for each chemical species on the Analysis data."""
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,8 +15,7 @@ def compute_target_climatology(dataset: CAMSDataset) -> xr.DataArray:
     using the TARGET field from all samples.
 
     Args:
-        dataset: Dataset containing samples accessible through
-            `for sample in dataset.samples`.
+        dataset: Dataset containing CAMS samples.
 
     Returns:
         xr.DataArray: Climatological mean with dimensions
@@ -54,14 +53,11 @@ def compute_target_climatology(dataset: CAMSDataset) -> xr.DataArray:
 
 
 def plot_species_climatology(climatology: xr.DataArray, cmap: str = "RdBu_r") -> None:
-    """Plot climatology maps for each species.
+    """Plot and save climatology maps for each species.
 
     Args:
         climatology: Output from compute_target_climatology().
         cmap: Matplotlib colormap.
-
-    Returns:
-        None: This function displays and saves a plot; it returns nothing.
     """
     sns.set_style("white")
 

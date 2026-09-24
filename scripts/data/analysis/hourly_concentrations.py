@@ -56,21 +56,15 @@ def compute_hourly_concentrations(
 def plot_pollutants_by_hour(
     data: dict[SpeciesNames, dict[int, float]], figsize: tuple[int, int] = (12, 6)
 ) -> None:
-    """Plot mean pollutant concentrations by hour of the day.
+    """Plot and save mean pollutant concentrations by hour of the day.
 
     Args:
         data: Dictionary with the structure
             {species: {hour: value, ...}, ...}.
         figsize: Matplotlib figure size.
-
-    Returns:
-        None: This function displays and saves a plot; it returns nothing.
     """
-    # Clean plotting style
     sns.set_style("whitegrid")
     plt.figure(figsize=figsize)
-
-    # Automatic color palette
     palette = sns.color_palette("tab10", n_colors=len(data))
 
     # Plot each pollutant
@@ -102,8 +96,7 @@ def plot_pollutants_by_hour(
 
 
 if __name__ == "__main__":
-    # species: list[SpeciesNames] = ["NO2", "PM10", "PM2P5", "SO2"]
-    species: list[SpeciesNames] = ["CO"]
+    species: list[SpeciesNames] = ["O3", "NO2", "CO", "PM10", "PM2P5", "SO2"]
 
     dataset = CAMSDataset(
         run_dates=get_run_dates(PROCESSED_DATA_DIR),

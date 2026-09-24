@@ -1,4 +1,4 @@
-"""Computes and plots mean concentration per hour of the different species
+"""Computes and plots mean concentration per month of the different species
 on the reanalysis data.
 """
 
@@ -15,7 +15,7 @@ from cams.types import LEADTIMES, SPECIES_NAMES, SpeciesNames
 def compute_monthly_concentrations(
     dataset: CAMSDataset, species: list[SpeciesNames] = SPECIES_NAMES
 ) -> dict[SpeciesNames, dict[int, float]]:
-    """Computes mean of hourly concentrations of pollutants over the reanalysis data.
+    """Computes mean of monthly concentrations of pollutants over the reanalysis data.
 
     Args:
         dataset: A cams dataset.
@@ -56,15 +56,12 @@ def compute_monthly_concentrations(
 def plot_pollutants_by_month(
     data: dict[SpeciesNames, dict[int, float]], figsize: tuple[int, int] = (12, 6)
 ) -> None:
-    """Plot mean pollutant concentrations by hour of the day.
+    """Plot and save mean pollutant concentrations by month.
 
     Args:
         data: Dictionary with the structure
-            {species: {hour: value, ...}, ...}.
+            {species: {month: value, ...}, ...}.
         figsize: Matplotlib figure size.
-
-    Returns:
-        None: This function displays and saves a plot; it returns nothing.
     """
     # Clean plotting style
     sns.set_style("whitegrid")

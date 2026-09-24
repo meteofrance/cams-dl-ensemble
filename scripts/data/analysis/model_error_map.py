@@ -22,11 +22,10 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates
+from cams.plots import EXTENT
 from cams.sample import Sample
 from cams.settings import PROCESSED_DATA_DIR, SIZE_LAT, SIZE_LON
 from cams.types import LEADTIMES, MODELS_NAMES, SpeciesNames
-
-EXTENT = (-24.95, 44.95, 30.05, 71.95)
 
 
 def compute_sample_error_map(sample: Sample, model: str) -> np.ndarray:
@@ -125,12 +124,10 @@ def plot_model_error_map(
         constrained_layout=True,
         subplot_kw=subplot_kw,
     )
-
     axes = axes.flatten()
 
     for i, (ax, species) in enumerate(zip(axes, species_list)):
         field = error_map[i]
-
         vmax = np.abs(field).max()
         im = ax.imshow(
             field,
@@ -139,18 +136,15 @@ def plot_model_error_map(
             vmax=vmax,
             extent=EXTENT,
         )
-
         ax.set_title(species)
         ax.add_feature(
             cfeature.BORDERS.with_scale("50m"), edgecolor="grey", linewidth=1
         )
         ax.coastlines(resolution="50m", color="black", linewidth=1)
-
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
         cbar.set_label("Mean error")
 
     plt.suptitle(f"Mean {model_name} error versus VRA", fontsize=16)
-
     plt.savefig(f"model_error_map_{model_name}.png")
 
 

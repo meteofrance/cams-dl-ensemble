@@ -3,7 +3,7 @@ lead time and species, compared to the TARGET reanalysis field, and plots it.
 
 Example:
     python scripts/data/analysis/model_error.py
-    python scripts/data/analysis/model_error.py --metric bias --species O3 NO2
+    python scripts/data/analysis/model_error.py --species O3 NO2
 """
 
 import matplotlib.pyplot as plt
@@ -40,16 +40,19 @@ def compute_sample_error(sample: Sample) -> tuple[np.ndarray, np.ndarray, int]:
             np.zeros((n_models, n_species, n_lt)),
             0,
         )
+
     # Compute and add median to xr.dataset
     model_vars = [v for v in data.data_vars if v != "TARGET"]
     median = xr.concat([data[v] for v in model_vars], dim="model").median(dim="model")
     data["MEDIAN"] = median
+
+    # Compute error for each model
     target = data["TARGET"]
     models_mae, models_bias = [], []
     for m, model in enumerate([v for v in data.data_vars if v != "TARGET"]):
         diff = data[model] - target
         spatial_dims = [d for d in diff.dims if d not in ["species", "time"]]
-        mae = np.abs(diff).mean(dim=spatial_dims).values
+        mae = np.abs(diff).mean(dim=spatial_dims).values  # type: ignore[reportCallIssue]
         bias = diff.mean(dim=spatial_dims).values
         models_mae.append(mae)
         models_bias.append(bias)
@@ -58,7 +61,7 @@ def compute_sample_error(sample: Sample) -> tuple[np.ndarray, np.ndarray, int]:
 
 def compute_model_error(
     dataset: CAMSDataset,
-) -> dict[ModelsNames, dict[SpeciesNames, dict[int, dict[str, float]]]]:
+) -> dict[str, dict[SpeciesNames, dict[int, dict[str, float]]]]:
     """Compute mean absolute error and mean bias of each model compared to
     the TARGET reanalysis, per species and per lead time.
     Computation is done in parallel with joblib.
@@ -67,7 +70,7 @@ def compute_model_error(
         dataset: A cams dataset.
 
     Returns:
-        dict[ModelsNames, dict[SpeciesNames, dict[int, dict[str, float]]]]:
+        dict[str, dict[SpeciesNames, dict[int, dict[str, float]]]]:
             Statistics dict of shape
             {model: {species: {lead_time: {"mae": X, "bias": Y}}}}.
     """
@@ -80,7 +83,7 @@ def compute_model_error(
     bias_sums = np.sum(all_bias, axis=0)
     count = sum(all_counts)
 
-    error: dict[ModelsNames, dict[SpeciesNames, dict[int, dict[str, float]]]] = {
+    error: dict[str, dict[SpeciesNames, dict[int, dict[str, float]]]] = {
         model: {
             spe: {
                 lt: {
@@ -97,13 +100,12 @@ def compute_model_error(
 
 
 def plot_model_error(
-    error: dict[ModelsNames, dict[SpeciesNames, dict[int, dict[str, float]]]],
+    error: dict[str, dict[SpeciesNames, dict[int, dict[str, float]]]],
     metric: str,
     lead_times: list[Leadtimes],
     species: list[SpeciesNames],
-    figsize: tuple[int, int] = (10, 25),
 ) -> None:
-    """Plot the chosen error metric of each model as a function of lead time,
+    """Plot and save the chosen error metric of each model as a function of lead time,
     for each species.
 
     Args:
@@ -111,16 +113,12 @@ def plot_model_error(
         metric: The metric to plot, either "mae" or "bias".
         lead_times: The lead times to display on the x-axis.
         species: The species to display.
-        figsize: Matplotlib figure size.
-
-    Returns:
-        None: This function displays and saves a plot; it returns nothing.
     """
     n_species = len(species)
     fig, axes = plt.subplots(
         nrows=n_species,
         ncols=1,
-        figsize=figsize,
+        figsize=(10, 25),
         constrained_layout=True,
         sharex=True,
     )
@@ -183,7 +181,6 @@ if __name__ == "__main__":
         species=species,
         levels=[0],
     )
-    print("Len dataset:", len(dataset))
 
     error = compute_model_error(dataset)
     plot_model_error(error, "mae", dataset.lead_times, species)

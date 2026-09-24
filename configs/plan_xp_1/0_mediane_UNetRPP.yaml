@@ -1,0 +1,69 @@
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      experiment_name: plan_xp_1
+      run_name: median_UNetRPP
+      log_model: True
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+  max_epochs: 500
+  log_every_n_steps: 10
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.UNetRPP
+    init_args:
+      in_channels: 36
+      out_channels: 4
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.L1Loss
+  val_leadtimes:
+    - 15
+
+data:
+  models:
+    - match
+    - minni
+    - chimere
+    - mocage
+    - monarch
+    - euradim
+    - emep
+    - gemaq
+    - silam
+    - dehm
+    - lotos
+  lead_times:
+    - 15
+  species:
+    - CO
+    - NO2
+    - PM10
+    - PM25
+    - SO2
+    - O3
+  levels:
+    - 0
+  batch_size: 32
+  num_workers: 10
+  prefetch_factor: 2
+  transforms:
+    - class_path: cams.transforms.Normalize
+    - class_path: cams.transforms.FillMissingModels
+      init_args:
+        fill_value: -1
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - mean

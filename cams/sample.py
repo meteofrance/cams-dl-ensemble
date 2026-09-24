@@ -263,9 +263,9 @@ class Sample:
     @staticmethod
     def _channel_name(
         model: Hashable,
-        species: object,
-        level: object,
-        leadtime: object,
+        species: str | None = None,
+        level: str | None = None,
+        leadtime: str | None = None,
     ) -> str:
         """Builds a channel name from whichever coordinates are present.
 

@@ -2,18 +2,13 @@
 seed_everything: 666
 trainer:
   max_steps: 1
-  limit_train_batches : 2
-  limit_val_batches : 2
-  limit_test_batches : 2
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: xp1_models_or_stats
       run_name: baseline_median
       log_model: True
-      tracking_uri: sqlite:///mlflow.db
-      artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
-
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts/
 model:
   learning_rate: 0.0001
   model:

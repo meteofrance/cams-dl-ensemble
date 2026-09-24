@@ -144,9 +144,6 @@ class CAMSLightningModule(LightningModule):
     @override
     def configure_optimizers(self) -> AdamW:
         """Lightning method to define optimizers and learning-rate schedulers"""
-        if isinstance(self.model, IdentityModel):
-            # For baselines like mean and median, no need for optimizer
-            return []
         return AdamW(self.parameters(), lr=self.learning_rate)
 
     ####################################################################################
@@ -173,8 +170,6 @@ class CAMSLightningModule(LightningModule):
         """Computes forward pass and loss for a batch.
         Step shared by training, validation and test steps.
         """
-        print(x)
-        print(y)
         output = self.model(x.tensor)  # pyright: ignore[reportCallIssue]
         if self.training_mode == "residual":
             y_hat_tensor = x["median"] + output

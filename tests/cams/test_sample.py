@@ -5,8 +5,10 @@ import pytest
 import xarray as xr
 
 from cams.sample import Sample
-from cams.types import Levels
+from cams.types import Leadtimes
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+from mfai.pytorch.namedtensor import NamedTensor
+import numpy as np
 
 
 @pytest.mark.parametrize(
@@ -17,17 +19,22 @@ from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
         (dt.date(2023, 12, 31), 96),
     ],
 )
-def test_sample_creation(run_date: dt.date, lead_time: Levels):
+def test_sample_creation(run_date: dt.date, lead_time: Leadtimes):
     sample = Sample(
         run_date,
         models=["CHIMERE", "MOCAGE"],
-        lead_times=[lead_time], # pyright: ignore[reportArgumentType]
+        lead_times=[lead_time],
         species=["O3"],
         levels=[0],
     )
     assert sample.date_run == run_date
     assert sample.lead_times == [lead_time]
-    expected_valid_times = [run_date + dt.timedelta(hours=lead_time)]
+    expected_valid_times = [
+        (
+            dt.datetime(run_date.year, run_date.month, run_date.day, 0, 0, 0)
+            + dt.timedelta(hours=lead_time)
+        )
+    ]
     assert sample.valid_times == expected_valid_times
 
 
@@ -114,3 +121,20 @@ def test_sample_data(tmp_dataset_dir: Path):
     assert isinstance(data, xr.Dataset)
     assert list(data.data_vars) == ["MOCAGE", "TARGET"]
     assert data["MOCAGE"].values.shape == (1, 1, 1, 420, 700)
+
+
+def testdataset_to_namedtensor_single_channel():
+    """Test conversion of a statistically reduced dataset (spatial dims only)."""
+    ds = xr.Dataset(
+        {
+            "median": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
+            "mean": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
+        }
+    )
+    nt = Sample.convert_data_to_nt(ds)
+
+    assert isinstance(nt, NamedTensor)
+    assert nt.tensor.shape == (2, 2, 2)
+    assert list(nt.feature_names) == ["median", "mean"]
+    np.testing.assert_allclose(nt["median"], np.ones((1, 2, 2)))
+    np.testing.assert_allclose(nt["mean"], np.full((1, 2, 2), 2.0))

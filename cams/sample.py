@@ -1,5 +1,6 @@
 import datetime as dt
 from pathlib import Path
+from typing import Hashable
 
 import numpy as np
 import torch
@@ -40,7 +41,13 @@ class Sample:
         self.date_run = date_run
         self.models = models
         self.lead_times = lead_times
-        self.valid_times = [self.date_run + dt.timedelta(hours=lt) for lt in lead_times]
+        self.valid_times = [
+            (
+                dt.datetime(date_run.year, date_run.month, date_run.day, 0, 0, 0)
+                + dt.timedelta(hours=lt)
+            )
+            for lt in lead_times
+        ]
         self.species = species
         self.levels = levels
         self.processed_dir = processed_dir
@@ -282,9 +289,11 @@ class Sample:
         for model in model_names:
             da = ds[model]
             da = da.transpose("species", "time", "level", "latitude", "longitude")
-            species_values = da.coords["species"].values
-            time_values = da.coords["time"].values
-            level_values = da.coords["level"].values
+            species_values = (
+                da.coords["species"].values if "species" in da.coords else [None]
+            )
+            time_values = da.coords["time"].values if "time" in da.coords else [None]
+            level_values = da.coords["level"].values if "level" in da.coords else [None]
 
             for i_species, species in enumerate(species_values):
                 for i_time in range(len(time_values)):
@@ -294,15 +303,45 @@ class Sample:
                         ).values  # extract 2D channel
                         arr = np.nan_to_num(arr, nan=0.0)
                         channel_arrays.append(arr)
-                        leadtime = da.coords["lead_time"].values[i_time]
-                        channel_name = (
-                            f"{model} - {species} - +{leadtime}h - {int(level)}m"
+                        leadtime = (
+                            da.coords["lead_time"].values[i_time]
+                            if "lead_time" in da.coords
+                            else None
                         )
-                        channel_names.append(channel_name)
+                        channel_names.append(
+                            Sample._channel_name(model, species, level, leadtime)
+                        )
 
         tensor = torch.tensor(np.stack(channel_arrays, axis=0)).to(torch.float32)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
+
+    @staticmethod
+    def _channel_name(
+        model: Hashable,
+        species: str | None = None,
+        level: str | None = None,
+        leadtime: str | None = None,
+    ) -> str:
+        """Builds a channel name from whichever coordinates are present.
+
+        Args:
+            model: Name of the model data variable.
+            species: Species value, or None when the coordinate is absent.
+            level: Level value, or None when the coordinate is absent.
+            leadtime: Lead time value, or None when the coordinate is absent.
+
+        Returns:
+            The formatted channel name.
+        """
+        name = str(model)
+        if species is not None:
+            name += f" - {species}"
+        if leadtime is not None:
+            name += f" - +{leadtime}h"
+        if isinstance(level, (int, float, np.integer, np.floating)):
+            name += f" - {int(level)}m"
+        return name
 
     def get_input_and_target(self) -> tuple[NamedTensor, NamedTensor]:
         """Returns inputs and target as NamedTensor"""

@@ -8,6 +8,7 @@ trainer:
       experiment_name: dummy
       run_name: lea
       log_model: True
+      tracking_uri: sqlite:///mlflow.db
       artifact_location: /scratch/shared/cams/mlartifacts
 
   callbacks:

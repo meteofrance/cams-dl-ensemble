@@ -290,7 +290,7 @@ requires-dist = [
     { name = "pytest", specifier = "==9.0.*" },
     { name = "pytest-cov", specifier = "==7.1.*" },
     { name = "ruff", specifier = "==0.15.9" },
-    { name = "seaborn" },
+    { name = "seaborn", specifier = "==0.13.2" },
     { name = "torch", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = "==2.11.*" },
     { name = "torch", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = "==2.11.*", index = "https://download.pytorch.org/whl/cu130" },
     { name = "torchvision", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = "==0.26.*" },

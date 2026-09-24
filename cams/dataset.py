@@ -2,6 +2,7 @@ import datetime as dt
 from functools import cached_property
 from pathlib import Path
 
+import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from torch import nn
 from torch.utils.data import Dataset
@@ -91,8 +92,11 @@ class CAMSDataset(Dataset):
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
-        x, y = self.samples[idx].get_input_and_target()
-        return self.transform_sequence((x, y))
+        ds: xr.Dataset = self.samples[idx].data
+        x_ds = ds.drop_vars("TARGET")
+        y_ds = ds[["TARGET"]]
+        x_ds, y_ds = self.transform_sequence((x_ds, y_ds))
+        return Sample.convert_data_to_nt(x_ds), Sample.convert_data_to_nt(y_ds)
 
 
 if __name__ == "__main__":

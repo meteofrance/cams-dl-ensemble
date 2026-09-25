@@ -207,7 +207,7 @@ class Sample:
             da = da.assign_coords(  # Format name of species
                 species=[s.replace("_conc", "").upper() for s in da.species.values]
             )
-            combined[model_name] = da
+            combined[model_name.upper()] = da
         combined.coords["lead_time"] = (("time",), self.lead_times)
         return combined
 

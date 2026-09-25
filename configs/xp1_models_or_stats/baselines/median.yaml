@@ -9,6 +9,7 @@ trainer:
       run_name: baseline_median
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts/
+
 model:
   learning_rate: 0.0001
   model:
@@ -50,4 +51,3 @@ data:
     - lotos
   lead_times:
     - 15
-  

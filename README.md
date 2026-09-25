@@ -41,13 +41,13 @@ This enables array API from `scipy`. Please see https://docs.scipy.org/doc/scipy
 
 ## Usage
 
-* To plot a sample from the CAMS dataset:
+* To **plot a sample** from the CAMS dataset:
 
 ```bash
 python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```
 
-* To train a very simple model on a few samples of the CAMS dataset:
+* To **train a very simple model** on a few samples of the CAMS dataset:
 
 ```bash
 python scripts/main.py fit [--trainer.fast_dev_run True] --config configs/dummy.yaml
@@ -55,25 +55,22 @@ python scripts/main.py fit [--trainer.fast_dev_run True] --config configs/dummy.
 
 Use the `fast_dev_run` option to deactivate checkpointing and logging.
 
-* To compare the AI model to a baseline, you could also launch a script that compute metrics over the validation dataset:
+* To **compare the AI model to a baseline**, you could also launch a script that compute metrics over the validation dataset:
 
 ```bash
 python scripts/main.py validate --config configs/baseline.yaml
 ```
 
-* To visualize the metrics in MFLow:
+* To **visualize the metrics in MFLow**:
 
-```bash
-mlflow serve [-p PORT] [-h HOST] [--allowed-hosts "*" --cors-allowed-origins "*"] backend-store-uri PATH_TO_LOGS
-```
+At Meteo-France, the MLFlow server is always running. Simply export :
 
-At Meteo-France with runai, simply run:
+`export MLFLOW_TRACKING_URI=http://miam-sidev.meteo.fr:9998`
 
-```bash
-runai mlflow --backend-store-uri PATH_TO_LOGS
-```
 
-* To continue training a model from a chekpoint:
+Then navigate to `http://miam-sidev.meteo.fr:9998`.
+
+* To **continue training** a model from a chekpoint:
 
 ```bash
 python scripts/main.py fit --config configs/dummy.yaml --ckpt_path PATH_TO_CKPT --trainer.max_epochs N

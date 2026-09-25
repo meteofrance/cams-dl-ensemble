@@ -81,30 +81,26 @@ class ExtractInputStatisticalFeatures(nn.Module):
         """
         x, y = inputs
         ensemble = x.to_array(dim="model")
-        feature_dims = [dim for dim in ensemble.dims if dim not in SPATIAL_DIMS]
-        ensemble = ensemble.stack(feature=feature_dims)
         stat_ds = xr.Dataset()
         for statistic_type in self.statistic_types:
             if statistic_type in ["skew", "kurtosis"]:
                 statistic = xr.apply_ufunc(
                     getattr(scipy.stats, statistic_type),
                     ensemble,
-                    input_core_dims=[["feature"]],
+                    input_core_dims=[["model"]],
                     kwargs={"nan_policy": "omit", "axis": -1},
                 )
             elif statistic_type in ["argmin", "argmax"]:
                 statistic = xr.apply_ufunc(
                     getattr(np, statistic_type),
                     ensemble,
-                    input_core_dims=[["feature"]],
+                    input_core_dims=[["model"]],
                     kwargs={"axis": -1},
                 )
             else:
                 xarray_method = "min" if statistic_type == "amin" else statistic_type
                 xarray_method = "max" if statistic_type == "amax" else xarray_method
-                statistic = getattr(ensemble, xarray_method)(
-                    dim="feature", skipna=False
-                )
+                statistic = getattr(ensemble, xarray_method)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
         return stat_ds, y
 

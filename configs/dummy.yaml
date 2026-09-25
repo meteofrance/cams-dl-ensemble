@@ -8,7 +8,7 @@ trainer:
       experiment_name: dummy
       run_name: lea
       log_model: True
-      artifact_location: /scratch/shared/cams/mlartifacts
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts/
 
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint

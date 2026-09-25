@@ -1,0 +1,53 @@
+# lightning.pytorch==2.6.1
+seed_everything: 666
+trainer:
+  max_steps: 1
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      experiment_name: xp1_models_or_stats
+      run_name: baseline_median
+      log_model: True
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts/
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.IdentityModel
+  loss:
+    class_path: torch.nn.MSELoss
+  val_leadtimes: 
+    - 15
+
+data:
+  batch_size: 2
+  num_workers: 2
+  prefetch_factor: 2
+  transforms:
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - median
+  species:
+    - O3
+    - CO
+    - NO2
+    - SO2
+    - PM2P5
+    - PM10
+  levels:
+    - 0
+  models:
+    - match
+    - minni
+    - chimere
+    - mocage
+    - monarch
+    - euradim
+    - emep
+    - gemaq
+    - silam
+    - dehm
+    - lotos
+  lead_times:
+    - 15

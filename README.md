@@ -65,7 +65,7 @@ python scripts/main.py validate --config configs/baseline.yaml
 
 At Meteo-France, the MLFlow server is always running. Simply export :
 
-`export MLFLOW_TRACKING_URI=http://miam-sidev.meteo.fr:9998`
+`export MLFLOW_TRACKING_URI=<your mlflow instance's url>`
 
 
 Then navigate to mlflow instance's url.

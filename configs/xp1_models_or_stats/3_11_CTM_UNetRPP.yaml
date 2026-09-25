@@ -4,7 +4,7 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: xp1_models_or_stats
-      run_name: 3_11_CTM_HalfUnet
+      run_name: 3_11_CTM_UNetRPP
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
   callbacks:

@@ -68,7 +68,7 @@ At Meteo-France, the MLFlow server is always running. Simply export :
 `export MLFLOW_TRACKING_URI=http://miam-sidev.meteo.fr:9998`
 
 
-Then navigate to `http://miam-sidev.meteo.fr:9998`.
+Then navigate to mlflow instance's url.
 
 * To **continue training** a model from a chekpoint:
 

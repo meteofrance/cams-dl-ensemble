@@ -100,9 +100,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
             else:
                 xarray_method = "min" if statistic_type == "amin" else statistic_type
                 xarray_method = "max" if statistic_type == "amax" else xarray_method
-                statistic = getattr(ensemble, xarray_method)(
-                    dim="model", skipna=False
-                )
+                statistic = getattr(ensemble, xarray_method)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
         return stat_ds, y
 

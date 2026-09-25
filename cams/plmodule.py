@@ -7,7 +7,6 @@ import torch
 from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
 from mfai.pytorch.models.base import BaseModel, ModelABC
-from mfai.pytorch.models import IdentityModel
 from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient
 from PIL import Image

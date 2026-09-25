@@ -11,8 +11,7 @@ trainer:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
         logging_interval: step
-  max_epochs: 3 # 500
-  limit_train_batches: 3
+  max_epochs: 500
   log_every_n_steps: 10
 
 model:

@@ -1,5 +1,6 @@
 import datetime as dt
 from pathlib import Path
+from typing import Hashable
 
 import numpy as np
 import torch
@@ -82,25 +83,34 @@ class Sample:
         """The paths to the netcdf of targets reanalysis data.
         Files are grouped by months and species.
         """
-        months_str = list(set([date.strftime("%Y-%m") for date in self.valid_times]))
-        if len(months_str) > 1:
-            # The sample is overlapping 2 differents months
-            # TODO: adapt to this case in load_target_data
-            # For now, return a non existing file, so that the sample is not valid
-            # and ignored in dataset and training
-            print(f"WARNING: {self} is overlapping 2 months, not implemented.")
-            return [Path("non_existing_file.nc")]
+        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
+        return [
+            self._target_path(species, month)
+            for month in months_str
+            for species in self.species
+        ]
+
+    def _target_path(self, species: SpeciesNames, month: str) -> Path:
+        """Return the reanalysis file path for a species and month.
+
+        Falls back to the Intermediate analysis (IRA) file when the
+        VRA file does not exist.
+
+        Args:
+            folder: Directory containing the reanalysis files.
+            species: The species to load.
+            month: The month (YYYY-MM) of the desired file.
+
+        Returns:
+            Path to the reanalysis file for the given species and month.
+        """
         folder = self.processed_dir / "reanalysis"
-        paths = []
-        for month in months_str:
-            for species in self.species:
-                filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
-                if not (folder / filename).exists():
-                    # if VRA Reanalysis file does not exist
-                    # Use Intermediate analysis (IRA) as replacement
-                    filename = filename.replace("vra", "ira")
-                paths.append(folder / filename)
-        return paths
+        filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
+        if not (folder / filename).exists():
+            # if VRA Reanalysis file does not exist
+            # Use Intermediate analysis (IRA) as replacement
+            filename = filename.replace("vra", "ira")
+        return folder / filename
 
     @property
     def is_valid(self) -> bool:
@@ -118,10 +128,6 @@ class Sample:
         Returns:
             A xr.Dataset containing all the input data for this model.
         """
-        # TODO: adapt when sample is overlapping 2 months
-        # In this case, we need to load valid times from 2 different files
-        # for one species.
-        # Else we get the error 'KeyError: "not all values found in index 'time'"'
         model_path = self.processed_dir / model.lower() / self.input_filename
         data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)
@@ -139,11 +145,17 @@ class Sample:
     def load_target_data(self) -> xr.Dataset:
         """Returns the target analysis data."""
         all_species_da = {}
-        for i, path in enumerate(self.target_paths):
-            data = xr.open_dataset(path)
-            data_of_interest = data.sel(time=self.valid_times)
-            data_of_interest = data_of_interest[self.species[i].lower()]
-            all_species_da[self.species[i]] = data_of_interest
+        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
+        for species in self.species:
+            species_das = []
+            for month in months_str:
+                month_times = [
+                    time for time in self.valid_times if time.strftime("%Y-%m") == month
+                ]
+                data = xr.open_dataset(self._target_path(species, month))
+                data_of_interest = data.sel(time=month_times)[species.lower()]
+                species_das.append(data_of_interest)
+            all_species_da[species] = xr.concat(species_das, dim="time")
         target = xr.Dataset(all_species_da)
         target = target.rename(
             {
@@ -232,9 +244,11 @@ class Sample:
         for model in model_names:
             da = ds[model]
             da = da.transpose("species", "time", "level", "latitude", "longitude")
-            species_values = da.coords["species"].values
-            time_values = da.coords["time"].values
-            level_values = da.coords["level"].values
+            species_values = (
+                da.coords["species"].values if "species" in da.coords else [None]
+            )
+            time_values = da.coords["time"].values if "time" in da.coords else [None]
+            level_values = da.coords["level"].values if "level" in da.coords else [None]
 
             for i_species, species in enumerate(species_values):
                 for i_time in range(len(time_values)):
@@ -244,15 +258,45 @@ class Sample:
                         ).values  # extract 2D channel
                         arr = np.nan_to_num(arr, nan=0.0)
                         channel_arrays.append(arr)
-                        leadtime = da.coords["lead_time"].values[i_time]
-                        channel_name = (
-                            f"{model} - {species} - +{leadtime}h - {int(level)}m"
+                        leadtime = (
+                            da.coords["lead_time"].values[i_time]
+                            if "lead_time" in da.coords
+                            else None
                         )
-                        channel_names.append(channel_name)
+                        channel_names.append(
+                            Sample._channel_name(model, species, level, leadtime)
+                        )
 
         tensor = torch.tensor(np.stack(channel_arrays, axis=0)).to(torch.float32)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
+
+    @staticmethod
+    def _channel_name(
+        model: Hashable,
+        species: str | None = None,
+        level: str | None = None,
+        leadtime: str | None = None,
+    ) -> str:
+        """Builds a channel name from whichever coordinates are present.
+
+        Args:
+            model: Name of the model data variable.
+            species: Species value, or None when the coordinate is absent.
+            level: Level value, or None when the coordinate is absent.
+            leadtime: Lead time value, or None when the coordinate is absent.
+
+        Returns:
+            The formatted channel name.
+        """
+        name = str(model)
+        if species is not None:
+            name += f" - {species}"
+        if leadtime is not None:
+            name += f" - +{leadtime}h"
+        if isinstance(level, (int, float, np.integer, np.floating)):
+            name += f" - {int(level)}m"
+        return name
 
     def get_input_and_target(self) -> tuple[NamedTensor, NamedTensor]:
         """Returns inputs and target as NamedTensor"""

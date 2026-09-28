@@ -13,12 +13,12 @@ from cams.types import SpeciesNames
 
 SPECIES_THRESHOLDS: dict[SpeciesNames, float | None] = {
     "O3": 120,
-    "CO": 10,
-    "NO2": 40,
-    "SO2": 50,
+    "CO": 10000,
+    "NO2": 200,
+    "SO2": 300,
     "NO": None,
-    "PM2P5": 10,
-    "PM10": 30,
+    "PM2P5": 25,
+    "PM10": 50,
     "NH3": None,
     "NMVOC": None,
     "PANS": None,

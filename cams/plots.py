@@ -13,6 +13,7 @@ import xarray as xr
 from cartopy.crs import PlateCarree
 from cartopy.mpl.geoaxes import GeoAxes
 from matplotlib.axes import Axes
+from matplotlib.colors import PowerNorm
 from matplotlib.typing import HashableList
 from mfai.pytorch.namedtensor import NamedTensor
 
@@ -120,7 +121,10 @@ def plot_sample(
         # Plot data to their cell
         if cell_name in ds.data_vars:
             img = ax.imshow(
-                ds[cell_name].values, cmap=CMAP, vmin=vmin, vmax=vmax, extent=EXTENT
+                ds[cell_name].values,
+                cmap=CMAP,
+                extent=EXTENT,
+                norm=PowerNorm(0.5, vmin=vmin, vmax=vmax),
             )
         else:
             warnings.warn(f"Var {cell_name} not available in dataset.")
@@ -174,7 +178,11 @@ def plot_y_vs_yhat(
     axes = subfig[0].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs = axes.flat
     vmin, vmax = get_vmin_vmax(species)
-    plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
+    plot_kwargs = {
+        "cmap": CMAP,
+        "extent": EXTENT,
+        "norm": PowerNorm(0.5, vmin=vmin, vmax=vmax),
+    }
     axs[0].imshow(y.tensor[0].cpu(), **plot_kwargs)
     format_axis(axs[0], "Ground Truth = Analysis")
     img = axs[1].imshow(y_hat.tensor[0].cpu(), **plot_kwargs)
@@ -185,7 +193,8 @@ def plot_y_vs_yhat(
     # Plot difference btw y and y_hat
     ax = subfig[1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     diff = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
-    img = ax.imshow(diff, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
+    max_diff = torch.max(torch.abs(diff)).item()
+    img = ax.imshow(diff, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff)
     format_axis(ax, "Difference")
     cbar = subfig[1].colorbar(img, ax=ax, fraction=0.023)
 
@@ -225,7 +234,11 @@ def plot_y_vs_yhat_vs_median(
     # Plot ground truth (full size)
     ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     vmin, vmax = get_vmin_vmax(species)
-    plot_kwargs = {"cmap": CMAP, "vmin": vmin, "vmax": vmax, "extent": EXTENT}
+    plot_kwargs = {
+        "cmap": CMAP,
+        "extent": EXTENT,
+        "norm": PowerNorm(0.5, vmin=vmin, vmax=vmax),
+    }
     ground_truth = y[target_name][0].cpu()
     img_gt = ax_gt.imshow(ground_truth, **plot_kwargs)
     format_axis(ax_gt, "Ground Truth = Analysis")
@@ -254,12 +267,15 @@ def plot_y_vs_yhat_vs_median(
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs_diff = axes_diff.flat
     diff_pred = prediction - ground_truth
+    max_diff = torch.max(torch.abs(diff_pred)).item()
     img_diff_pred = axs_diff[0].imshow(
-        diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50
+        diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
     )
     format_axis(axs_diff[0], "Difference (AI Prediction)")
     diff_med = median - ground_truth
-    axs_diff[1].imshow(diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-50, vmax=50)
+    axs_diff[1].imshow(
+        diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
+    )
     format_axis(axs_diff[1], "Difference (Median of Inputs)")
     subfigs[2].colorbar(img_diff_pred, ax=axes_diff, fraction=0.023)
 
@@ -327,4 +343,7 @@ if __name__ == "__main__":
     )
     print(sample)
 
-    plot_sample(sample, Path("sample_O3.png"), species="O3", lead_time=24)
+    for species in sample.species:
+        plot_sample(
+            sample, Path(f"sample_{species}.png"), species=species, lead_time=15
+        )

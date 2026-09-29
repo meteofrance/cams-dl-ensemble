@@ -97,10 +97,10 @@ def test_get_metrics_names(model: HalfUNet, loss: torch.nn.Module) -> None:
         "O3-15h-0m/F1Score_120",
         "O3-15h-0m/FalseAlarmRate_120",
         "O3-15h-0m/FalsePositiveRate_120",
-        "NO2-15h-0m/Accuracy_40",
-        "NO2-15h-0m/F1Score_40",
-        "NO2-15h-0m/FalseAlarmRate_40",
-        "NO2-15h-0m/FalsePositiveRate_40",
+        "NO2-15h-0m/Accuracy_30",
+        "NO2-15h-0m/F1Score_30",
+        "NO2-15h-0m/FalseAlarmRate_30",
+        "NO2-15h-0m/FalsePositiveRate_30",
     }
     names = set(metric_names(module.metrics))
     assert expected <= names
@@ -199,6 +199,6 @@ def test_get_metrics_compute_groups_do_not_share_state(
 
     output = metrics.compute()
     o3_acc = float(output["O3-3h-0m/Accuracy_120"])
-    no2_acc = float(output["NO2-3h-0m/Accuracy_40"])
+    no2_acc = float(output["NO2-3h-0m/Accuracy_30"])
     assert no2_acc == 1.0
     assert o3_acc != no2_acc

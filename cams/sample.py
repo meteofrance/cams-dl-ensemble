@@ -129,7 +129,7 @@ class Sample:
             A xr.Dataset containing all the input data for this model.
         """
         model_path = self.processed_dir / model.lower() / self.input_filename
-        data = xr.open_dataset(model_path, chunks={})
+        data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)
         data = data.assign_coords(
             time=np.datetime64(self.date_run)
@@ -181,7 +181,7 @@ class Sample:
         """
         all_species_da = {}
         for path in self.wensemble_paths:
-            data = xr.open_dataset(path, chunks={})
+            data = xr.open_dataset(path)
             data_of_interest = data.sel(
                 step=[dt.timedelta(hours=lt) for lt in self.lead_times]
             )

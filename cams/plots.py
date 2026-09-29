@@ -193,7 +193,7 @@ def plot_y_vs_yhat(
     # Plot difference btw y and y_hat
     ax = subfig[1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     diff = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
-    max_diff = torch.max(torch.abs(diff)).item()
+    max_diff = torch.quantile(torch.abs(diff), 0.98)
     img = ax.imshow(diff, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff)
     format_axis(ax, "Difference")
     cbar = subfig[1].colorbar(img, ax=ax, fraction=0.023)
@@ -267,7 +267,7 @@ def plot_y_vs_yhat_vs_median(
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs_diff = axes_diff.flat
     diff_pred = prediction - ground_truth
-    max_diff = torch.max(torch.abs(diff_pred)).item()
+    max_diff = torch.quantile(torch.abs(diff_pred), 0.98)
     img_diff_pred = axs_diff[0].imshow(
         diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
     )

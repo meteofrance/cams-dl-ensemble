@@ -231,18 +231,19 @@ class CAMSLightningModule(LightningModule):
         if (
             # Skip  if no mlflow logger
             not isinstance(self.logger, MLFlowLogger)
-            # Only plot every 50 epochs and the 2 last epochs but not the first
-            or (
-                self.trainer.max_epochs is not None
-                and self.trainer.current_epoch == 0
-                and self.trainer.current_epoch % 50 != 0
-                and self.trainer.current_epoch != self.trainer.max_epochs
-                and self.trainer.current_epoch != self.trainer.max_epochs - 1
-                # Only plot the first batch of the evaluation
-                or batch_idx not in [0]
-            )
             # No run id
             or self.logger.run_id is None
+            or not (
+                self.trainer.max_epochs is not None
+                # Only plot the first batch of the evaluation
+                and batch_idx == 0
+                # Only plot every 50 epochs and the 2 last epochs but not the first
+                and (
+                    self.trainer.current_epoch % 50 == 0
+                    or self.trainer.current_epoch == self.trainer.max_epochs
+                    or self.trainer.current_epoch == self.trainer.max_epochs - 1
+                )
+            )
         ):
             return
 

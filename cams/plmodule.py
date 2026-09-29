@@ -237,9 +237,9 @@ class CAMSLightningModule(LightningModule):
                 self.trainer.max_epochs is not None
                 # Only plot the first batch of the evaluation
                 and batch_idx == 0
-                # Only plot every 50 epochs and the 2 last epochs but not the first
+                # Only plot every 25 epochs and the 2 last epochs but not the first
                 and (
-                    self.trainer.current_epoch % 50 == 0
+                    self.trainer.current_epoch % 25 == 0
                     or self.trainer.current_epoch == self.trainer.max_epochs
                     or self.trainer.current_epoch == self.trainer.max_epochs - 1
                 )

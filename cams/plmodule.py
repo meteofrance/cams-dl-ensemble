@@ -164,7 +164,7 @@ class CAMSLightningModule(LightningModule):
         self,
     ) -> torch.optim.Optimizer | OptimizerLRSchedulerConfig:
         """Lightning method to define optimizers and learning-rate schedulers"""
-        
+
         # Instantiate the optimizer
         optimizer = AdamW(self.parameters(), lr=self.learning_rate)
         if self.lr_scheduler_interval is None:
@@ -204,7 +204,6 @@ class CAMSLightningModule(LightningModule):
                 "name": "lr",
             },
         }
-
 
     ####################################################################################
     #                                      SHARED STEPS                                #

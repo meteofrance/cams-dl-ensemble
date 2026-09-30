@@ -330,7 +330,7 @@ def test_is_wensemble_available_partial(tmp_path: Path):
     assert not sample.is_wensemble_available
 
 
-def _open_wensemble_dataset(path, **kwargs) -> xr.Dataset:
+def _open_wensemble_dataset(path: Path) -> xr.Dataset:
     """Replacement for xr.open_dataset returning a grib-like dataset.
 
     The returned dataset mirrors the real weighted ensemble grib files: a

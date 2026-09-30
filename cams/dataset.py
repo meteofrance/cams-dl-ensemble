@@ -36,6 +36,7 @@ def get_run_dates(processed_dir: Path) -> list[dt.date]:
             f"{', '.join([str(f) for f in files_not_parsed])}"
         )
     run_dates = sorted(list(set(run_dates)))  # remove duplicates
+    print(f"{len(run_dates)} run dates: {run_dates[0]} to {run_dates[-1]}")
     return run_dates
 
 
@@ -136,11 +137,11 @@ class CAMSDataset(Dataset):
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
-        ds = self.samples[idx].data
+        ds: xr.Dataset = self.samples[idx].data
         x_ds = ds.drop_vars("TARGET")
         y_ds = ds[["TARGET"]]
         x_ds, y_ds = self.transform_sequence((x_ds, y_ds))
-        return dataset_to_namedtensor(x_ds), dataset_to_namedtensor(y_ds)
+        return Sample.convert_data_to_nt(x_ds), Sample.convert_data_to_nt(y_ds)
 
 
 if __name__ == "__main__":

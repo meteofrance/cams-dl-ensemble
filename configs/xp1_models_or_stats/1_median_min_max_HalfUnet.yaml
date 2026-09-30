@@ -1,0 +1,68 @@
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      experiment_name: xp1_models_or_stats
+      run_name: 1_median_min_max_HalfUnet
+      log_model: True
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+  max_epochs: 500
+  log_every_n_steps: 10
+
+model:
+  learning_rate: 0.0001
+  model:
+    class_path: mfai.pytorch.models.HalfUNet
+    init_args:
+      in_channels: 18
+      out_channels: 6
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.L1Loss
+  val_leadtimes:
+    - 15
+
+data:
+  batch_size: 16
+  num_workers: 16
+  prefetch_factor: 2
+  transforms:
+    - class_path: cams.transforms.Normalize
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - amin
+          - amax
+          - median
+  species:
+    - CO
+    - NO2
+    - PM10
+    - PM2P5
+    - SO2
+    - O3
+  levels:
+    - 0
+  models:
+    - match
+    - minni
+    - chimere
+    - mocage
+    - monarch
+    - euradim
+    - emep
+    - gemaq
+    - silam
+    - dehm
+    - lotos
+  lead_times:
+    - 15

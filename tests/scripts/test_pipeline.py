@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Iterator
 
 import pytest
 
@@ -7,10 +8,29 @@ import pytest
 # save_dir) unless explicitly allowed. Keep the test config behaviour stable.
 os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
 
-from cams.cli import CAMSLightningCLI
-from cams.datamodule import CAMSDataModule
-from cams.plmodule import CAMSLightningModule
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+# A remote MLFLOW_TRACKING_URI in the environment shadows the local save_dir of
+# tests/test_config.yaml, making MLFlowLogger.save_dir return None and tripping
+# Lightning's SaveConfigCallback. Unset it for the test so runs go to the local
+# file store, and restore any previous value afterwards.
+_PREV_MLFLOW_TRACKING_URI = os.environ.pop("MLFLOW_TRACKING_URI", None)
+
+# These imports must run after the env var is unset: the Lightning CLI and
+# MLflow logger read MLFLOW_TRACKING_URI at instantiation/import time.
+from cams.cli import CAMSLightningCLI  # noqa: E402
+from cams.datamodule import CAMSDataModule  # noqa: E402
+from cams.plmodule import CAMSLightningModule  # noqa: E402
+from tests.conftest import (  # noqa: E402
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
+
+
+@pytest.fixture(autouse=True)
+def _restore_mlflow_tracking_uri() -> Iterator[None]:
+    """Restore the previously unset MLFLOW_TRACKING_URI after the test."""
+    yield
+    if _PREV_MLFLOW_TRACKING_URI is not None:
+        os.environ["MLFLOW_TRACKING_URI"] = _PREV_MLFLOW_TRACKING_URI
 
 
 def fit_model(args: list[str] | None = None) -> None | Path:
@@ -21,13 +41,22 @@ def fit_model(args: list[str] | None = None) -> None | Path:
             Allows configuration arguments such as:
                 ['--config', 'config/file/path.yaml']
     """
+    if args is None:
+        args = []
+    # Pin the tracking_uri to the local file store of tests/test_config.yaml:
+    # MLFlowLogger caches the env-based default at import time, so it can stay
+    # remote in the full suite even after MLFLOW_TRACKING_URI is unset above.
+    override_args = args + [
+        "--trainer.logger.init_args.tracking_uri",
+        "file:/tmp/cams_tests/",
+    ]
     # Create cli object with `run=False` to parse and instantiate
     # LightningModule and DataModule, but not run subcommands
     cli = CAMSLightningCLI(
         model_class=CAMSLightningModule,
         datamodule_class=CAMSDataModule,
         save_config_kwargs={"overwrite": True},
-        args=args,
+        args=override_args,
         run=False,
     )
 

@@ -1,5 +1,6 @@
 import datetime as dt
 from pathlib import Path
+from typing import Hashable
 
 import numpy as np
 import torch
@@ -141,6 +142,62 @@ class Sample:
         data = data.sortby("longitude")
         return data[selected_species]
 
+    @property
+    def weighted_ensemble_paths(self) -> list[Path]:
+        """Returns the list of files for the weighted ensemble, one per species.
+
+        Returns:
+            list[Path]: The list of file paths
+        """
+        paths = []
+        for species in self.species:
+            date_run_str = self.date_run.strftime("%Y_%m_%d")
+            filename = f"{date_run_str}-{species}-0m-0-96h.grib"
+            path = self.processed_dir / "weighted_ensemble" / filename
+            paths.append(path)
+        return paths
+
+    @property
+    def is_weighted_ensemble_available(self) -> bool:
+        """Returns True if all files needed for weighted ensemble exist."""
+        return all([path.exists() for path in self.weighted_ensemble_paths])
+
+    def load_weighted_ensemble(self) -> xr.Dataset:
+        """Returns the weighted ensemble as a xarray Dataset.
+
+        Returns:
+            xr.Dataset: The dataset has the following shape:
+                <xarray.Dataset> Size: 18MB
+                Dimensions:           (level: 1, time: 3, latitude: 420, longitude: 700,
+                                        species: 5)
+                Coordinates:
+                * level              (level) float64 8B 0.0
+                * time               (time) datetime64[ns] 24B 2025-12-12T15:00:00 ...
+                * latitude           (latitude) float64 3kB 71.95 71.85 71.75 ... 30...
+                * longitude          (longitude) float64 6kB -24.95 -24.85 ... 44.85...
+                * species            (species) object 40B 'O3' 'CO' 'NO2' 'PM10' 'SO2'
+                Data variables:
+                    WEIGHTED_ENSEMBLE  (species, time, level, latitude, longitude) fl...
+        """
+        all_species_da = {}
+        for path in self.weighted_ensemble_paths:
+            data = xr.open_dataset(path)
+            data_of_interest = data.sel(
+                step=[dt.timedelta(hours=lt) for lt in self.lead_times]
+            )
+            species = path.name.split("-")[1]
+            all_species_da[species] = data_of_interest["unknown"]
+        data = xr.Dataset(all_species_da)
+        data = (
+            data.to_array(dim="species")
+            .expand_dims(level=[0.0], axis=2)
+            .to_dataset(name="WEIGHTED_ENSEMBLE")
+        )
+        data = data.assign_coords(time=("step", data.valid_time.values))
+        data = data.swap_dims({"step": "time"})
+        data = data.drop_vars(["step", "valid_time", "surface"], errors="ignore")
+        return data
+
     def load_target_data(self) -> xr.Dataset:
         """Returns the target analysis data."""
         all_species_da = {}
@@ -156,6 +213,17 @@ class Sample:
                 species_das.append(data_of_interest)
             combined = xr.concat(species_das, dim="time")
             all_species_da[species] = combined.sel(time=self.valid_times)
+        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
+        for species in self.species:
+            species_das = []
+            for month in months_str:
+                month_times = [
+                    time for time in self.valid_times if time.strftime("%Y-%m") == month
+                ]
+                data = xr.open_dataset(self._target_path(species, month))
+                data_of_interest = data.sel(time=month_times)[species.lower()]
+                species_das.append(data_of_interest)
+            all_species_da[species] = xr.concat(species_das, dim="time")
         target = xr.Dataset(all_species_da)
         target = target.rename(
             {
@@ -207,7 +275,7 @@ class Sample:
             da = da.assign_coords(  # Format name of species
                 species=[s.replace("_conc", "").upper() for s in da.species.values]
             )
-            combined[model_name] = da
+            combined[model_name.upper()] = da
         combined.coords["lead_time"] = (("time",), self.lead_times)
         return combined
 
@@ -244,9 +312,11 @@ class Sample:
         for model in model_names:
             da = ds[model]
             da = da.transpose("species", "time", "level", "latitude", "longitude")
-            species_values = da.coords["species"].values
-            time_values = da.coords["time"].values
-            level_values = da.coords["level"].values
+            species_values = (
+                da.coords["species"].values if "species" in da.coords else [None]
+            )
+            time_values = da.coords["time"].values if "time" in da.coords else [None]
+            level_values = da.coords["level"].values if "level" in da.coords else [None]
 
             for i_species, species in enumerate(species_values):
                 for i_time in range(len(time_values)):
@@ -256,15 +326,45 @@ class Sample:
                         ).values  # extract 2D channel
                         arr = np.nan_to_num(arr, nan=0.0)
                         channel_arrays.append(arr)
-                        leadtime = da.coords["lead_time"].values[i_time]
-                        channel_name = (
-                            f"{model} - {species} - +{leadtime}h - {int(level)}m"
+                        leadtime = (
+                            da.coords["lead_time"].values[i_time]
+                            if "lead_time" in da.coords
+                            else None
                         )
-                        channel_names.append(channel_name)
+                        channel_names.append(
+                            Sample._channel_name(model, species, level, leadtime)
+                        )
 
         tensor = torch.tensor(np.stack(channel_arrays, axis=0)).to(torch.float32)
         nt = NamedTensor(tensor, ["features", "lat", "lon"], channel_names)
         return nt
+
+    @staticmethod
+    def _channel_name(
+        model: Hashable,
+        species: str | None = None,
+        level: str | None = None,
+        leadtime: str | None = None,
+    ) -> str:
+        """Builds a channel name from whichever coordinates are present.
+
+        Args:
+            model: Name of the model data variable.
+            species: Species value, or None when the coordinate is absent.
+            level: Level value, or None when the coordinate is absent.
+            leadtime: Lead time value, or None when the coordinate is absent.
+
+        Returns:
+            The formatted channel name.
+        """
+        name = str(model)
+        if species is not None:
+            name += f" - {species}"
+        if leadtime is not None:
+            name += f" - +{leadtime}h"
+        if isinstance(level, (int, float, np.integer, np.floating)):
+            name += f" - {int(level)}m"
+        return name
 
     def get_input_and_target(self) -> tuple[NamedTensor, NamedTensor]:
         """Returns inputs and target as NamedTensor"""
@@ -278,9 +378,9 @@ if __name__ == "__main__":
     # This is a simple example of how to instanciate and use a Sample
 
     sample = Sample(
-        dt.datetime(2025, 5, 10),
+        dt.datetime(2025, 12, 12),
         lead_times=[15, 24, 36],
-        species=["O3", "CO", "NO2", "PM10", "PM2P5", "SO2"],
+        species=["O3", "CO", "NO2", "PM10", "SO2"],
         levels=[0],
         models=["CHIMERE", "MOCAGE"],
     )
@@ -291,6 +391,10 @@ if __name__ == "__main__":
         print(input_path, input_path.exists())
     for target_path in sample.target_paths:
         print(target_path, target_path.exists())
+    for path in sample.weighted_ensemble_paths:
+        print(path, path.exists())
+
+    sample.load_weighted_ensemble()
 
     print(sample.data)
     x, y = sample.get_input_and_target()

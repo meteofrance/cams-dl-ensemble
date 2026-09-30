@@ -81,30 +81,26 @@ class ExtractInputStatisticalFeatures(nn.Module):
         """
         x, y = inputs
         ensemble = x.to_array(dim="model")
-        feature_dims = [dim for dim in ensemble.dims if dim not in SPATIAL_DIMS]
-        ensemble = ensemble.stack(feature=feature_dims)
         stat_ds = xr.Dataset()
         for statistic_type in self.statistic_types:
             if statistic_type in ["skew", "kurtosis"]:
                 statistic = xr.apply_ufunc(
                     getattr(scipy.stats, statistic_type),
                     ensemble,
-                    input_core_dims=[["feature"]],
+                    input_core_dims=[["model"]],
                     kwargs={"nan_policy": "omit", "axis": -1},
                 )
             elif statistic_type in ["argmin", "argmax"]:
                 statistic = xr.apply_ufunc(
                     getattr(np, statistic_type),
                     ensemble,
-                    input_core_dims=[["feature"]],
+                    input_core_dims=[["model"]],
                     kwargs={"axis": -1},
                 )
             else:
                 xarray_method = "min" if statistic_type == "amin" else statistic_type
                 xarray_method = "max" if statistic_type == "amax" else xarray_method
-                statistic = getattr(ensemble, xarray_method)(
-                    dim="feature", skipna=False
-                )
+                statistic = getattr(ensemble, xarray_method)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
         return stat_ds, y
 
@@ -186,10 +182,23 @@ class Normalize(nn.Module, ReversibleTransformMixin):
         return ReverseNormalize(self.stats_file_path)
 
     def normalize_xarray(self, ds: xr.Dataset) -> xr.Dataset:
-        """Normalize an xarray Dataset btw 0 and 1 with min/max normalization."""
-        mini = self.stats_dict["O3"]["min"]
-        maxi = self.stats_dict["O3"]["max"]
-        return (ds - mini) / (maxi - mini)
+        """Normalize an xarray Dataset btw 0 and 1 with min/max normalization.
+
+        The dataset has one data variable per model, with a ``species``
+        dimension. Each species is normalized with its own min/max statistics.
+        """
+        all_species_da = {}
+        for model in ds.data_vars:
+            da = ds[model]
+            normalized_channels = []
+            for species in da["species"].values:
+                mini = self.stats_dict[species]["min"]
+                maxi = self.stats_dict[species]["max"]
+                normalized_channels.append(
+                    (da.sel(species=species) - mini) / (maxi - mini)
+                )
+            all_species_da[model] = xr.concat(normalized_channels, dim="species")
+        return xr.Dataset(all_species_da)
 
     @override
     def forward(
@@ -216,8 +225,9 @@ class ReverseNormalize(nn.Module):
         """Undoes min/max normalization."""
         denormalized_features: list[torch.Tensor] = []
         for feature_name in nt.feature_names:
-            mini = self.stats_dict["O3"]["min"]
-            maxi = self.stats_dict["O3"]["max"]
+            species = feature_name.split(" - ")[1]
+            mini = self.stats_dict[species]["min"]
+            maxi = self.stats_dict[species]["max"]
             denormalized_features.append(nt[feature_name] * (maxi - mini) + mini)
         denormalized_features_tensor = torch.cat(
             tensors=denormalized_features, dim=nt.feature_dim_idx

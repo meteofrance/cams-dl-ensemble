@@ -21,8 +21,13 @@ uv sync
 > Using uv, the subsequent usage commands should be run with
 > `uv run <file.py>` instead of `python <file.py>`
 
+**If you want to contribute to the project**, we recommend to install the extra `dev` dependencies:
+```sh
+uv sync --extra dev
+```
+
 ### Using pip
-Check that you are using a version of python >= 3.12.
+Check that you are using a version of python `== 3.11.13`.
 ```sh
 git clone https://github.com/meteofrance/cams-dl-ensemble.git
 cd cams-dl-ensemble
@@ -30,6 +35,12 @@ python -m venv .venv
 source .venv/bin/activate  # On windows: .venv/Script/Activate.ps1
 pip install .
 ```
+
+**If you want to contribute to the project**, we recommend to install the extra `dev` dependencies:
+```sh
+pip install .[dev]
+```
+
 
 ### Using `skew` or `kurtosis` statistics
 To use `skew` or `kurtosis` statistics in the `ReplaceEnsembleByStatisctics` transform, you should export:
@@ -41,13 +52,13 @@ This enables array API from `scipy`. Please see https://docs.scipy.org/doc/scipy
 
 ## Usage
 
-* To plot a sample from the CAMS dataset:
+* To **plot a sample** from the CAMS dataset:
 
 ```bash
 python scripts/plot_sample.py [-h] [--save_dir SAVE_DIR] YYYY-MM-DD
 ```
 
-* To train a very simple model on a few samples of the CAMS dataset:
+* To **train a very simple model** on a few samples of the CAMS dataset:
 
 ```bash
 python scripts/main.py fit [--trainer.fast_dev_run True] --config configs/dummy.yaml
@@ -55,31 +66,37 @@ python scripts/main.py fit [--trainer.fast_dev_run True] --config configs/dummy.
 
 Use the `fast_dev_run` option to deactivate checkpointing and logging.
 
-* To compare the AI model to a baseline, you could also launch a script that compute metrics over the validation dataset:
+* To **compare the AI model to a baseline**, you could also launch a script that compute metrics over the validation dataset:
 
 ```bash
 python scripts/main.py validate --config configs/baseline.yaml
 ```
 
-* To visualize the metrics in MFLow:
+* To **visualize the metrics in MFLow**:
 
-```bash
-mlflow serve [-p PORT] [-h HOST] [--allowed-hosts "*" --cors-allowed-origins "*"] backend-store-uri PATH_TO_LOGS
-```
+At Meteo-France, the MLFlow server is always running. Simply export :
 
-At Meteo-France with runai, simply run:
+`export MLFLOW_TRACKING_URI=<your mlflow instance's url>`
 
-```bash
-runai mlflow --backend-store-uri PATH_TO_LOGS
-```
 
-* To continue training a model from a chekpoint:
+Then navigate to mlflow instance's url.
+
+* To **continue training** a model from a chekpoint:
 
 ```bash
 python scripts/main.py fit --config configs/dummy.yaml --ckpt_path PATH_TO_CKPT --trainer.max_epochs N
 ```
 
 Don't forget to increase the maximum number of epochs (or steps), or the model will not train more than before.
+
+### Carbon emission tracking
+
+We use a carbon emission tracker to monitor training sessions. This is achieved using the codecarbon library, which calculates carbon emissions based on CPU, RAM, and GPU consumption. If you want to modify the current configuration, edit the `.codecarbon.config` file.
+
+To visualize all the project's consumption data on a website, please run:
+```bash
+uv run carbonboard /scratch/labia/shared/codecarbon/emissions.csv --port=3333
+```
 
 ## Required data
 Before using this project to train a model, you will need to gather the necessary weather data. A full description of the data required is available in [doc/dataset.md](doc/dataset.md).

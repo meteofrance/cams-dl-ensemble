@@ -183,7 +183,7 @@ class CAMSLightningModule(LightningModule):
 
         warmup_epochs = self.lr_scheduler_warmup_epochs
         if self.lr_scheduler_interval == "step":
-            num_batches = len(self.trainer.datamodule.train_dataloader())
+            num_batches = len(self.trainer.datamodule.train_dataloader())  # type: ignore[reportAttributeAccessIssue]
             warmup_epochs *= num_batches
             max_steps_or_epochs *= num_batches
 

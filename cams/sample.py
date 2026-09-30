@@ -211,18 +211,6 @@ class Sample:
                 data = xr.open_dataset(self._target_path(species, month))
                 data_of_interest = data.sel(time=month_times)[species.lower()]
                 species_das.append(data_of_interest)
-            combined = xr.concat(species_das, dim="time")
-            all_species_da[species] = combined.sel(time=self.valid_times)
-        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
-        for species in self.species:
-            species_das = []
-            for month in months_str:
-                month_times = [
-                    time for time in self.valid_times if time.strftime("%Y-%m") == month
-                ]
-                data = xr.open_dataset(self._target_path(species, month))
-                data_of_interest = data.sel(time=month_times)[species.lower()]
-                species_das.append(data_of_interest)
             all_species_da[species] = xr.concat(species_das, dim="time")
         target = xr.Dataset(all_species_da)
         target = target.rename(

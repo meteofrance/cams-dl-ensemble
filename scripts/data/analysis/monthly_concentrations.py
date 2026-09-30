@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     dataset = CAMSDataset(
         run_dates=run_dates,
-        models=["MOCAGE"],
+        models=["MOCAGE"],  # This model is set to init the dataset, but not used for plots
         # We compute the stats on the reanalysis,
         # so we only need the first 24h of a sample
         # Else we will have overlaps with next sample, and compute some stats twice

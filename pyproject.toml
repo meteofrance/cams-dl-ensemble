@@ -62,7 +62,7 @@ torchvision = [
 # exclude-newer = "15 days"
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py311"
 line-length = 88
 builtins = ["_"]
 include = [

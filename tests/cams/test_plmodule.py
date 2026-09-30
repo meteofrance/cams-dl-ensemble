@@ -1,7 +1,9 @@
-from typing import cast
+from typing import Any, Literal, cast
 
 import pytest
 import torch
+from lightning import Trainer
+from mfai.pytorch.lr_scheduler import LinearWarmupCosineAnnealingLR
 from mfai.pytorch.models.half_unet import HalfUNet
 from mfai.pytorch.namedtensor import NamedTensor
 from torchmetrics import MetricCollection
@@ -29,6 +31,10 @@ def instantiate(
     species: list[object],
     levels: list[object],
     val_leadtimes: list[object],
+    lr_scheduler_interval: Literal["epoch", "step"] | None = None,
+    lr_scheduler_warmup_epochs: int = 0,
+    lr_scheduler_warmup_start_lr: float = 0.0,
+    lr_scheduler_eta_min: float = 0.0,
 ) -> CAMSLightningModule:
     """Create a lightning module with the given data selection arguments."""
     return CAMSLightningModule(
@@ -38,6 +44,10 @@ def instantiate(
         species=cast(list, species),
         levels=cast(list, levels),
         val_leadtimes=cast(list, val_leadtimes),
+        lr_scheduler_interval=lr_scheduler_interval,
+        lr_scheduler_warmup_epochs=lr_scheduler_warmup_epochs,
+        lr_scheduler_warmup_start_lr=lr_scheduler_warmup_start_lr,
+        lr_scheduler_eta_min=lr_scheduler_eta_min,
     )
 
 
@@ -97,10 +107,10 @@ def test_get_metrics_names(model: HalfUNet, loss: torch.nn.Module) -> None:
         "O3-15h-0m/F1Score_120",
         "O3-15h-0m/FalseAlarmRate_120",
         "O3-15h-0m/FalsePositiveRate_120",
-        "NO2-15h-0m/Accuracy_40",
-        "NO2-15h-0m/F1Score_40",
-        "NO2-15h-0m/FalseAlarmRate_40",
-        "NO2-15h-0m/FalsePositiveRate_40",
+        "NO2-15h-0m/Accuracy_30",
+        "NO2-15h-0m/F1Score_30",
+        "NO2-15h-0m/FalseAlarmRate_30",
+        "NO2-15h-0m/FalsePositiveRate_30",
     }
     names = set(metric_names(module.metrics))
     assert expected <= names
@@ -199,6 +209,82 @@ def test_get_metrics_compute_groups_do_not_share_state(
 
     output = metrics.compute()
     o3_acc = float(output["O3-3h-0m/Accuracy_120"])
-    no2_acc = float(output["NO2-3h-0m/Accuracy_40"])
+    no2_acc = float(output["NO2-3h-0m/Accuracy_30"])
     assert no2_acc == 1.0
     assert o3_acc != no2_acc
+
+
+def test_configure_optimizers_returns_optimizer_and_scheduler(
+    model: HalfUNet, loss: torch.nn.Module
+) -> None:
+    """configure_optimizers returns an optimizer with an epoch-based scheduler."""
+    module = instantiate(
+        model,
+        loss,
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        val_leadtimes=[15],
+        lr_scheduler_interval="epoch",
+    )
+    max_epochs = 500
+    trainer = Trainer(max_epochs=max_epochs, logger=False, enable_checkpointing=False)
+    module.trainer = trainer
+
+    config = cast(dict[str, Any], module.configure_optimizers())
+    assert isinstance(config["optimizer"], torch.optim.Optimizer)
+    scheduler_config = cast(dict[str, Any], config["lr_scheduler"])
+    assert scheduler_config["interval"] == "epoch"
+    assert scheduler_config["frequency"] == 1
+    scheduler = scheduler_config["scheduler"]
+    assert isinstance(scheduler, LinearWarmupCosineAnnealingLR)
+    assert scheduler.max_epochs == max_epochs
+
+
+def test_configure_optimizers_without_scheduler_returns_optimizer(
+    model: HalfUNet, loss: torch.nn.Module
+) -> None:
+    """configure_optimizers returns a plain optimizer when no interval is set."""
+    module = instantiate(
+        model,
+        loss,
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        val_leadtimes=[15],
+    )
+    trainer = Trainer(max_epochs=100, logger=False, enable_checkpointing=False)
+    module.trainer = trainer
+
+    config = module.configure_optimizers()
+    assert isinstance(config, torch.optim.Optimizer)
+
+
+def test_configure_optimizers_warmup_reaches_learning_rate(
+    model: HalfUNet, loss: torch.nn.Module
+) -> None:
+    """The scheduler warms up from warmup_start_lr to the base learning rate."""
+    module = instantiate(
+        model,
+        loss,
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        val_leadtimes=[15],
+        lr_scheduler_interval="epoch",
+        lr_scheduler_warmup_epochs=10,
+        lr_scheduler_warmup_start_lr=0.0,
+        lr_scheduler_eta_min=0.0,
+    )
+    trainer = Trainer(max_epochs=100, logger=False, enable_checkpointing=False)
+    module.trainer = trainer
+
+    config = cast(dict[str, Any], module.configure_optimizers())
+    optimizer = config["optimizer"]
+    scheduler = config["lr_scheduler"]["scheduler"]
+
+    assert scheduler.get_last_lr()[0] == 0.0
+    for _ in range(module.lr_scheduler_warmup_epochs):
+        optimizer.step()
+        scheduler.step()
+    assert scheduler.get_last_lr()[0] == pytest.approx(module.learning_rate)

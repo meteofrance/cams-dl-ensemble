@@ -21,8 +21,13 @@ uv sync
 > Using uv, the subsequent usage commands should be run with
 > `uv run <file.py>` instead of `python <file.py>`
 
+**If you want to contribute to the project**, we recommend to install the extra `dev` dependencies:
+```sh
+uv sync --extra dev
+```
+
 ### Using pip
-Check that you are using a version of python >= 3.12.
+Check that you are using a version of python `== 3.11.13`.
 ```sh
 git clone https://github.com/meteofrance/cams-dl-ensemble.git
 cd cams-dl-ensemble
@@ -30,6 +35,12 @@ python -m venv .venv
 source .venv/bin/activate  # On windows: .venv/Script/Activate.ps1
 pip install .
 ```
+
+**If you want to contribute to the project**, we recommend to install the extra `dev` dependencies:
+```sh
+pip install .[dev]
+```
+
 
 ### Using `skew` or `kurtosis` statistics
 To use `skew` or `kurtosis` statistics in the `ReplaceEnsembleByStatisctics` transform, you should export:

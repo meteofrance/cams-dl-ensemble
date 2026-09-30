@@ -257,3 +257,158 @@ def test_sample_is_valid_overlapping_two_months(tmp_dataset_dir: Path):
     )
 
     assert sample.is_valid
+
+
+def test_weighted_ensemble_paths(tmp_path: Path):
+    """One weighted ensemble path is returned per requested species."""
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert sample.weighted_ensemble_paths == [
+        tmp_path / "weighted_ensemble/2022_07_22-O3-0m-0-96h.grib",
+        tmp_path / "weighted_ensemble/2022_07_22-NO2-0m-0-96h.grib",
+    ]
+
+
+def test_is_weighted_ensemble_available_false(tmp_path: Path):
+    """is_weighted_ensemble_available is False when no weighted ensemble file exists."""
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert not sample.is_weighted_ensemble_available
+
+
+def test_is_weighted_ensemble_available_true(tmp_path: Path):
+    """is_weighted_ensemble_available is True when all species files exist."""
+    weighted_ensemble_dir = tmp_path / "weighted_ensemble"
+    weighted_ensemble_dir.mkdir(parents=True, exist_ok=True)
+    for path in [
+        weighted_ensemble_dir / "2022_07_22-O3-0m-0-96h.grib",
+        weighted_ensemble_dir / "2022_07_22-NO2-0m-0-96h.grib",
+    ]:
+        path.touch()
+
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert sample.is_weighted_ensemble_available
+
+
+def test_is_weighted_ensemble_available_partial(tmp_path: Path):
+    """is_weighted_ensemble_available is False if only some species files exist."""
+    weighted_ensemble_dir = tmp_path / "weighted_ensemble"
+    weighted_ensemble_dir.mkdir(parents=True, exist_ok=True)
+    (weighted_ensemble_dir / "2022_07_22-O3-0m-0-96h.grib").touch()
+
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert not sample.is_weighted_ensemble_available
+
+
+def _open_weighted_ensemble_dataset(path: Path) -> xr.Dataset:
+    """Replacement for xr.open_dataset returning a grib-like dataset.
+
+    The returned dataset mirrors the real weighted ensemble grib files: a
+    ``step`` dimension in hours, a per-step ``valid_time`` coordinate and an
+    ``unknown`` data variable indexed by ``(step, latitude, longitude)``.
+    """
+    species = Path(path).name.split("-")[1]
+    leadtimes = [0, 3, 6, 9, 12]
+    steps = np.array(leadtimes, dtype="timedelta64[h]")
+    valid_times = np.array(
+        [
+            np.datetime64("2022-07-22T00:00:00") + np.timedelta64(lt, "h")
+            for lt in leadtimes
+        ],
+        dtype="datetime64[h]",
+    )
+    lats = np.linspace(71.95, 30.05, 5)
+    lons = np.linspace(-24.95, 44.95, 6)
+    values = np.full((len(leadtimes), 5, 6), 2.0, dtype=np.float32)
+    if species == "O3":
+        values = np.full_like(values, 3.0)
+    return xr.Dataset(
+        {"unknown": (["step", "latitude", "longitude"], values)},
+        coords={
+            "step": steps,
+            "valid_time": ("step", valid_times),
+            "latitude": lats,
+            "longitude": lons,
+            "time": np.datetime64("2022-07-22T00:00:00"),
+            "surface": 0.0,
+        },
+    )
+
+
+def test_load_weighted_ensemble(monkeypatch: pytest.MonkeyPatch, tmp_dataset_dir: Path):
+    """load_weighted_ensemble merges per-species grib files into a single dataset."""
+    monkeypatch.setattr(xr, "open_dataset", _open_weighted_ensemble_dataset)
+
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[3, 6],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
+    )
+    data = sample.load_weighted_ensemble()
+
+    assert isinstance(data, xr.Dataset)
+    assert list(data.data_vars) == ["WEIGHTED_ENSEMBLE"]
+    assert dict(data.sizes) == {
+        "level": 1,
+        "latitude": 5,
+        "longitude": 6,
+        "time": 2,
+        "species": 2,
+    }
+    assert data["WEIGHTED_ENSEMBLE"].dims == (
+        "species",
+        "time",
+        "level",
+        "latitude",
+        "longitude",
+    )
+    assert list(data["species"].values) == ["O3", "NO2"]
+    np.testing.assert_array_equal(
+        data["time"].values,
+        np.array(
+            [
+                np.datetime64("2022-07-22T03:00:00"),
+                np.datetime64("2022-07-22T06:00:00"),
+            ]
+        ),
+    )
+    # O3 values are 3.0, NO2 values are 2.0
+    np.testing.assert_allclose(
+        data["WEIGHTED_ENSEMBLE"].sel(species="O3").values, 3.0
+    )
+    np.testing.assert_allclose(
+        data["WEIGHTED_ENSEMBLE"].sel(species="NO2").values, 2.0
+    )

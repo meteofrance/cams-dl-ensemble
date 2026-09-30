@@ -4,7 +4,7 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: xp1_models_or_stats
-      run_name: 0_median_UNetRPP
+      run_name: 3_11_CTM_UNetRPP
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
   callbacks:
@@ -16,11 +16,11 @@ trainer:
   log_every_n_steps: 10
 
 model:
-  learning_rate: 0.0001
+  learning_rate: 0.001
   model:
     class_path: mfai.pytorch.models.UNetRPP
     init_args:
-      in_channels: 6
+      in_channels: 66
       out_channels: 6
       input_shape:
         - 420
@@ -28,7 +28,7 @@ model:
       settings:
         autopad_enabled: True
   loss:
-    class_path: torch.nn.L1Loss
+    class_path: torch.nn.MAE
   val_leadtimes:
     - 15
 
@@ -38,10 +38,9 @@ data:
   prefetch_factor: 2
   transforms:
     - class_path: cams.transforms.Normalize
-    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+    - class_path: cams.transforms.FillMissingModels
       init_args:
-        statistic_types:
-          - median
+        fill_value: -1
   species:
     - CO
     - NO2

@@ -143,7 +143,7 @@ class Sample:
         return data[selected_species]
 
     @property
-    def wensemble_paths(self) -> list[Path]:
+    def weighted_ensemble_paths(self) -> list[Path]:
         """Returns the list of files for the weighted ensemble, one per species.
 
         Returns:
@@ -158,11 +158,11 @@ class Sample:
         return paths
 
     @property
-    def is_wensemble_available(self) -> bool:
+    def is_weighted_ensemble_available(self) -> bool:
         """Returns True if all files needed for weighted ensemble exist."""
-        return all([path.exists() for path in self.wensemble_paths])
+        return all([path.exists() for path in self.weighted_ensemble_paths])
 
-    def load_wensemble(self) -> xr.Dataset:
+    def load_weighted_ensemble(self) -> xr.Dataset:
         """Returns the weighted ensemble as a xarray Dataset.
 
         Returns:
@@ -180,7 +180,7 @@ class Sample:
                     WEIGHTED_ENSEMBLE  (species, time, level, latitude, longitude) fl...
         """
         all_species_da = {}
-        for path in self.wensemble_paths:
+        for path in self.weighted_ensemble_paths:
             data = xr.open_dataset(path)
             data_of_interest = data.sel(
                 step=[dt.timedelta(hours=lt) for lt in self.lead_times]
@@ -379,10 +379,10 @@ if __name__ == "__main__":
         print(input_path, input_path.exists())
     for target_path in sample.target_paths:
         print(target_path, target_path.exists())
-    for path in sample.wensemble_paths:
+    for path in sample.weighted_ensemble_paths:
         print(path, path.exists())
 
-    sample.load_wensemble()
+    sample.load_weighted_ensemble()
 
     print(sample.data)
     x, y = sample.get_input_and_target()

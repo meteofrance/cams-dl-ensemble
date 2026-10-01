@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 import numpy as np
+from math import prod
 from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates
@@ -13,7 +14,9 @@ from cams.types import LEADTIMES, MODELS_NAMES, SpeciesNames
 
 
 def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str, Any]:
-    """Computes min/max over the reanalysis data.
+    """Computes min, max, mean, std over the reanalysis data.
+    We compute the mean and std with the Welford algorithm to avoid 2 passes
+    over the data.
 
     Args:
         dataset: A cams dataset.
@@ -22,14 +25,13 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
     Returns:
         dict: Statistics dict of shape {species: {min: min, max: max}}.
     """
-    # Init min and max for all species
-    stats = {spe: {"min": np.inf, "max": -np.inf} for spe in species}
+    # Init stats for all species
+    stats = {spe: {"min": np.inf, "max": -np.inf, "mean": 0, "m2": 0, "n": 0} for spe in species}
 
     sample: Sample
     for sample in tqdm(
-        dataset.samples, desc="Computing statistics", total=len(dataset)
+        dataset.samples[:10], desc="Computing statistics", total=len(dataset)
     ):
-        print(sample.data)
         try:
             target = sample.data["TARGET"]
         except Exception as e:
@@ -46,6 +48,22 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
             stats[spe]["max"] = max(
                 stats[spe]["max"], float(max_values.sel(species=spe).values)
             )
+
+            size = prod(target.sel(species=spe).shape)
+            n = stats[spe]["n"]
+            new_n = n + size
+            mean_values = target.sel(species=spe).mean()
+            delta_mean = mean_values - stats[spe]["mean"]
+            stats[spe]["mean"] += float(delta_mean) * (size / new_n)  # Update global mean
+            m2_values = ((target.sel(species=spe) - mean_values)**2).sum()
+            stats[spe]["m2"] += float(m2_values + (delta_mean ** 2) * (n * size / new_n))
+            stats[spe]["n"] = new_n
+
+    for spe in species:
+        var = stats[spe]["m2"] / stats[spe]["n"] if stats[spe]["n"] > 0 else 0
+        stats[spe]["std"] = float(np.sqrt(var))
+        del stats[spe]["m2"]
+        del stats[spe]["n"]
     return stats
 
 

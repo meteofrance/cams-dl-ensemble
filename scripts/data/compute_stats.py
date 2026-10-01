@@ -29,34 +29,35 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
     stats = {spe: {"min": np.inf, "max": -np.inf, "mean": 0, "m2": 0, "n": 0} for spe in species}
 
     sample: Sample
-    for sample in tqdm(
-        dataset.samples[:10], desc="Computing statistics", total=len(dataset)
-    ):
+    for sample in tqdm(dataset.samples, desc="Computing statistics"):
         try:
             target = sample.data["TARGET"]
         except Exception as e:
             print(e)
             print(f"Could not load sample {sample}, skipping to next sample.")
             continue
-        min_values = target.min(dim=["time", "level", "latitude", "longitude"])
-        max_values = target.max(dim=["time", "level", "latitude", "longitude"])
 
         for spe in species:
-            stats[spe]["min"] = min(
-                stats[spe]["min"], float(min_values.sel(species=spe).values)
-            )
-            stats[spe]["max"] = max(
-                stats[spe]["max"], float(max_values.sel(species=spe).values)
-            )
+            target_spe = target.sel(species=spe)
 
-            size = prod(target.sel(species=spe).shape)
+            current_min = float(target_spe.min(dim=["time", "level", "latitude", "longitude"]))
+            current_max = float(target_spe.max(dim=["time", "level", "latitude", "longitude"]))
+
+            stats[spe]["min"] = min(stats[spe]["min"], current_min)
+            stats[spe]["max"] = max(stats[spe]["max"], current_max)
+
+            size = target_spe.size
             n = stats[spe]["n"]
             new_n = n + size
-            mean_values = target.sel(species=spe).mean()
-            delta_mean = mean_values - stats[spe]["mean"]
-            stats[spe]["mean"] += float(delta_mean) * (size / new_n)  # Update global mean
-            m2_values = ((target.sel(species=spe) - mean_values)**2).sum()
-            stats[spe]["m2"] += float(m2_values + (delta_mean ** 2) * (n * size / new_n))
+
+            mean_bloc = float(target_spe.mean())
+            m2_bloc = float(((target_spe - mean_bloc) ** 2).sum())
+
+            delta_mean = mean_bloc - stats[spe]["mean"]
+
+            stats[spe]["mean"] += delta_mean * (size / new_n)
+
+            stats[spe]["m2"] += m2_bloc + (delta_mean ** 2) * (n * size / new_n)
             stats[spe]["n"] = new_n
 
     for spe in species:
@@ -64,6 +65,7 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
         stats[spe]["std"] = float(np.sqrt(var))
         del stats[spe]["m2"]
         del stats[spe]["n"]
+
     return stats
 
 

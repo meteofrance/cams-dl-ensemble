@@ -141,7 +141,7 @@ def y_named_ds() -> xr.Dataset:
 def stats_file_path(tmp_path: Path) -> Path:
     """Creates a fake file of CAMS data statistics"""
     stats_dict = {
-        "O3": {"min": 1.0, "max": 5.0},
+        "O3": {"min": 1.0, "max": 5.0, "mean": 1, "std": 1},
     }
     path_file = tmp_path / "stats.json"
     with open(path_file, "w") as f:
@@ -155,6 +155,15 @@ expected_x = np.array(
 )
 expected_y = np.array(
     [[float("nan"), 1.0], [2.0, float("nan")]],
+    dtype=np.float64,
+)
+
+expected_x_std = np.array(
+    [[float("nan"), 0], [1, float("nan")]],
+    dtype=np.float64,
+)
+expected_y_std = np.array(
+    [[float("nan"), 4.0], [8.0, float("nan")]],
     dtype=np.float64,
 )
 
@@ -206,10 +215,10 @@ def test_normalize_std(
     transform = Normalize(stats_file_path=stats_file_path, method="standardization")
     x_processed, y_processed = transform((x_named_ds, y_named_ds))
     np.testing.assert_allclose(
-        np.nan_to_num(x_processed["CHIMERE"].values[0]), np.nan_to_num(expected_x)
+        np.nan_to_num(x_processed["CHIMERE"].values[0]), np.nan_to_num(expected_x_std)
     )
     np.testing.assert_allclose(
-        np.nan_to_num(y_processed["TARGET"].values[0]), np.nan_to_num(expected_y)
+        np.nan_to_num(y_processed["TARGET"].values[0]), np.nan_to_num(expected_y_std)
     )
 
 

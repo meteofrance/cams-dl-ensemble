@@ -35,4 +35,4 @@ def test_compute_stats(tmp_dataset_dir: Path):
 
     stats = compute_stats(dataset, species=["O3"])
 
-    assert stats == {"O3": {"min": 0, "max": 0}}
+    assert stats == {"O3": {"min": 0, "max": 0, "mean": 0, "std": 0}}

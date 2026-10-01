@@ -3,7 +3,7 @@ import os
 from abc import abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, cast, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 import scipy.stats
@@ -175,12 +175,12 @@ class Normalize(nn.Module, ReversibleTransformMixin):
             )
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)
-        self.method = method
+        self.method: Literal["min-max", "standardization"] = method
 
     @override
     def reverse_transform(self) -> "ReverseNormalize":
         """Another transform that reverses the current transform."""
-        return ReverseNormalize(self.stats_file_path)
+        return ReverseNormalize(self.stats_file_path, self.method)
 
     def normalize_xarray(self, ds: xr.Dataset) -> xr.Dataset:
         """Normalize an xarray Dataset btw 0 and 1 with min/max normalization.
@@ -202,9 +202,7 @@ class Normalize(nn.Module, ReversibleTransformMixin):
                 if self.method == "standardization":
                     mean = self.stats_dict[species]["mean"]
                     std = self.stats_dict[species]["std"]
-                    normalized_channels.append(
-                        (da.sel(species=species) - mean) / std
-                    )
+                    normalized_channels.append((da.sel(species=species) - mean) / std)
             all_species_da[model] = xr.concat(normalized_channels, dim="species")
         return xr.Dataset(all_species_da)
 
@@ -229,7 +227,7 @@ class ReverseNormalize(nn.Module):
         super().__init__()
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)
-        self.method = method
+        self.method: Literal["min-max", "standardization"] = method
 
     def denormalize_namedtensor(self, nt: NamedTensor) -> NamedTensor:
         """Undoes min/max normalization."""

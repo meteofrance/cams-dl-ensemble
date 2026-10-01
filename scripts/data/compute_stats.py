@@ -4,7 +4,6 @@ import json
 from typing import Any
 
 import numpy as np
-from math import prod
 from tqdm import tqdm
 
 from cams.dataset import CAMSDataset, get_run_dates
@@ -26,7 +25,10 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
         dict: Statistics dict of shape {species: {min: min, max: max}}.
     """
     # Init stats for all species
-    stats = {spe: {"min": np.inf, "max": -np.inf, "mean": 0, "m2": 0, "n": 0} for spe in species}
+    stats = {
+        spe: {"min": np.inf, "max": -np.inf, "mean": 0, "m2": 0, "n": 0}
+        for spe in species
+    }
 
     sample: Sample
     for sample in tqdm(dataset.samples, desc="Computing statistics"):
@@ -40,8 +42,12 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
         for spe in species:
             target_spe = target.sel(species=spe)
 
-            current_min = float(target_spe.min(dim=["time", "level", "latitude", "longitude"]))
-            current_max = float(target_spe.max(dim=["time", "level", "latitude", "longitude"]))
+            current_min = float(
+                target_spe.min(dim=["time", "level", "latitude", "longitude"])
+            )
+            current_max = float(
+                target_spe.max(dim=["time", "level", "latitude", "longitude"])
+            )
 
             stats[spe]["min"] = min(stats[spe]["min"], current_min)
             stats[spe]["max"] = max(stats[spe]["max"], current_max)
@@ -57,7 +63,7 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
 
             stats[spe]["mean"] += delta_mean * (size / new_n)
 
-            stats[spe]["m2"] += m2_bloc + (delta_mean ** 2) * (n * size / new_n)
+            stats[spe]["m2"] += m2_bloc + (delta_mean**2) * (n * size / new_n)
             stats[spe]["n"] = new_n
 
     for spe in species:

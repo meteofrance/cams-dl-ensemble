@@ -17,7 +17,7 @@ trainer:
 model:
   learning_rate: 0.0001
   model:
-    class_path: mfai.pytorch.models.SwinUNetR
+    class_path: mfai.pytorch.models.swinunetr.SwinUNetR
     init_args:
       in_channels: 7  # median, mean, skew, kurt, amin, amax, std
       out_channels: 1

@@ -6,6 +6,8 @@ from typing import Any, Literal, cast
 import torch
 from lightning import LightningModule
 from lightning.pytorch.loggers.mlflow import MLFlowLogger
+from lightning.pytorch.utilities.types import OptimizerLRSchedulerConfig
+from mfai.pytorch.lr_scheduler import LinearWarmupCosineAnnealingLR
 from mfai.pytorch.models.base import BaseModel, ModelABC
 from mfai.pytorch.namedtensor import NamedTensor
 from mlflow import MlflowClient
@@ -51,6 +53,10 @@ class CAMSLightningModule(LightningModule):
         learning_rate: float = 0.0001,
         training_mode: Literal["residual", "classic"] = "classic",
         val_leadtimes: list[int] = [3, 9, 15, 21, 39, 63, 87],
+        lr_scheduler_interval: Literal["epoch", "step"] | None = None,
+        lr_scheduler_warmup_epochs: int = 0,
+        lr_scheduler_warmup_start_lr: float = 0.0,
+        lr_scheduler_eta_min: float = 0.0,
     ) -> None:
         """CAMS lightning module
 
@@ -65,12 +71,25 @@ class CAMSLightningModule(LightningModule):
             training_mode: Training mode, classic (y = f(x)) or residual (y = f(x) + x).
             val_leadtimes: Leadtimes used for validation metrics. Must be a subset
                 of ``lead_times``. Defaults to [3, 9, 15, 21, 39, 63, 87].
+            lr_scheduler_interval: Interval at which the learning rate scheduler
+                steps. When ``None``, no scheduler is used and the learning rate
+                stays constant. Defaults to None.
+            lr_scheduler_warmup_epochs: Number of epochs of linear warmup of the
+                learning rate. Defaults to 0.
+            lr_scheduler_warmup_start_lr: Learning rate at the start of the linear
+                warmup. Defaults to 0.
+            lr_scheduler_eta_min: Minimum learning rate reached at the end of the
+                cosine annealing. Defaults to 0.
         """
         super().__init__()
         self.model = model
         self.loss = loss
         self.learning_rate = learning_rate
         self.training_mode = training_mode
+        self.lr_scheduler_interval = lr_scheduler_interval
+        self.lr_scheduler_warmup_epochs = lr_scheduler_warmup_epochs
+        self.lr_scheduler_warmup_start_lr = lr_scheduler_warmup_start_lr
+        self.lr_scheduler_eta_min = lr_scheduler_eta_min
         self.species = cast(list[SpeciesNames], species)
         self.levels = cast(list[Levels], levels)
         self.lead_times = cast(list[Leadtimes], lead_times)
@@ -141,9 +160,50 @@ class CAMSLightningModule(LightningModule):
         return metrics
 
     @override
-    def configure_optimizers(self) -> AdamW:
+    def configure_optimizers(
+        self,
+    ) -> torch.optim.Optimizer | OptimizerLRSchedulerConfig:
         """Lightning method to define optimizers and learning-rate schedulers"""
-        return AdamW(self.parameters(), lr=self.learning_rate)
+
+        # Instantiate the optimizer
+        optimizer = AdamW(self.parameters(), lr=self.learning_rate)
+        if self.lr_scheduler_interval is None:
+            return optimizer
+
+        # Defines the scheduler duration in its step unit
+        if self.trainer.max_steps > 0:
+            max_steps_or_epochs = self.trainer.max_steps
+        elif self.trainer.max_epochs:
+            max_steps_or_epochs = self.trainer.max_epochs
+        else:
+            raise ValueError(
+                "Please set 'trainer.max_steps' or 'trainer.max_epochs' to use an "
+                "LRScheduler."
+            )
+
+        warmup_epochs = self.lr_scheduler_warmup_epochs
+        if self.lr_scheduler_interval == "step":
+            num_batches = len(self.trainer.datamodule.train_dataloader())  # type: ignore[reportAttributeAccessIssue]
+            warmup_epochs *= num_batches
+            max_steps_or_epochs *= num_batches
+
+        lr_scheduler = LinearWarmupCosineAnnealingLR(
+            optimizer=optimizer,
+            warmup_epochs=warmup_epochs,
+            max_epochs=max_steps_or_epochs,
+            warmup_start_lr=self.lr_scheduler_warmup_start_lr,
+            eta_min=self.lr_scheduler_eta_min,
+        )
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": lr_scheduler,
+                "interval": self.lr_scheduler_interval,
+                "frequency": 1,
+                "name": "lr",
+            },
+        }
 
     ####################################################################################
     #                                      SHARED STEPS                                #

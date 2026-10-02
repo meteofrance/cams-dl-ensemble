@@ -3,24 +3,25 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      experiment_name: test_to_validate_plots
-      run_name: UNetRPP
+      experiment_name: xp1_models_or_stats
+      run_name: converge_0_lr_UNetRPP
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
         logging_interval: step
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
   max_epochs: 500
   log_every_n_steps: 10
 
 model:
-  learning_rate: 0.0001
+  learning_rate: 0.001
   model:
     class_path: mfai.pytorch.models.UNetRPP
     init_args:
-      in_channels: 8
-      out_channels: 4
+      in_channels: 66
+      out_channels: 6
       input_shape:
         - 420
         - 700
@@ -29,26 +30,37 @@ model:
   loss:
     class_path: torch.nn.L1Loss
   val_leadtimes:
-    - 3
-    - 9
+    - 15
 
 data:
-  models:
-    - match
-    - minni
-  lead_times:
-    - 3
-    - 9
-  species:
-    - CO
-    - NO2
-  levels:
-    - 0
-  batch_size: 32
-  num_workers: 10
+  batch_size: 16
+  num_workers: 16
   prefetch_factor: 2
   transforms:
     - class_path: cams.transforms.Normalize
-    # - class_path: cams.transforms.FillMissingModels
-      # init_args:
-      #   fill_value: -1
+    - class_path: cams.transforms.FillMissingModels
+      init_args:
+        fill_value: -1
+  species:
+    - CO
+    - NO2
+    - PM10
+    - PM2P5
+    - SO2
+    - O3
+  levels:
+    - 0
+  models:
+    - match
+    - minni
+    - chimere
+    - mocage
+    - monarch
+    - euradim
+    - emep
+    - gemaq
+    - silam
+    - dehm
+    - lotos
+  lead_times:
+    - 15

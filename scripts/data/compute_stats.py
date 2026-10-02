@@ -12,6 +12,36 @@ from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
 from cams.types import LEADTIMES, MODELS_NAMES, SpeciesNames
 
 
+class WelfordVariance:
+    """Implements the Welford Algorithm to compute variance online.
+    It allows to compute the variance of a dataset with only on pass on the data.
+    See:
+    https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+    https://stackoverflow.com/questions/56402955/whats-the-formula-for-welfords-algorithm-for-variance-std-with-batch-updates
+    """
+
+    def __init__(self) -> None:
+        """Implements the Welford Algorithm to compute variance online."""
+        self.mean = 0.0
+        self.count = 0
+        self.m2 = 0.0
+
+    def add_batch(self, x: np.ndarray):
+        """Adds one batch of data to the intermediate computations."""
+        self.count += x.size
+
+        old_mean = self.mean
+        delta = x - old_mean
+        self.mean += np.sum(delta / self.count)
+
+        delta2 = x - self.mean
+        self.m2 += np.sum(delta * delta2)
+
+    def compute(self) -> tuple[float, float]:
+        """Returns mean and variance."""
+        return self.mean, self.m2 / self.count
+
+
 def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str, Any]:
     """Computes min, max, mean, std over the reanalysis data.
     We compute the mean and std with the Welford algorithm to avoid 2 passes
@@ -25,10 +55,8 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
         dict: Statistics dict of shape {species: {min: min, max: max}}.
     """
     # Init stats for all species
-    stats = {
-        spe: {"min": np.inf, "max": -np.inf, "mean": 0, "m2": 0, "n": 0}
-        for spe in species
-    }
+    stats = {spe: {"min": np.inf, "max": -np.inf} for spe in species}
+    mean_var_computer = {spe: WelfordVariance() for spe in species}
 
     sample: Sample
     for sample in tqdm(dataset.samples, desc="Computing statistics"):
@@ -48,29 +76,15 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
             current_max = float(
                 target_spe.max(dim=["time", "level", "latitude", "longitude"])
             )
-
             stats[spe]["min"] = min(stats[spe]["min"], current_min)
             stats[spe]["max"] = max(stats[spe]["max"], current_max)
 
-            size = target_spe.size
-            n = stats[spe]["n"]
-            new_n = n + size
-
-            mean_bloc = float(target_spe.mean())
-            m2_bloc = float(((target_spe - mean_bloc) ** 2).sum())
-
-            delta_mean = mean_bloc - stats[spe]["mean"]
-
-            stats[spe]["mean"] += delta_mean * (size / new_n)
-
-            stats[spe]["m2"] += m2_bloc + (delta_mean**2) * (n * size / new_n)
-            stats[spe]["n"] = new_n
+            mean_var_computer[spe].add_batch(target_spe.values)
 
     for spe in species:
-        var = stats[spe]["m2"] / stats[spe]["n"] if stats[spe]["n"] > 0 else 0
+        mean, var = mean_var_computer[spe].compute()
+        stats[spe]["mean"] = float(mean)
         stats[spe]["std"] = float(np.sqrt(var))
-        del stats[spe]["m2"]
-        del stats[spe]["n"]
 
     return stats
 

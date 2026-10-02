@@ -141,7 +141,7 @@ def y_named_ds() -> xr.Dataset:
 def stats_file_path(tmp_path: Path) -> Path:
     """Creates a fake file of CAMS data statistics"""
     stats_dict = {
-        "O3": {"min": 1.0, "max": 5.0},
+        "O3": {"min": 1.0, "max": 5.0, "mean": 1, "std": 1},
     }
     path_file = tmp_path / "stats.json"
     with open(path_file, "w") as f:
@@ -158,8 +158,17 @@ expected_y = np.array(
     dtype=np.float64,
 )
 
+expected_x_std = np.array(
+    [[float("nan"), 0], [1, float("nan")]],
+    dtype=np.float64,
+)
+expected_y_std = np.array(
+    [[float("nan"), 4.0], [8.0, float("nan")]],
+    dtype=np.float64,
+)
 
-def test_normalize(
+
+def test_normalize_minmax(
     x_named_ds: xr.Dataset, y_named_ds: xr.Dataset, stats_file_path: Path
 ):
     """Test of Normalize transform."""
@@ -173,9 +182,49 @@ def test_normalize(
     )
 
 
-def test_reverse_normalize(x_named_ds: xr.Dataset, stats_file_path: Path):
+def test_reverse_normalize_minmax(x_named_ds: xr.Dataset, stats_file_path: Path):
     """Test the NamedTensor based reverse of the Normalize transform."""
     transform = Normalize(stats_file_path=stats_file_path)
+    x_processed, _ = transform((x_named_ds, x_named_ds))
+
+    x_nt = NamedTensor(
+        tensor=torch.tensor(x_processed["CHIMERE"].values[0][None, ...]).float(),
+        names=["features", "lat", "lon"],
+        feature_names=[Sample._channel_name("model", "O3", "leadtime", "level")],  # type: ignore[reportPrivateAttributeUsage]
+    )
+    y_nt = NamedTensor(
+        tensor=torch.ones(1, 2, 2),
+        names=["features", "lat", "lon"],
+        feature_names=[Sample._channel_name("model", "O3", "leadtime", "level")],  # type: ignore[reportPrivateAttributeUsage]
+    )
+
+    reversed_transform = transform.reverse_transform()
+    x_reversed, _ = reversed_transform((x_nt, y_nt))
+
+    expected = torch.tensor(x_named_ds["CHIMERE"].values[0][None, ...]).float()
+    assert torch.allclose(torch.isnan(x_reversed.tensor), torch.isnan(expected))
+    assert torch.allclose(
+        torch.nan_to_num(x_reversed.tensor), torch.nan_to_num(expected)
+    )
+
+
+def test_normalize_std(
+    x_named_ds: xr.Dataset, y_named_ds: xr.Dataset, stats_file_path: Path
+):
+    """Test of Normalize transform."""
+    transform = Normalize(stats_file_path=stats_file_path, method="standardization")
+    x_processed, y_processed = transform((x_named_ds, y_named_ds))
+    np.testing.assert_allclose(
+        np.nan_to_num(x_processed["CHIMERE"].values[0]), np.nan_to_num(expected_x_std)
+    )
+    np.testing.assert_allclose(
+        np.nan_to_num(y_processed["TARGET"].values[0]), np.nan_to_num(expected_y_std)
+    )
+
+
+def test_reverse_normalize_std(x_named_ds: xr.Dataset, stats_file_path: Path):
+    """Test the NamedTensor based reverse of the Normalize transform."""
+    transform = Normalize(stats_file_path=stats_file_path, method="standardization")
     x_processed, _ = transform((x_named_ds, x_named_ds))
 
     x_nt = NamedTensor(

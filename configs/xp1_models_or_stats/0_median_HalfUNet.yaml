@@ -17,7 +17,7 @@ trainer:
 model:
   learning_rate: 0.0001
   model:
-    class_path: mfai.pytorch.models.HalfUNet
+    class_path: mfai.pytorch.models.half_unet.HalfUNet
     init_args:
       in_channels: 6
       out_channels: 6

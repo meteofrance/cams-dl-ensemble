@@ -296,7 +296,7 @@ requires-dist = [
     { name = "joblib", specifier = "==1.5.*" },
     { name = "jsonargparse", extras = ["signatures"], specifier = "<=4.41.0" },
     { name = "lightning", specifier = "==2.6.1" },
-    { name = "mfai", specifier = "==9.0.0" },
+    { name = "mfai", specifier = "==9.0.1" },
     { name = "mlflow", specifier = "==3.15.1" },
     { name = "netcdf4", specifier = "==1.7.2" },
     { name = "pyright", extras = ["nodejs"], specifier = ">=1.1.405" },
@@ -1959,7 +1959,7 @@ wheels = [
 
 [[package]]
 name = "mfai"
-version = "9.0.0"
+version = "9.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dataclasses-json" },
@@ -1975,9 +1975,9 @@ dependencies = [
     { name = "torchvision", version = "0.26.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
     { name = "torchvision", version = "0.26.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7e/00/4edd3e578cb9faaa3ce9ff2ef65bfc72f422d56e0563d6fcdb4e5b5deeb0/mfai-9.0.0.tar.gz", hash = "sha256:d698b60f9bba1dd6f2a0ff3867db264f65d40cf5fd60292d3ecfa8798025b1d0", size = 4262233, upload-time = "2026-09-25T09:47:08.253Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/ec/09c7d77ffe46af50cfe218e4cc0d0d4de29692ae291b0c8d5a93cd240790/mfai-9.0.1.tar.gz", hash = "sha256:f7db0e3e236232ae47377672fbc442d4eaaf47634217f389715dc76ce58aa41c", size = 4262289, upload-time = "2026-10-01T14:33:53.269Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/92/55/618d4e5d589faaba4559575a8123804bb5ec2cb24102408537c0a96e7ee9/mfai-9.0.0-py3-none-any.whl", hash = "sha256:19c4a638e0c9510d8077d16d01e95f7b54bcced1cb833200b34876491f469f90", size = 4348415, upload-time = "2026-09-25T09:47:06.44Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/32/9086e4d91d5d6fe3c10ee77135ee225a42c1b6ab3881df5226fb12bd23f8/mfai-9.0.1-py3-none-any.whl", hash = "sha256:eb0cf5ddeb9432ae59b30bd38a42b74c8f992d1d00f764bfb2ad4f73cba60791", size = 4348426, upload-time = "2026-10-01T14:33:51.381Z" },
 ]
 
 [[package]]

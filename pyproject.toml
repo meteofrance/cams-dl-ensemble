@@ -16,7 +16,7 @@ dependencies = [
   "xarray>=2026.1.0",
   "torch==2.11.*",
   "torchvision==0.26.*",
-  "mfai==9.0.0",
+  "mfai==9.0.1",
   "earthkit==0.13.2",
   "joblib==1.5.*",
   "cfgrib==0.9.15.1",

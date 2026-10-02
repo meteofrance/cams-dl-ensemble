@@ -4,7 +4,7 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: xp3_standard_norm
-      run_name: 0_MAE_11CTM_UNetRPP
+      run_name: 0_MAE_std_11CTM_UNetRPP
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
   callbacks:

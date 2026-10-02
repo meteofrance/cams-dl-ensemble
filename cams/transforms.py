@@ -3,7 +3,7 @@ import os
 from abc import abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import numpy as np
 import scipy.stats
@@ -163,7 +163,7 @@ class Normalize(nn.Module, ReversibleTransformMixin):
     def __init__(
         self,
         stats_file_path: Path = STATS_PATH,
-        interval: list[int] = [0, 1],
+        method: Literal["min-max", "standardization"] = "min-max",
     ) -> None:
         """A transform that normalizes data."""
         super().__init__()
@@ -175,11 +175,12 @@ class Normalize(nn.Module, ReversibleTransformMixin):
             )
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)
+        self.method: Literal["min-max", "standardization"] = method
 
     @override
     def reverse_transform(self) -> "ReverseNormalize":
         """Another transform that reverses the current transform."""
-        return ReverseNormalize(self.stats_file_path)
+        return ReverseNormalize(self.stats_file_path, self.method)
 
     def normalize_xarray(self, ds: xr.Dataset) -> xr.Dataset:
         """Normalize an xarray Dataset btw 0 and 1 with min/max normalization.
@@ -192,11 +193,16 @@ class Normalize(nn.Module, ReversibleTransformMixin):
             da = ds[model]
             normalized_channels = []
             for species in da["species"].values:
-                mini = self.stats_dict[species]["min"]
-                maxi = self.stats_dict[species]["max"]
-                normalized_channels.append(
-                    (da.sel(species=species) - mini) / (maxi - mini)
-                )
+                if self.method == "min-max":
+                    mini = self.stats_dict[species]["min"]
+                    maxi = self.stats_dict[species]["max"]
+                    normalized_channels.append(
+                        (da.sel(species=species) - mini) / (maxi - mini)
+                    )
+                if self.method == "standardization":
+                    mean = self.stats_dict[species]["mean"]
+                    std = self.stats_dict[species]["std"]
+                    normalized_channels.append((da.sel(species=species) - mean) / std)
             all_species_da[model] = xr.concat(normalized_channels, dim="species")
         return xr.Dataset(all_species_da)
 
@@ -215,20 +221,27 @@ class ReverseNormalize(nn.Module):
     def __init__(
         self,
         stats_file_path: Path = STATS_PATH,
+        method: Literal["min-max", "standardization"] = "min-max",
     ) -> None:
         """Inverse normalization of data."""
         super().__init__()
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)
+        self.method: Literal["min-max", "standardization"] = method
 
     def denormalize_namedtensor(self, nt: NamedTensor) -> NamedTensor:
         """Undoes min/max normalization."""
         denormalized_features: list[torch.Tensor] = []
         for feature_name in nt.feature_names:
             species = feature_name.split(" - ")[1]
-            mini = self.stats_dict[species]["min"]
-            maxi = self.stats_dict[species]["max"]
-            denormalized_features.append(nt[feature_name] * (maxi - mini) + mini)
+            if self.method == "min-max":
+                mini = self.stats_dict[species]["min"]
+                maxi = self.stats_dict[species]["max"]
+                denormalized_features.append(nt[feature_name] * (maxi - mini) + mini)
+            if self.method == "standardization":
+                mean = self.stats_dict[species]["mean"]
+                std = self.stats_dict[species]["std"]
+                denormalized_features.append(nt[feature_name] * std + mean)
         denormalized_features_tensor = torch.cat(
             tensors=denormalized_features, dim=nt.feature_dim_idx
         )

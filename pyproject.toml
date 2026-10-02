@@ -8,29 +8,33 @@ cams = "cams"
 [project]
 name = "cams-dl-ensemble"
 version = "v0.0.0"
-requires-python = "==3.12.3"
+requires-python = "==3.11.13"
 dependencies = [
   "cartopy==0.25.*",
   "netcdf4==1.7.2",
   "tornado>=6.5.4",
-  "xarray>=2026.1.0",
-  "torch==2.11.*",
-  "torchvision==0.26.*",
+  "xarray==2026.4.0",
+  "torch==2.9.0",
+  "torchvision==0.24.0",
   "mfai==9.0.1",
   "earthkit==0.13.2",
   "joblib==1.5.*",
   "cfgrib==0.9.15.1",
   "lightning==2.6.1",
   "jsonargparse[signatures]<=4.41.0",
+  "seaborn==0.13.2",
   "mlflow==3.15.1",
   "codecarbon[carbonboard]==3.3.1",
-  # Dev dependencies
+]
+
+[project.optional-dependencies]
+dev = [
   "pyright[nodejs]>=1.1.405",
   "ruff==0.15.9",
   "pytest==9.0.*",
   "pytest-cov==7.1.*",
   "dayplot>=0.5.1",
-  "ipython>=9.15.0",
+  "ipython==9.15.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -42,23 +46,23 @@ exclude = ["doc*", "configs*"]
 pip.only-binary = [":all:"]
 
 [[tool.uv.index]]
-name = "pytorch-cu130"
-url = "https://download.pytorch.org/whl/cu130"
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cu128", marker = "(sys_platform =='linux' and extra == 'cuda12') or (sys_platform == 'win32' and extra == 'cuda12')" },
 ]
 torchvision = [
-  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cu128", marker = "(sys_platform =='linux' and extra == 'cuda12') or (sys_platform == 'win32' and extra == 'cuda12')" },
 ]
 
 # Cooldown period for new versions of a package.
 # exclude-newer = "15 days"
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py311"
 line-length = 88
 builtins = ["_"]
 include = [

@@ -12,8 +12,40 @@ from cams.settings import PROCESSED_DATA_DIR, STATS_PATH
 from cams.types import LEADTIMES, MODELS_NAMES, SpeciesNames
 
 
+class WelfordVariance:
+    """Implements the Welford Algorithm to compute variance online.
+    It allows to compute the variance of a dataset with only on pass on the data.
+    See:
+    https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+    https://stackoverflow.com/questions/56402955/whats-the-formula-for-welfords-algorithm-for-variance-std-with-batch-updates
+    """
+
+    def __init__(self) -> None:
+        """Implements the Welford Algorithm to compute variance online."""
+        self.mean = 0.0
+        self.count = 0
+        self.m2 = 0.0
+
+    def add_batch(self, x: np.ndarray):
+        """Adds one batch of data to the intermediate computations."""
+        self.count += x.size
+
+        old_mean = self.mean
+        delta = x - old_mean
+        self.mean += np.sum(delta / self.count)
+
+        delta2 = x - self.mean
+        self.m2 += np.sum(delta * delta2)
+
+    def compute(self) -> tuple[float, float]:
+        """Returns mean and variance."""
+        return self.mean, self.m2 / self.count
+
+
 def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str, Any]:
-    """Computes min/max over the reanalysis data.
+    """Computes min, max, mean, std over the reanalysis data.
+    We compute the mean and std with the Welford algorithm to avoid 2 passes
+    over the data.
 
     Args:
         dataset: A cams dataset.
@@ -22,30 +54,38 @@ def compute_stats(dataset: CAMSDataset, species: list[SpeciesNames]) -> dict[str
     Returns:
         dict: Statistics dict of shape {species: {min: min, max: max}}.
     """
-    # Init min and max for all species
+    # Init stats for all species
     stats = {spe: {"min": np.inf, "max": -np.inf} for spe in species}
+    mean_var_computer = {spe: WelfordVariance() for spe in species}
 
     sample: Sample
-    for sample in tqdm(
-        dataset.samples, desc="Computing statistics", total=len(dataset)
-    ):
-        print(sample.data)
+    for sample in tqdm(dataset.samples, desc="Computing statistics"):
         try:
             target = sample.data["TARGET"]
         except Exception as e:
             print(e)
             print(f"Could not load sample {sample}, skipping to next sample.")
             continue
-        min_values = target.min(dim=["time", "level", "latitude", "longitude"])
-        max_values = target.max(dim=["time", "level", "latitude", "longitude"])
 
         for spe in species:
-            stats[spe]["min"] = min(
-                stats[spe]["min"], float(min_values.sel(species=spe).values)
+            target_spe = target.sel(species=spe)
+
+            current_min = float(
+                target_spe.min(dim=["time", "level", "latitude", "longitude"])
             )
-            stats[spe]["max"] = max(
-                stats[spe]["max"], float(max_values.sel(species=spe).values)
+            current_max = float(
+                target_spe.max(dim=["time", "level", "latitude", "longitude"])
             )
+            stats[spe]["min"] = min(stats[spe]["min"], current_min)
+            stats[spe]["max"] = max(stats[spe]["max"], current_max)
+
+            mean_var_computer[spe].add_batch(target_spe.values)
+
+    for spe in species:
+        mean, var = mean_var_computer[spe].compute()
+        stats[spe]["mean"] = float(mean)
+        stats[spe]["std"] = float(np.sqrt(var))
+
     return stats
 
 

@@ -1,12 +1,15 @@
 import datetime as dt
 from pathlib import Path
 
+import numpy as np
 import pytest
 import xarray as xr
 
 from cams.sample import Sample
 from cams.types import Leadtimes
 from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+from mfai.pytorch.namedtensor import NamedTensor
+import numpy as np
 
 
 @pytest.mark.parametrize(
@@ -119,3 +122,293 @@ def test_sample_data(tmp_dataset_dir: Path):
     assert isinstance(data, xr.Dataset)
     assert list(data.data_vars) == ["MOCAGE", "TARGET"]
     assert data["MOCAGE"].values.shape == (1, 1, 1, 420, 700)
+
+
+def testdataset_to_namedtensor_single_channel():
+    """Test conversion of a statistically reduced dataset (spatial dims only)."""
+    ds = xr.Dataset(
+        {
+            "median": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
+            "mean": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
+        }
+    )
+    nt = Sample.convert_data_to_nt(ds)
+
+    assert isinstance(nt, NamedTensor)
+    assert nt.tensor.shape == (2, 2, 2)
+    assert list(nt.feature_names) == ["median", "mean"]
+    np.testing.assert_allclose(nt["median"], np.ones((1, 2, 2)))
+    np.testing.assert_allclose(nt["mean"], np.full((1, 2, 2), 2.0))
+
+
+def _create_cross_month_target_netcdf(
+    path: Path, times: list[dt.datetime], size_lat: int = 420, size_lon: int = 700
+) -> None:
+    """Create a dummy reanalysis NetCDF with the given valid times."""
+    data_shape = (len(times), size_lat, size_lon)
+    lats = np.linspace(71.95, 30.05, size_lat)
+    lons = np.linspace(-24.95, 44.95, size_lon)
+    ds = xr.Dataset(
+        {"o3": (["time", "lat", "lon"], np.zeros(data_shape))},
+        coords={"time": times, "lat": lats, "lon": lons},
+    )
+    ds.to_netcdf(path)
+
+
+def _create_input_netcdf_with_leadtimes(
+    path: Path, leadtimes: list[int], size_lat: int = 420, size_lon: int = 700
+) -> None:
+    """Create a dummy model input NetCDF with the given leadtime hours."""
+    data_shape = (len(leadtimes), 1, size_lat, size_lon)
+    lats = np.linspace(71.95, 30.05, size_lat)
+    lons = np.linspace(-24.95, 44.95, size_lon)
+    ds = xr.Dataset(
+        {"o3_conc": (["time", "level", "latitude", "longitude"], np.zeros(data_shape))},
+        coords={
+            "time": leadtimes,
+            "level": [0],
+            "latitude": lats,
+            "longitude": lons,
+        },
+    )
+    ds.to_netcdf(path)
+
+
+def test_load_input_data_overlapping_two_months(tmp_dataset_dir: Path):
+    input_path = (
+        tmp_dataset_dir
+        / "mocage/2022_07_31-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+    )
+    _create_input_netcdf_with_leadtimes(input_path, [12, 36])
+
+    sample = Sample(
+        dt.datetime(2022, 7, 31),
+        models=["MOCAGE"],
+        lead_times=[12, 36],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
+    )
+    data = sample.load_input_data_for_one_model("MOCAGE")
+
+    assert list(data.time.values) == [
+        np.datetime64("2022-07-31T12:00:00"),
+        np.datetime64("2022-08-01T12:00:00"),
+    ]
+    assert data["o3_conc"].values.shape == (2, 1, 420, 700)
+
+
+def test_sample_data_overlapping_two_months(tmp_dataset_dir: Path):
+    target_path_july = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+    target_path_august = (
+        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-08.nc"
+    )
+    _create_cross_month_target_netcdf(
+        target_path_july,
+        [dt.datetime(2022, 7, 31, 12), dt.datetime(2022, 7, 31, 15)],
+    )
+    _create_cross_month_target_netcdf(
+        target_path_august,
+        [dt.datetime(2022, 8, 1, 12)],
+    )
+
+    sample = Sample(
+        dt.datetime(2022, 7, 31),
+        models=["MOCAGE"],
+        lead_times=[12, 15, 36],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
+    )
+
+    assert sample.target_paths == [target_path_july, target_path_august]
+    target = sample.load_target_data()
+
+    assert list(target.time.values) == [
+        np.datetime64("2022-07-31T12:00:00"),
+        np.datetime64("2022-07-31T15:00:00"),
+        np.datetime64("2022-08-01T12:00:00"),
+    ]
+    assert target["O3"].values.shape == (3, 1, 420, 700)
+
+
+def test_sample_is_valid_overlapping_two_months(tmp_dataset_dir: Path):
+    input_path = (
+        tmp_dataset_dir
+        / "mocage/2022_07_31-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+    )
+    create_dummy_input_netcdf(input_path)
+    _create_cross_month_target_netcdf(
+        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc",
+        [dt.datetime(2022, 7, 31, 12)],
+    )
+    _create_cross_month_target_netcdf(
+        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-08.nc",
+        [dt.datetime(2022, 8, 1, 12)],
+    )
+
+    sample = Sample(
+        dt.datetime(2022, 7, 31),
+        models=["MOCAGE"],
+        lead_times=[12, 36],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
+    )
+
+    assert sample.is_valid
+
+
+def test_weighted_ensemble_paths(tmp_path: Path):
+    """One weighted ensemble path is returned per requested species."""
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert sample.weighted_ensemble_paths == [
+        tmp_path / "weighted_ensemble/2022_07_22-O3-0m-0-96h.grib",
+        tmp_path / "weighted_ensemble/2022_07_22-NO2-0m-0-96h.grib",
+    ]
+
+
+def test_is_weighted_ensemble_available_false(tmp_path: Path):
+    """is_weighted_ensemble_available is False when no weighted ensemble file exists."""
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert not sample.is_weighted_ensemble_available
+
+
+def test_is_weighted_ensemble_available_true(tmp_path: Path):
+    """is_weighted_ensemble_available is True when all species files exist."""
+    weighted_ensemble_dir = tmp_path / "weighted_ensemble"
+    weighted_ensemble_dir.mkdir(parents=True, exist_ok=True)
+    for path in [
+        weighted_ensemble_dir / "2022_07_22-O3-0m-0-96h.grib",
+        weighted_ensemble_dir / "2022_07_22-NO2-0m-0-96h.grib",
+    ]:
+        path.touch()
+
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert sample.is_weighted_ensemble_available
+
+
+def test_is_weighted_ensemble_available_partial(tmp_path: Path):
+    """is_weighted_ensemble_available is False if only some species files exist."""
+    weighted_ensemble_dir = tmp_path / "weighted_ensemble"
+    weighted_ensemble_dir.mkdir(parents=True, exist_ok=True)
+    (weighted_ensemble_dir / "2022_07_22-O3-0m-0-96h.grib").touch()
+
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[15],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_path,
+    )
+
+    assert not sample.is_weighted_ensemble_available
+
+
+def _open_weighted_ensemble_dataset(path: Path) -> xr.Dataset:
+    """Replacement for xr.open_dataset returning a grib-like dataset.
+
+    The returned dataset mirrors the real weighted ensemble grib files: a
+    ``step`` dimension in hours, a per-step ``valid_time`` coordinate and an
+    ``unknown`` data variable indexed by ``(step, latitude, longitude)``.
+    """
+    species = Path(path).name.split("-")[1]
+    leadtimes = [0, 3, 6, 9, 12]
+    steps = np.array(leadtimes, dtype="timedelta64[h]")
+    valid_times = np.array(
+        [
+            np.datetime64("2022-07-22T00:00:00") + np.timedelta64(lt, "h")
+            for lt in leadtimes
+        ],
+        dtype="datetime64[h]",
+    )
+    lats = np.linspace(71.95, 30.05, 5)
+    lons = np.linspace(-24.95, 44.95, 6)
+    values = np.full((len(leadtimes), 5, 6), 2.0, dtype=np.float32)
+    if species == "O3":
+        values = np.full_like(values, 3.0)
+    return xr.Dataset(
+        {"unknown": (["step", "latitude", "longitude"], values)},
+        coords={
+            "step": steps,
+            "valid_time": ("step", valid_times),
+            "latitude": lats,
+            "longitude": lons,
+            "time": np.datetime64("2022-07-22T00:00:00"),
+            "surface": 0.0,
+        },
+    )
+
+
+def test_load_weighted_ensemble(monkeypatch: pytest.MonkeyPatch, tmp_dataset_dir: Path):
+    """load_weighted_ensemble merges per-species grib files into a single dataset."""
+    monkeypatch.setattr(xr, "open_dataset", _open_weighted_ensemble_dataset)
+
+    sample = Sample(
+        dt.date(2022, 7, 22),
+        models=["MOCAGE"],
+        lead_times=[3, 6],
+        species=["O3", "NO2"],
+        levels=[0],
+        processed_dir=tmp_dataset_dir,
+    )
+    data = sample.load_weighted_ensemble()
+
+    assert isinstance(data, xr.Dataset)
+    assert list(data.data_vars) == ["WEIGHTED_ENSEMBLE"]
+    assert dict(data.sizes) == {
+        "level": 1,
+        "latitude": 5,
+        "longitude": 6,
+        "time": 2,
+        "species": 2,
+    }
+    assert data["WEIGHTED_ENSEMBLE"].dims == (
+        "species",
+        "time",
+        "level",
+        "latitude",
+        "longitude",
+    )
+    assert list(data["species"].values) == ["O3", "NO2"]
+    np.testing.assert_array_equal(
+        data["time"].values,
+        np.array(
+            [
+                np.datetime64("2022-07-22T03:00:00"),
+                np.datetime64("2022-07-22T06:00:00"),
+            ]
+        ),
+    )
+    # O3 values are 3.0, NO2 values are 2.0
+    np.testing.assert_allclose(
+        data["WEIGHTED_ENSEMBLE"].sel(species="O3").values, 3.0
+    )
+    np.testing.assert_allclose(
+        data["WEIGHTED_ENSEMBLE"].sel(species="NO2").values, 2.0
+    )

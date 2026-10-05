@@ -1,6 +1,5 @@
 import datetime as dt
 from pathlib import Path
-import re
 
 from calendardataviz import InspectorABC, RichString, start_app
 from calendardataviz.colors import RDYLGN, color_from_pct

@@ -3,10 +3,10 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
-      experiment_name: ozone
-      run_name: stats/UNetRPP
+      experiment_name: xp1_models_or_stats
+      run_name: 2_all_stats_UNetRPP
       log_model: True
-      artifact_location: /scratch/shared/cams-dl-ensemble/mlartifacts
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
@@ -19,8 +19,8 @@ model:
   model:
     class_path: mfai.pytorch.models.unetrpp.UNetRPP
     init_args:
-      in_channels: 7  # median, mean, skew, kurt, amin, amax, std
-      out_channels: 1
+      in_channels: 54
+      out_channels: 6
       input_shape:
         - 420
         - 700
@@ -28,23 +28,47 @@ model:
         autopad_enabled: True
   loss:
     class_path: torch.nn.L1Loss
+  val_leadtimes:
+    - 15
 
 data:
-  batch_size: 32
-  num_workers: 10
+  batch_size: 16
+  num_workers: 16
   prefetch_factor: 2
   transforms:
     - class_path: cams.transforms.Normalize
-    - class_path: cams.transforms.FillMissingModels
-      init_args:
-        fill_value: -1
     - class_path: cams.transforms.ExtractInputStatisticalFeatures
       init_args:
         statistic_types:
-          - "median"
-          - "mean"
-          - "skew"
-          - "kurtosis"
-          - "amin"
-          - "amax"
-          - "std"
+          - mean
+          - amin
+          - argmin
+          - amax
+          - argmax
+          - median
+          - skew
+          - kurtosis
+          - std
+  species:
+    - CO
+    - NO2
+    - PM10
+    - PM2P5
+    - SO2
+    - O3
+  levels:
+    - 0
+  models:
+    - match
+    - minni
+    - chimere
+    - mocage
+    - monarch
+    - euradim
+    - emep
+    - gemaq
+    - silam
+    - dehm
+    - lotos
+  lead_times:
+    - 15

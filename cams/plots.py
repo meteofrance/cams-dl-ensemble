@@ -308,6 +308,8 @@ def plot_named_tensor(
     vmin, vmax = get_vmin_vmax(species_name)
 
     for i, ax in enumerate(axs):
+        if i >= len(nt.feature_names):
+            break
         name = nt.feature_names[i]
         plot_kwargs = {"cmap": CMAP, "extent": EXTENT}
         if name not in ["argmin", "argmax", "skew", "kurtosis"]:

@@ -14,6 +14,7 @@ from pytorch_lightning.utilities import rank_zero_only
 from torch.optim import AdamW
 from torchmetrics import MetricCollection
 from typing_extensions import override
+import datetime as dt
 
 from cams.metrics import (
     SPECIES_THRESHOLDS,
@@ -201,10 +202,10 @@ class CAMSLightningModule(LightningModule):
 
     @override
     def training_step(
-        self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
+        self, batch: tuple[NamedTensor, NamedTensor, list[dt.date]], batch_idx: int
     ) -> Any:
         """Defines the training step"""
-        x, y = batch
+        x, y, _ = batch
         _, loss = self._shared_forward_step(x, y)
         self.log(
             "train_loss",
@@ -226,6 +227,7 @@ class CAMSLightningModule(LightningModule):
         x: NamedTensor,
         y: NamedTensor,
         y_hat: NamedTensor,
+        dates: dt.date
     ) -> None:
         """Plots images on some batches and log them in mlflow."""
 
@@ -263,6 +265,7 @@ class CAMSLightningModule(LightningModule):
                     y_hat=y_hat.select_dim("batch", 0),
                     save_path=Path(file.name),
                     title=(
+                        f"Run = {dates[0]}\n"
                         f"Epoch {self.trainer.current_epoch}, {species=}, "
                         f"{lead_time=}, {level=}"
                     ),
@@ -293,16 +296,16 @@ class CAMSLightningModule(LightningModule):
 
     @override
     def validation_step(
-        self, batch: tuple[NamedTensor, NamedTensor], batch_idx: int
+        self, batch: tuple[NamedTensor, NamedTensor, list[dt.date]], batch_idx: int
     ) -> Any:
         """Defines the validation step."""
-        x, y = batch
+        x, y, dates = batch
         y_hat, loss = self._shared_forward_step(x, y)
         self.log("val_loss", loss, on_epoch=True, sync_dist=True)
         _, y_hat = self.trainer.datamodule.undo_transforms(x, y_hat)  # type: ignore[reportAttributeAccessIssue]
         x, y = self.trainer.datamodule.undo_transforms(x, y)  # type: ignore[reportAttributeAccessIssue]
         self.metrics.update(y_hat, y)
-        self.val_plot_step(batch_idx, x, y, y_hat)
+        self.val_plot_step(batch_idx, x, y, y_hat, dates)
         return loss
 
     @override

@@ -93,11 +93,13 @@ class CAMSDataset(Dataset):
     @override
     def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
         """Returns one sample of training data."""
-        ds: xr.Dataset = self.samples[idx].data
+        sample = self.samples[idx]
+        ds: xr.Dataset = sample.data
         x_ds = ds.drop_vars("TARGET")
         y_ds = ds[["TARGET"]]
         x_ds, y_ds = self.transform_sequence((x_ds, y_ds))
-        return Sample.convert_data_to_nt(x_ds), Sample.convert_data_to_nt(y_ds)
+        x, y = Sample.convert_data_to_nt(x_ds), Sample.convert_data_to_nt(y_ds)
+        return x, y, sample.date_run
 
 
 if __name__ == "__main__":

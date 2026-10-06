@@ -280,8 +280,8 @@ def plot_y_vs_yhat_vs_median(
     # Print metrics on the right panel
     ax = subfigs[0, 2]
     mse = MeanSquaredError()
-    ax.text(0.1, 0.8, f"MSE AI = {mse(prediction, ground_truth)}")
-    ax.text(0.1, 0.75, f"MSE Median = {mse(median, ground_truth)}")
+    ax.text(0.1, 0.8, f"MSE AI = {mse(prediction, ground_truth):.2f}")
+    ax.text(0.1, 0.75, f"MSE Median = {mse(median, ground_truth):.2f}")
     f1 = BinaryF1Score()
     pred_bin = prediction >= SPECIES_THRESHOLDS[species]
     target_bin = ground_truth >= SPECIES_THRESHOLDS[species]

@@ -1,3 +1,4 @@
+import datetime as dt
 from itertools import product
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -14,7 +15,6 @@ from pytorch_lightning.utilities import rank_zero_only
 from torch.optim import AdamW
 from torchmetrics import MetricCollection
 from typing_extensions import override
-import datetime as dt
 
 from cams.metrics import (
     SPECIES_THRESHOLDS,
@@ -227,7 +227,7 @@ class CAMSLightningModule(LightningModule):
         x: NamedTensor,
         y: NamedTensor,
         y_hat: NamedTensor,
-        dates: dt.date
+        dates: dt.date,
     ) -> None:
         """Plots images on some batches and log them in mlflow."""
 

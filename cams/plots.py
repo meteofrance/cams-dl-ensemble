@@ -16,10 +16,10 @@ from matplotlib.axes import Axes
 from matplotlib.colors import PowerNorm
 from matplotlib.typing import HashableList
 from mfai.pytorch.namedtensor import NamedTensor
-from torchmetrics.regression import MeanSquaredError
 from torchmetrics.classification import BinaryF1Score
-from cams.metrics import SPECIES_THRESHOLDS
+from torchmetrics.regression import MeanSquaredError
 
+from cams.metrics import SPECIES_THRESHOLDS
 from cams.sample import Sample
 from cams.settings import STATS_PATH
 
@@ -291,7 +291,7 @@ def plot_y_vs_yhat_vs_median(
 
     # Plot pixels where AI is better
     ax: GeoAxes = subfigs[1, 2].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
-    best = (torch.abs(diff_pred) <= torch.abs(diff_med))
+    best = torch.abs(diff_pred) <= torch.abs(diff_med)
     ax.imshow(best, cmap="RdBu", extent=EXTENT, vmin=-0.5, vmax=1.5)
     format_axis(ax, "Blue = where AI is better than median")
 

@@ -281,8 +281,6 @@ if __name__ == "__main__":
     x, y = ds.drop_vars("TARGET"), ds[["TARGET"]]
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
-    print(x)
-    print(x_transformed)
     nt = Sample.convert_data_to_nt(xr.merge([x, x_transformed]))
     print(nt)
     plot_named_tensor(nt, "O3", Path("test_transform.png"))

@@ -35,6 +35,7 @@ dev = [
   "pytest-cov==7.1.*",
   "dayplot>=0.5.1",
   "ipython==9.15.0",
+  "calendardataviz==0.3.0",
 ]
 
 [tool.setuptools.packages.find]

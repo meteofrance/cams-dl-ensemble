@@ -1,12 +1,9 @@
 import json
-import os
 from abc import abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Literal, cast
 
-import numpy as np
-import scipy.stats
 import torch
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
@@ -28,20 +25,14 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     Attributes:
         statistic_types: List of statistical measures to compute from the input.
-            Supported statistics include: 'mean', 'amin', 'argmin', 'amax',
-            'argmax', 'median', 'skew', 'kurtosis'.
-
-    Note:
-        For 'skew' and 'kurtosis', you should enable the array API standard support.
-        -> https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html
+            Supported statistics include: 'mean', 'amin', 'amax', 'median'.
     """
 
     def __init__(self, statistic_types: Sequence[str]):
         """
         Args:
             statistic_types: List of statistical measures to compute.
-                Must be one or more of: 'mean', 'amin', 'argmin', 'amax',
-                'argmax', 'median', 'skew', 'kurtosis', 'std'.
+                Must be one or more of: 'mean', 'min', 'max', 'median'.
         """
         super().__init__()
         if not all(stat in STATISTICS_NAMES for stat in statistic_types):
@@ -50,16 +41,6 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 f"statistic_types to contain values {STATISTICS_NAMES} "
             )
         self.statistic_types = cast(StatisticsNames, statistic_types)
-
-        if "skew" in self.statistic_types or "kurtosis" in self.statistic_types:
-            scipy_array_api = os.getenv("SCIPY_ARRAY_API")
-            if scipy_array_api != "1":
-                raise RuntimeError(
-                    "Environement variable 'SCIPY_ARRAY_API' should be set to '1' to "
-                    + "use 'skew' and/or 'kurtosis' statistics. See "
-                    + "https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for"
-                    + "more details about scipy array API support."
-                )
 
     @override
     def forward(
@@ -83,24 +64,17 @@ class ExtractInputStatisticalFeatures(nn.Module):
         ensemble = x.to_array(dim="model")
         stat_ds = xr.Dataset()
         for statistic_type in self.statistic_types:
-            if statistic_type in ["skew", "kurtosis"]:
-                statistic = xr.apply_ufunc(
-                    getattr(scipy.stats, statistic_type),
-                    ensemble,
-                    input_core_dims=[["model"]],
-                    kwargs={"nan_policy": "omit", "axis": -1},
-                )
-            elif statistic_type in ["argmin", "argmax"]:
-                statistic = xr.apply_ufunc(
-                    getattr(np, statistic_type),
-                    ensemble,
-                    input_core_dims=[["model"]],
-                    kwargs={"axis": -1},
+            if statistic_type.startswith("q"):
+                quantile: float = (
+                    int(statistic_type[1:]) / 100
+                )  # number between 0 and 1 (eg. 90 -> 0.9)
+                statistic = getattr(ensemble, statistic_type)(
+                    q=quantile,
+                    dim="model",
+                    skipna=False,
                 )
             else:
-                xarray_method = "min" if statistic_type == "amin" else statistic_type
-                xarray_method = "max" if statistic_type == "amax" else xarray_method
-                statistic = getattr(ensemble, xarray_method)(dim="model", skipna=False)
+                statistic = getattr(ensemble, statistic_type)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
         return stat_ds, y
 

@@ -3,25 +3,15 @@ from typing import Literal
 StatisticsNames = Literal[
     "mean",
     "amin",
-    "argmin",
     "amax",
-    "argmax",
     "median",
-    "skew",
-    "kurtosis",
-    "std",
 ]
 
 STATISTICS_NAMES: list[StatisticsNames] = [
     "mean",
     "amin",
-    "argmin",
     "amax",
-    "argmax",
     "median",
-    "skew",
-    "kurtosis",
-    "std",
 ]
 
 ModelsNames = Literal[

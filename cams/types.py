@@ -5,6 +5,10 @@ StatisticsNames = Literal[
     "amin",
     "amax",
     "median",
+    "q10",
+    "q25",
+    "q75",
+    "q90",
 ]
 
 STATISTICS_NAMES: list[StatisticsNames] = [
@@ -12,6 +16,10 @@ STATISTICS_NAMES: list[StatisticsNames] = [
     "amin",
     "amax",
     "median",
+    "q10",
+    "q25",
+    "q75",
+    "q90",
 ]
 
 ModelsNames = Literal[

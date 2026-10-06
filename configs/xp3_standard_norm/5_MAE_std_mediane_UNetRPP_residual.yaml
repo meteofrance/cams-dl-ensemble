@@ -1,0 +1,82 @@
+seed_everything: 666
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.MLFlowLogger
+    init_args:
+      experiment_name: xp3_standard_norm
+      run_name: 5_MAE_std_mediane_UNetRPP_residual
+      log_model: True
+      artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+    - class_path: mfai.pytorch.callbacks.MLFlowSystemMonitorCallback
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: /scratch/shared/cams-dl-ensemble/tmp
+        monitor: step
+        mode: max
+        filename: "epoch_{epoch}"
+        save_weights_only: false
+        save_top_k: 1
+        save_last: true
+  max_epochs: 500
+  log_every_n_steps: 100
+
+model:
+  learning_rate: 0.001
+  training_mode: residual
+  model:
+    class_path: mfai.pytorch.models.unetrpp.UNetRPP
+    init_args:
+      in_channels: 6
+      out_channels: 6
+      input_shape:
+        - 420
+        - 700
+      settings:
+        autopad_enabled: True
+  loss:
+    class_path: torch.nn.L1Loss
+  val_leadtimes:
+    - 15
+
+data:
+  batch_size: 16
+  num_workers: 16
+  prefetch_factor: 2
+  transforms:
+    - class_path: cams.transforms.Normalize
+      init_args:
+        method: standardization
+    - class_path: cams.transforms.FillMissingModels
+      init_args:
+        fill_value: -1
+    - class_path: cams.transforms.ExtractInputStatisticalFeatures
+      init_args:
+        statistic_types:
+          - median
+  species:
+    - CO
+    - NO2
+    - PM10
+    - PM2P5
+    - SO2
+    - O3
+  levels:
+    - 0
+  models:
+    - match
+    - minni
+    - chimere
+    - mocage
+    - monarch
+    - euradim
+    - emep
+    - gemaq
+    - silam
+    - dehm
+    - lotos
+  lead_times:
+    - 15

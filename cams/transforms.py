@@ -36,12 +36,14 @@ class ExtractInputStatisticalFeatures(nn.Module):
         -> https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html
     """
 
-    def __init__(self, statistic_types: Sequence[str]):
+    def __init__(self, statistic_types: Sequence[str], concat: bool = False):
         """
         Args:
             statistic_types: List of statistical measures to compute.
                 Must be one or more of: 'mean', 'amin', 'argmin', 'amax',
                 'argmax', 'median', 'skew', 'kurtosis', 'std'.
+            concat: Whether the statistics should be added to the xr.Dataset or replace
+                the existing ensemble.
         """
         super().__init__()
         if not all(stat in STATISTICS_NAMES for stat in statistic_types):
@@ -50,6 +52,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 f"statistic_types to contain values {STATISTICS_NAMES} "
             )
         self.statistic_types = cast(StatisticsNames, statistic_types)
+        self.concat = concat
 
         if "skew" in self.statistic_types or "kurtosis" in self.statistic_types:
             scipy_array_api = os.getenv("SCIPY_ARRAY_API")
@@ -102,6 +105,8 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 xarray_method = "max" if statistic_type == "amax" else xarray_method
                 statistic = getattr(ensemble, xarray_method)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
+        if self.concat:
+            stat_ds = xr.merge([x, stat_ds])
         return stat_ds, y
 
 
@@ -276,6 +281,6 @@ if __name__ == "__main__":
     x, y = ds.drop_vars("TARGET"), ds[["TARGET"]]
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
-    nt = Sample.convert_data_to_nt(xr.concat([x, x_transformed], dim="model"))
+    nt = Sample.convert_data_to_nt(xr.merge([x, x_transformed]))
     print(nt)
     plot_named_tensor(nt, "O3", Path("test_transform.png"))

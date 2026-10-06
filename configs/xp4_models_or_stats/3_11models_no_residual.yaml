@@ -4,7 +4,7 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: xp4_models_or_stats
-      run_name: 3_11models
+      run_name: 3_11models_no_residual
       log_model: True
       artifact_location: /scratch/shared/cams-dl-ensemble/mlflow-artifacts
   callbacks:
@@ -26,7 +26,6 @@ trainer:
 
 model:
   learning_rate: 0.001
-  training_mode: residual
   model:
     class_path: mfai.pytorch.models.unetrpp.UNetRPP
     init_args:

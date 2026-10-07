@@ -2,8 +2,8 @@ from typing import Literal
 
 StatisticsNames = Literal[
     "mean",
-    "amin",
-    "amax",
+    "min",
+    "max",
     "median",
     "q10",
     "q25",
@@ -13,8 +13,8 @@ StatisticsNames = Literal[
 
 STATISTICS_NAMES: list[StatisticsNames] = [
     "mean",
-    "amin",
-    "amax",
+    "min",
+    "max",
     "median",
     "q10",
     "q25",

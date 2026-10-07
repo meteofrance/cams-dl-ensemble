@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 
 import numpy as np
@@ -14,7 +13,7 @@ from cams.transforms import (
     FillMissingModels,
     Normalize,
 )
-from cams.types import MODELS_NAMES
+from cams.types import MODELS_NAMES, STATISTICS_NAMES
 
 
 def make_input_ds(data_vars: dict[str, np.ndarray]) -> xr.Dataset:
@@ -35,18 +34,11 @@ def test_ExtractInputStatisticalFeatures():
     )
     target_ds = xr.Dataset({"analysis": (["latitude", "longitude"], np.ones((2, 2)))})
 
-    transform = ExtractInputStatisticalFeatures(
-        ["mean", "amin", "amax", "median"]
-    )
+    transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     result_ds, target_result = transform((input_ds, target_ds))
 
     # Test 1: number of statistics and unchanged target
-    assert list(result_ds.data_vars) == [
-        "mean",
-        "amin",
-        "amax",
-        "median",
-    ]
+    assert list(result_ds.data_vars) == STATISTICS_NAMES
     assert target_result.equals(target_ds)
 
     # Test 2: Mean
@@ -56,12 +48,17 @@ def test_ExtractInputStatisticalFeatures():
     # Test 3: Min and max
     expected_mins = np.array([[1.0, 2.0], [3.0, 4.0]])
     expected_maxs = np.array([[9.0, 10.0], [11.0, 12.0]])
-    np.testing.assert_allclose(result_ds["amin"].values, expected_mins)
-    np.testing.assert_allclose(result_ds["amax"].values, expected_maxs)
+    np.testing.assert_allclose(result_ds["min"].values, expected_mins)
+    np.testing.assert_allclose(result_ds["max"].values, expected_maxs)
 
     # Test 5: Median
     expected_medians = np.array([[5.0, 6.0], [7.0, 8.0]])
     np.testing.assert_allclose(result_ds["median"].values, expected_medians)
+
+    # Test 6: quantile
+    np.testing.assert_array_less(result_ds["q10"].values, result_ds["q25"].values, strict=False)
+    np.testing.assert_array_less(result_ds["q25"].values, result_ds["q75"].values, strict=False)
+    np.testing.assert_array_less(result_ds["q75"].values, result_ds["q90"].values, strict=False)
 
     # Test 7: Empty statistic list
     module = ExtractInputStatisticalFeatures([])

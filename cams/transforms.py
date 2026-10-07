@@ -25,7 +25,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     Attributes:
         statistic_types: List of statistical measures to compute from the input.
-            Supported statistics include: 'mean', 'amin', 'amax', 'median'.
+            Supported statistics include: 'mean', 'min', 'max', 'median'.
     """
 
     def __init__(self, statistic_types: Sequence[str]):
@@ -68,7 +68,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 quantile: float = (
                     int(statistic_type[1:]) / 100
                 )  # number between 0 and 1 (eg. 90 -> 0.9)
-                statistic = getattr(ensemble, statistic_type)(
+                statistic = ensemble.quantile(
                     q=quantile,
                     dim="model",
                     skipna=False,
@@ -235,7 +235,6 @@ if __name__ == "__main__":
     import datetime as dt
     from pathlib import Path
 
-    from cams.plots import plot_named_tensor
     from cams.sample import Sample
     from cams.types import STATISTICS_NAMES
 
@@ -250,6 +249,4 @@ if __name__ == "__main__":
     x, y = ds.drop_vars("TARGET"), ds[["TARGET"]]
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
-    nt = Sample.convert_data_to_nt(xr.concat([x, x_transformed], dim="model"))
-    print(nt)
-    plot_named_tensor(nt, "O3", Path("test_transform.png"))
+    print(x_transformed)

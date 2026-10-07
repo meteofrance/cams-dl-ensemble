@@ -124,6 +124,23 @@ def test_sample_data(tmp_dataset_dir: Path):
     assert data["MOCAGE"].values.shape == (1, 1, 1, 420, 700)
 
 
+def testdataset_to_namedtensor_single_channel():
+    """Test conversion of a statistically reduced dataset (spatial dims only)."""
+    ds = xr.Dataset(
+        {
+            "median": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
+            "mean": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
+        }
+    )
+    nt = Sample.convert_data_to_nt(ds)
+
+    assert isinstance(nt, NamedTensor)
+    assert nt.tensor.shape == (2, 2, 2)
+    assert list(nt.feature_names) == ["median", "mean"]
+    np.testing.assert_allclose(nt["median"], np.ones((1, 2, 2)))
+    np.testing.assert_allclose(nt["mean"], np.full((1, 2, 2), 2.0))
+
+
 def _create_cross_month_target_netcdf(
     path: Path, times: list[dt.datetime], size_lat: int = 420, size_lon: int = 700
 ) -> None:
@@ -214,23 +231,6 @@ def test_sample_data_overlapping_two_months(tmp_dataset_dir: Path):
     ]
     assert target["O3"].values.shape == (3, 1, 420, 700)
     assert sample.is_valid
-
-
-def testdataset_to_namedtensor_single_channel():
-    """Test conversion of a statistically reduced dataset (spatial dims only)."""
-    ds = xr.Dataset(
-        {
-            "median": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
-            "mean": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
-        }
-    )
-    nt = Sample.convert_data_to_nt(ds)
-
-    assert isinstance(nt, NamedTensor)
-    assert nt.tensor.shape == (2, 2, 2)
-    assert list(nt.feature_names) == ["median", "mean"]
-    np.testing.assert_allclose(nt["median"], np.ones((1, 2, 2)))
-    np.testing.assert_allclose(nt["mean"], np.full((1, 2, 2), 2.0))
 
 
 def test_sample_is_valid_overlapping_two_months(tmp_dataset_dir: Path):

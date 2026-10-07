@@ -277,7 +277,7 @@ dependencies = [
     { name = "joblib" },
     { name = "jsonargparse", extra = ["signatures"] },
     { name = "lightning" },
-    { name = "mfai" },
+    { name = "mfai", extra = ["vision-transformers"] },
     { name = "mlflow" },
     { name = "netcdf4" },
     { name = "numpy" },
@@ -311,7 +311,7 @@ requires-dist = [
     { name = "joblib", specifier = "==1.5.*" },
     { name = "jsonargparse", extras = ["signatures"], specifier = "<=4.41.0" },
     { name = "lightning", specifier = "==2.6.1" },
-    { name = "mfai", specifier = "==9.0.1" },
+    { name = "mfai", extras = ["vision-transformers"], specifier = "==9.0.1" },
     { name = "mlflow", specifier = "==3.15.1" },
     { name = "netcdf4", specifier = "==1.7.2" },
     { name = "numpy", specifier = ">=2.4.6" },
@@ -1957,6 +1957,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/32/9086e4d91d5d6fe3c10ee77135ee225a42c1b6ab3881df5226fb12bd23f8/mfai-9.0.1-py3-none-any.whl", hash = "sha256:eb0cf5ddeb9432ae59b30bd38a42b74c8f992d1d00f764bfb2ad4f73cba60791", size = 4348426, upload-time = "2026-10-01T14:33:51.381Z" },
 ]
 
+[package.optional-dependencies]
+vision-transformers = [
+    { name = "monai" },
+]
+
 [[package]]
 name = "mir-python"
 version = "1.29.0.21"
@@ -2087,6 +2092,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a5/a6/76964d8f265be984838a13b77656b047686c492b61b3f46ca2ef29ef7325/mlflow_tracing-3.15.1.tar.gz", hash = "sha256:ba1c4d873151c0ceeab37f53daf0997feea18a1c092358995072dc53e1944a29", size = 1501188, upload-time = "2026-08-03T09:26:15.541Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f1/c7/13db54bd1b6525a0f09d880260d9dcf8072ae89155dae7a74c9e75a1ba03/mlflow_tracing-3.15.1-py3-none-any.whl", hash = "sha256:3cdef1f1675fe2c7c9f409e132439d65b063e37455b338027bfb2c0f986bebca", size = 1785591, upload-time = "2026-08-03T09:26:13.511Z" },
+]
+
+[[package]]
+name = "monai"
+version = "1.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/b0/c1d19d39824e07d0fe911829a61aef410aaaf84cd5c3fce8fd58def31ab1/monai-1.6.1.tar.gz", hash = "sha256:e24ae4bb944f1779b7a6445acc4ff2efd9cc504d05dffe2498c49af117350136", size = 1336418, upload-time = "2026-09-27T19:40:25.342Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/67/cd/e9d2ff282a9691a810d9a3b61064989d8577c4a0c6406639a9077993a2d1/monai-1.6.1-py3-none-any.whl", hash = "sha256:dbd3b1dd309e752e0477ed73fde03b92f80ac74bfb8a8c4260f018b5d6ab2b0b", size = 1677458, upload-time = "2026-09-27T19:40:21.758Z" },
 ]
 
 [[package]]

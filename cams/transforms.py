@@ -28,11 +28,14 @@ class ExtractInputStatisticalFeatures(nn.Module):
             Supported statistics include: 'mean', 'min', 'max', 'median'.
     """
 
-    def __init__(self, statistic_types: Sequence[str]):
+    def __init__(self, statistic_types: Sequence[str], concat: bool = False):
         """
         Args:
             statistic_types: List of statistical measures to compute.
-                Must be one or more of: 'mean', 'min', 'max', 'median'.
+                Must be one or more of: 'mean', 'amin', 'argmin', 'amax',
+                'argmax', 'median', 'skew', 'kurtosis', 'std'.
+            concat: Whether the statistics should be added to the xr.Dataset or replace
+                the existing ensemble.
         """
         super().__init__()
         if not all(stat in STATISTICS_NAMES for stat in statistic_types):
@@ -41,6 +44,7 @@ class ExtractInputStatisticalFeatures(nn.Module):
                 f"statistic_types to contain values {STATISTICS_NAMES} "
             )
         self.statistic_types = cast(StatisticsNames, statistic_types)
+        self.concat = concat
 
     @override
     def forward(
@@ -76,6 +80,8 @@ class ExtractInputStatisticalFeatures(nn.Module):
             else:
                 statistic = getattr(ensemble, statistic_type)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
+        if self.concat:
+            stat_ds = xr.merge([x, stat_ds])
         return stat_ds, y
 
 

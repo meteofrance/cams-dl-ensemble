@@ -21,11 +21,6 @@ uv sync
 > Using uv, the subsequent usage commands should be run with
 > `uv run <file.py>` instead of `python <file.py>`
 
-**If you want to contribute to the project**, we recommend to install the extra `dev` dependencies:
-```sh
-uv sync --extra dev
-```
-
 ### Using pip
 Check that you are using a version of python `== 3.11.13`.
 ```sh
@@ -35,20 +30,6 @@ python -m venv .venv
 source .venv/bin/activate  # On windows: .venv/Script/Activate.ps1
 pip install .
 ```
-
-**If you want to contribute to the project**, we recommend to install the extra `dev` dependencies:
-```sh
-pip install .[dev]
-```
-
-
-### Using `skew` or `kurtosis` statistics
-To use `skew` or `kurtosis` statistics in the `ReplaceEnsembleByStatisctics` transform, you should export:
-```bash
-export SCIPY_ARRAY_API=1
-```
-This enables array API from `scipy`. Please see https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for more details.
-
 
 ## Usage
 

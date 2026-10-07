@@ -266,17 +266,19 @@ def plot_y_vs_yhat_vs_median(
     # Plot differences
     axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
     axs_diff = axes_diff.flat
-    diff_pred = prediction - ground_truth
-    max_diff = torch.quantile(torch.abs(diff_pred), 0.98)
-    img_diff_pred = axs_diff[0].imshow(
-        diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
-    )
-    format_axis(axs_diff[0], "Difference (AI Prediction)")
+
     diff_med = median - ground_truth
+    max_diff = torch.quantile(torch.abs(diff_med), 0.98)
     axs_diff[1].imshow(
         diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
     )
     format_axis(axs_diff[1], "Difference (Median of Inputs)")
+
+    diff_pred = prediction - ground_truth
+    img_diff_pred = axs_diff[0].imshow(
+        diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
+    )
+    format_axis(axs_diff[0], "Difference (AI Prediction)")
     subfigs[2].colorbar(img_diff_pred, ax=axes_diff, fraction=0.023)
 
     fig.suptitle(title, size=18)
@@ -306,6 +308,8 @@ def plot_named_tensor(
     vmin, vmax = get_vmin_vmax(species_name)
 
     for i, ax in enumerate(axs):
+        if i >= len(nt.feature_names):
+            break
         name = nt.feature_names[i]
         plot_kwargs = {"cmap": CMAP, "extent": EXTENT}
         if name not in ["argmin", "argmax", "skew", "kurtosis"]:

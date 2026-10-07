@@ -171,7 +171,9 @@ class CAMSLightningModule(LightningModule):
         """
         output = self.model(x.tensor)  # pyright: ignore[reportCallIssue]
         if self.training_mode == "residual":
-            y_hat_tensor = x["median"] + output
+            median_tensors = [x[feat] for feat in x.feature_names if "median" in feat]
+            residual = torch.concat(median_tensors, dim=1)
+            y_hat_tensor = residual + output
         else:
             y_hat_tensor = output
         loss = self.loss(y_hat_tensor, y.tensor)

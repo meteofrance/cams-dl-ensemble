@@ -87,10 +87,7 @@ class SampleValidityInspector(InspectorABC):
         """
         content = str(self._sample_for_date(date))
         content = "\n".join(
-            [
-                content[i: i+40]
-                for i in range(0, len(content) - 41, 40)
-            ]
+            [content[i : i + 40] for i in range(0, len(content) - 41, 40)]
         )
 
         return date.strftime(r"%Y %m %d"), content

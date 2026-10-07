@@ -270,17 +270,23 @@ name = "cams-dl-ensemble"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "calendardataviz" },
     { name = "cartopy" },
     { name = "cfgrib" },
     { name = "codecarbon", extra = ["carbonboard"] },
+    { name = "dayplot" },
     { name = "earthkit" },
+    { name = "ipython" },
     { name = "joblib" },
     { name = "jsonargparse", extra = ["signatures"] },
     { name = "lightning" },
     { name = "mfai", extra = ["vision-transformers"] },
     { name = "mlflow" },
     { name = "netcdf4" },
-    { name = "numpy" },
+    { name = "pyright", extra = ["nodejs"] },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
     { name = "seaborn" },
     { name = "torch", marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
     { name = "torchvision", marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
@@ -288,37 +294,25 @@ dependencies = [
     { name = "xarray" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "calendardataviz" },
-    { name = "dayplot" },
-    { name = "ipython" },
-    { name = "pyright", extra = ["nodejs"] },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
-    { name = "calendardataviz", marker = "extra == 'dev'", specifier = "==0.3.0" },
+    { name = "calendardataviz", specifier = "==0.3.0" },
     { name = "cartopy", specifier = "==0.25.*" },
     { name = "cfgrib", specifier = "==0.9.15.1" },
     { name = "codecarbon", extras = ["carbonboard"], specifier = "==3.3.1" },
-    { name = "dayplot", marker = "extra == 'dev'", specifier = ">=0.5.1" },
+    { name = "dayplot", specifier = ">=0.5.1" },
     { name = "earthkit", specifier = "==0.13.2" },
-    { name = "ipython", marker = "extra == 'dev'", specifier = "==9.15.0" },
+    { name = "ipython", specifier = "==9.15.0" },
     { name = "joblib", specifier = "==1.5.*" },
     { name = "jsonargparse", extras = ["signatures"], specifier = "<=4.41.0" },
     { name = "lightning", specifier = "==2.6.1" },
     { name = "mfai", extras = ["vision-transformers"], specifier = "==9.0.1" },
     { name = "mlflow", specifier = "==3.15.1" },
     { name = "netcdf4", specifier = "==1.7.2" },
-    { name = "numpy", specifier = ">=2.4.6" },
-    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = ">=1.1.405" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.0.*" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.*" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.9" },
+    { name = "pyright", extras = ["nodejs"], specifier = ">=1.1.405" },
+    { name = "pytest", specifier = "==9.0.*" },
+    { name = "pytest-cov", specifier = "==7.1.*" },
+    { name = "ruff", specifier = "==0.15.9" },
     { name = "seaborn", specifier = "==0.13.2" },
     { name = "torch", marker = "(sys_platform != 'linux' and sys_platform != 'win32') or (sys_platform == 'linux' and extra != 'cuda12') or (sys_platform == 'win32' and extra != 'cuda12')", specifier = "==2.9.0" },
     { name = "torch", marker = "(sys_platform == 'linux' and extra == 'cuda12') or (sys_platform == 'win32' and extra == 'cuda12')", specifier = "==2.9.0", index = "https://download.pytorch.org/whl/cu128" },
@@ -327,7 +321,6 @@ requires-dist = [
     { name = "tornado", specifier = ">=6.5.4" },
     { name = "xarray", specifier = "==2026.4.0" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "cartopy"

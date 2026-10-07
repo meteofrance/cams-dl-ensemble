@@ -91,7 +91,7 @@ class CAMSDataset(Dataset):
         return len(self.samples)
 
     @override
-    def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor]:
+    def __getitem__(self, idx: int) -> tuple[NamedTensor, NamedTensor, dt.date]:
         """Returns one sample of training data."""
         sample = self.samples[idx]
         ds: xr.Dataset = sample.data

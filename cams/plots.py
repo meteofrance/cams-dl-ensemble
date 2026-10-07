@@ -16,9 +16,13 @@ from matplotlib.axes import Axes
 from matplotlib.colors import PowerNorm
 from matplotlib.typing import HashableList
 from mfai.pytorch.namedtensor import NamedTensor
+from torchmetrics.classification import BinaryF1Score
+from torchmetrics.regression import MeanSquaredError
 
+from cams.metrics import SPECIES_THRESHOLDS
 from cams.sample import Sample
 from cams.settings import STATS_PATH
+from cams.types import SpeciesNames
 
 # Setup cache dir for cartopy to avoid downloading data each time
 cartopy_cache_dir = Path("/scratch/shared/cartopy")
@@ -33,7 +37,7 @@ MOSAIC: list[HashableList[str]] = [
 ]
 UNITS = {
     "O3": "Ozone (µg/m3)",
-    "NO2": "Nitrogen Dioxide (µg/m3",
+    "NO2": "Nitrogen Dioxide (µg/m3)",
     "CO": "Carbone Monoxide (µg/m3)",
     "PM10": "PM 10 Aerosol (µg/m3)",
     "PM2P5": "PM 2.5 Aerosol (µg/m3)",
@@ -193,7 +197,7 @@ def plot_y_vs_yhat(
     # Plot difference btw y and y_hat
     ax = subfig[1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
     diff = y_hat.tensor[0].cpu() - y.tensor[0].cpu()
-    max_diff = torch.quantile(torch.abs(diff), 0.98)
+    max_diff = torch.quantile(torch.abs(diff), 0.995)
     img = ax.imshow(diff, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff)
     format_axis(ax, "Difference")
     cbar = subfig[1].colorbar(img, ax=ax, fraction=0.023)
@@ -209,7 +213,7 @@ def plot_y_vs_yhat_vs_median(
     y_hat: NamedTensor,
     save_path: Path,
     title: str = "",
-    species: str = "O3",
+    species: SpeciesNames = "O3",
     lead_time: int = 15,
     level: int = 0,
 ) -> None:
@@ -228,58 +232,82 @@ def plot_y_vs_yhat_vs_median(
     feature_substr = f"{species} - +{lead_time}h - {level}m"
     target_name = f"TARGET - {feature_substr}"
     subplot_kw = {"projection": PlateCarree()}
-    fig = plt.figure(constrained_layout=True, figsize=(9, 12))
-    subfigs: np.typing.NDArray = fig.subfigures(nrows=3, ncols=1)  # type: ignore [reportAssignmentType]
-
-    # Plot ground truth (full size)
-    ax_gt: GeoAxes = subfigs[0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    fig = plt.figure(constrained_layout=True, figsize=(12, 9))
+    subfigs: np.typing.NDArray = fig.subfigures(nrows=2, ncols=3)  # type: ignore [reportAssignmentType]
     vmin, vmax = get_vmin_vmax(species)
     plot_kwargs = {
         "cmap": CMAP,
         "extent": EXTENT,
         "norm": PowerNorm(0.5, vmin=vmin, vmax=vmax),
     }
-    ground_truth = y[target_name][0].cpu()
-    img_gt = ax_gt.imshow(ground_truth, **plot_kwargs)
-    format_axis(ax_gt, "Ground Truth = Analysis")
-    cbar_gt = subfigs[0].colorbar(img_gt, ax=ax_gt, fraction=0.023)
-    cbar_gt.set_label(UNITS[species], size=13)
-
-    # Plot prediction and median side by side
-    axes_pred_med: np.ndarray = subfigs[1].subplots(
-        nrows=1, ncols=2, subplot_kw=subplot_kw
-    )
-    axs_pred_med = axes_pred_med.flat
-    prediction = y_hat[target_name][0].cpu()
-    img_pred = axs_pred_med[0].imshow(prediction, **plot_kwargs)
-    format_axis(axs_pred_med[0], "AI Prediction")
-
     models_tensors = [
         x[fname][0].cpu() for fname in x.feature_names if feature_substr in fname
     ]
     median = torch.stack(models_tensors).median(dim=0).values
-    axs_pred_med[1].imshow(median, **plot_kwargs)
-    format_axis(axs_pred_med[1], "Median of Inputs")
-    cbar_pred = subfigs[1].colorbar(img_pred, ax=axes_pred_med, fraction=0.023)
-    cbar_pred.set_label(UNITS[species], size=13)
+    ground_truth = y[target_name][0].cpu()
+    prediction = y_hat[target_name][0].cpu()
 
-    # Plot differences
-    axes_diff = subfigs[2].subplots(nrows=1, ncols=2, subplot_kw=subplot_kw)
-    axs_diff = axes_diff.flat
+    # Plot prediction
+    ax: GeoAxes = subfigs[0, 0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    img = ax.imshow(prediction, **plot_kwargs)
+    format_axis(ax, "AI Prediction")
+    cbar_pred = subfigs[0, 0].colorbar(img, ax=ax, fraction=0.055)
+    cbar_pred.set_label(UNITS[species], size=10)
 
-    diff_med = median - ground_truth
-    max_diff = torch.quantile(torch.abs(diff_med), 0.98)
-    axs_diff[1].imshow(
-        diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
-    )
-    format_axis(axs_diff[1], "Difference (Median of Inputs)")
+    # Plot ground truth
+    ax: GeoAxes = subfigs[0, 1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    img = ax.imshow(ground_truth, **plot_kwargs)
+    format_axis(ax, "Ground Truth = Analysis")
+    cbar = subfigs[0, 1].colorbar(img, ax=ax, fraction=0.055)
+    cbar.set_label(UNITS[species], size=10)
 
+    # Plot differences btw prediction / median and ground truth
     diff_pred = prediction - ground_truth
-    img_diff_pred = axs_diff[0].imshow(
+    diff_med = median - ground_truth
+    abs_diff_ai = torch.abs(diff_pred)
+    abs_diff_median = torch.abs(diff_med)
+    max_diff = torch.quantile(abs_diff_median, 0.995)
+
+    ax: GeoAxes = subfigs[1, 0].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    img = ax.imshow(
         diff_pred, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
     )
-    format_axis(axs_diff[0], "Difference (AI Prediction)")
-    subfigs[2].colorbar(img_diff_pred, ax=axes_diff, fraction=0.023)
+    cbar = subfigs[1, 0].colorbar(img, ax=ax, fraction=0.055)
+    cbar.set_label("Difference with ground truth", size=10)
+    format_axis(ax, "Difference (AI Prediction)")
+
+    ax: GeoAxes = subfigs[1, 1].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    img = ax.imshow(
+        diff_med, cmap="RdBu_r", extent=EXTENT, vmin=-max_diff, vmax=max_diff
+    )
+    cbar = subfigs[1, 1].colorbar(img, ax=ax, fraction=0.055)
+    cbar.set_label("Difference with ground truth", size=10)
+    format_axis(ax, "Difference (Median of Ensemble)")
+
+    # Plot pixels where AI is better
+    gap_btw_distances_to_ground_truth = torch.abs(abs_diff_ai - abs_diff_median)
+    ai_is_better = torch.where(abs_diff_ai <= abs_diff_median, 1, -1)
+    value = ai_is_better * gap_btw_distances_to_ground_truth
+    ax: GeoAxes = subfigs[1, 2].subplots(nrows=1, ncols=1, subplot_kw=subplot_kw)
+    max_val = torch.quantile(torch.abs(value), 0.995)
+    img = ax.imshow(value, cmap="PRGn", extent=EXTENT, vmin=-max_val, vmax=max_val)
+    format_axis(ax, "Green = where AI is better than median")
+    cbar = subfigs[1, 2].colorbar(img, ax=ax, fraction=0.055)
+    cbar.set_label("Difference btw models", size=10)
+
+    # Print metrics on the right panel
+    ax = subfigs[0, 2]
+    mse = MeanSquaredError()
+    ax.text(0.1, 0.8, f"MSE AI = {mse(prediction, ground_truth):.2f}", size=14)
+    ax.text(0.1, 0.75, f"MSE Median = {mse(median, ground_truth):.2f}", size=14)
+    f1 = BinaryF1Score()
+    threshold = SPECIES_THRESHOLDS[species]
+    if threshold:
+        pred_bin = prediction >= threshold
+        target_bin = ground_truth >= threshold
+        median_bin = median >= threshold
+        ax.text(0.1, 0.6, f"F1 AI = {f1(pred_bin, target_bin):.2f}", size=14)
+        ax.text(0.1, 0.55, f"F1 Median = {f1(median_bin, target_bin):.2f}", size=14)
 
     fig.suptitle(title, size=18)
     plt.savefig(save_path)

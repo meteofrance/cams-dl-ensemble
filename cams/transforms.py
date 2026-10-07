@@ -1,12 +1,9 @@
 import json
-import os
 from abc import abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Literal, cast
 
-import numpy as np
-import scipy.stats
 import torch
 import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
@@ -28,12 +25,8 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     Attributes:
         statistic_types: List of statistical measures to compute from the input.
-            Supported statistics include: 'mean', 'amin', 'argmin', 'amax',
-            'argmax', 'median', 'skew', 'kurtosis'.
-
-    Note:
-        For 'skew' and 'kurtosis', you should enable the array API standard support.
-        -> https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html
+            Supported statistics include: 'mean', 'min', 'max', 'median', 'q10',
+            'q25', 'q75' and 'q90'.
     """
 
     def __init__(self, statistic_types: Sequence[str], concat: bool = False):
@@ -53,16 +46,6 @@ class ExtractInputStatisticalFeatures(nn.Module):
             )
         self.statistic_types = cast(StatisticsNames, statistic_types)
         self.concat = concat
-
-        if "skew" in self.statistic_types or "kurtosis" in self.statistic_types:
-            scipy_array_api = os.getenv("SCIPY_ARRAY_API")
-            if scipy_array_api != "1":
-                raise RuntimeError(
-                    "Environement variable 'SCIPY_ARRAY_API' should be set to '1' to "
-                    + "use 'skew' and/or 'kurtosis' statistics. See "
-                    + "https://docs.scipy.org/doc/scipy/dev/api-dev/array_api.html for"
-                    + "more details about scipy array API support."
-                )
 
     @override
     def forward(
@@ -86,24 +69,17 @@ class ExtractInputStatisticalFeatures(nn.Module):
         ensemble = x.to_array(dim="model")
         stat_ds = xr.Dataset()
         for statistic_type in self.statistic_types:
-            if statistic_type in ["skew", "kurtosis"]:
-                statistic = xr.apply_ufunc(
-                    getattr(scipy.stats, statistic_type),
-                    ensemble,
-                    input_core_dims=[["model"]],
-                    kwargs={"nan_policy": "omit", "axis": -1},
-                )
-            elif statistic_type in ["argmin", "argmax"]:
-                statistic = xr.apply_ufunc(
-                    getattr(np, statistic_type),
-                    ensemble,
-                    input_core_dims=[["model"]],
-                    kwargs={"axis": -1},
+            if statistic_type.startswith("q"):
+                quantile: float = (
+                    int(statistic_type[1:]) / 100
+                )  # number between 0 and 1 (eg. 90 -> 0.9)
+                statistic = ensemble.quantile(
+                    q=quantile,
+                    dim="model",
+                    skipna=False,
                 )
             else:
-                xarray_method = "min" if statistic_type == "amin" else statistic_type
-                xarray_method = "max" if statistic_type == "amax" else xarray_method
-                statistic = getattr(ensemble, xarray_method)(dim="model", skipna=False)
+                statistic = getattr(ensemble, statistic_type)(dim="model", skipna=False)
             stat_ds[statistic_type] = statistic.astype(float)
         if self.concat:
             stat_ds = xr.merge([x, stat_ds])
@@ -181,6 +157,19 @@ class Normalize(nn.Module, ReversibleTransformMixin):
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)
         self.method: Literal["min-max", "standardization"] = method
+        self.norm_func = self._min_max if method == "min-max" else self._standardization
+
+    def _min_max(self, da: xr.DataArray, species: str) -> xr.DataArray:
+        """Normalizes a DataArray with the min-max method."""
+        mini = self.stats_dict[species]["min"]
+        maxi = self.stats_dict[species]["max"]
+        return (da - mini) / (maxi - mini)
+
+    def _standardization(self, da: xr.DataArray, species: str) -> xr.DataArray:
+        """Normalizes a DataArray with the standardization method."""
+        mean = self.stats_dict[species]["mean"]
+        std = self.stats_dict[species]["std"]
+        return (da - mean) / std
 
     @override
     def reverse_transform(self) -> "ReverseNormalize":
@@ -198,16 +187,8 @@ class Normalize(nn.Module, ReversibleTransformMixin):
             da = ds[model]
             normalized_channels = []
             for species in da["species"].values:
-                if self.method == "min-max":
-                    mini = self.stats_dict[species]["min"]
-                    maxi = self.stats_dict[species]["max"]
-                    normalized_channels.append(
-                        (da.sel(species=species) - mini) / (maxi - mini)
-                    )
-                if self.method == "standardization":
-                    mean = self.stats_dict[species]["mean"]
-                    std = self.stats_dict[species]["std"]
-                    normalized_channels.append((da.sel(species=species) - mean) / std)
+                norm_channel = self.norm_func(da.sel(species=species), species)
+                normalized_channels.append(norm_channel)
             all_species_da[model] = xr.concat(normalized_channels, dim="species")
         return xr.Dataset(all_species_da)
 
@@ -232,21 +213,29 @@ class ReverseNormalize(nn.Module):
         super().__init__()
         self.stats_file_path = stats_file_path
         self.stats_dict = load_stats(self.stats_file_path)
-        self.method: Literal["min-max", "standardization"] = method
+        self.denorm_func = (
+            self._min_max if method == "min-max" else self._standardization
+        )
+
+    def _min_max(self, tensor: torch.Tensor, species: str) -> torch.Tensor:
+        """Denormalizes a Tensor with the min-max method."""
+        mini = self.stats_dict[species]["min"]
+        maxi = self.stats_dict[species]["max"]
+        return tensor * (maxi - mini) + mini
+
+    def _standardization(self, tensor: torch.Tensor, species: str) -> torch.Tensor:
+        """Denormalizes a Tensor with the standardization method."""
+        mean = self.stats_dict[species]["mean"]
+        std = self.stats_dict[species]["std"]
+        return tensor * std + mean
 
     def denormalize_namedtensor(self, nt: NamedTensor) -> NamedTensor:
         """Undoes min/max normalization."""
         denormalized_features: list[torch.Tensor] = []
         for feature_name in nt.feature_names:
             species = feature_name.split(" - ")[1]
-            if self.method == "min-max":
-                mini = self.stats_dict[species]["min"]
-                maxi = self.stats_dict[species]["max"]
-                denormalized_features.append(nt[feature_name] * (maxi - mini) + mini)
-            if self.method == "standardization":
-                mean = self.stats_dict[species]["mean"]
-                std = self.stats_dict[species]["std"]
-                denormalized_features.append(nt[feature_name] * std + mean)
+            denorm_feat = self.denorm_func(nt[feature_name], species)
+            denormalized_features.append(denorm_feat)
         denormalized_features_tensor = torch.cat(
             tensors=denormalized_features, dim=nt.feature_dim_idx
         )
@@ -266,7 +255,6 @@ if __name__ == "__main__":
     import datetime as dt
     from pathlib import Path
 
-    from cams.plots import plot_named_tensor
     from cams.sample import Sample
     from cams.types import STATISTICS_NAMES
 
@@ -281,6 +269,4 @@ if __name__ == "__main__":
     x, y = ds.drop_vars("TARGET"), ds[["TARGET"]]
     transform = ExtractInputStatisticalFeatures(STATISTICS_NAMES)
     x_transformed, _ = transform((x, y))
-    nt = Sample.convert_data_to_nt(xr.merge([x, x_transformed]))
-    print(nt)
-    plot_named_tensor(nt, "O3", Path("test_transform.png"))
+    print(x_transformed)

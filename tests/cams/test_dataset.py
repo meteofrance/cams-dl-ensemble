@@ -34,11 +34,12 @@ def test_cams_dataset_creation(tmp_dataset_dir: Path):
     assert len(dataset.run_dates) == 31
 
     # Get first item
-    x, y = dataset[0]
+    x, y, date = dataset[0]
 
     # Check types
     assert isinstance(x, NamedTensor)
     assert isinstance(y, NamedTensor)
+    assert isinstance(date, dt.date)
 
     # Check shapes
     assert x.tensor.shape == (1, 420, 700)

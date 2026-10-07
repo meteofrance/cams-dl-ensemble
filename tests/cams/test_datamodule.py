@@ -81,14 +81,16 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     for i in range(2):
         sample = dm.train_dataset.samples[i]
         input_data, target_data = sample.get_input_and_target()  # pyright: ignore[reportGeneralTypeIssues]
-        batch.append((input_data, target_data))
+        batch.append((input_data, target_data, sample.date_run))
 
     # Test collate function
-    inputs, targets = dm.collate_batch(batch)
+    inputs, targets, dates_batch = dm.collate_batch(batch)
 
     # Check types
     assert isinstance(inputs, NamedTensor)
     assert isinstance(targets, NamedTensor)
+    assert isinstance(dates_batch, list)
+    assert isinstance(dates_batch[0], dt.date)
 
     # Check shapes
     assert inputs.tensor.shape == (2, 1, 420, 700)

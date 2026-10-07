@@ -201,13 +201,13 @@ class CAMSDataModule(LightningDataModule):
 
     def collate_batch(
         self,
-        batch: list[tuple[NamedTensor, NamedTensor]],
-    ) -> tuple[NamedTensor, NamedTensor]:
+        batch: list[tuple[NamedTensor, NamedTensor, dt.date]],
+    ) -> tuple[NamedTensor, NamedTensor, list[dt.date]]:
         """Collates a batch of NamedTensor data."""
         inputs = NamedTensor.collate_fn([item[0] for item in batch])
         targets = NamedTensor.collate_fn([item[1] for item in batch])
-
-        return inputs, targets
+        dates = [item[2] for item in batch]
+        return inputs, targets, dates
 
     def undo_transforms(self, x: NamedTensor, y: NamedTensor):
         """Applies the reverse transforms on the given data."""

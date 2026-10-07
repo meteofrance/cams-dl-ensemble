@@ -25,7 +25,8 @@ class ExtractInputStatisticalFeatures(nn.Module):
 
     Attributes:
         statistic_types: List of statistical measures to compute from the input.
-            Supported statistics include: 'mean', 'min', 'max', 'median'.
+            Supported statistics include: 'mean', 'min', 'max', 'median', 'q10',
+            'q25', 'q75' and 'q90'.
     """
 
     def __init__(self, statistic_types: Sequence[str], concat: bool = False):

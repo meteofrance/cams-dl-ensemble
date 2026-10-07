@@ -120,5 +120,5 @@ if __name__ == "__main__":
     sample = dataset.samples[10]
     print(sample)
 
-    x, y = dataset[10]
+    x, y, date = dataset[10]
     print(x, y)

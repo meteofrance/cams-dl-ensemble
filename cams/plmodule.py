@@ -227,7 +227,7 @@ class CAMSLightningModule(LightningModule):
         x: NamedTensor,
         y: NamedTensor,
         y_hat: NamedTensor,
-        dates: dt.date,
+        dates: list[dt.date],
     ) -> None:
         """Plots images on some batches and log them in mlflow."""
 

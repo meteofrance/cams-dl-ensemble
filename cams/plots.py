@@ -22,6 +22,7 @@ from torchmetrics.regression import MeanSquaredError
 from cams.metrics import SPECIES_THRESHOLDS
 from cams.sample import Sample
 from cams.settings import STATS_PATH
+from cams.types import SpeciesNames
 
 # Setup cache dir for cartopy to avoid downloading data each time
 cartopy_cache_dir = Path("/scratch/shared/cartopy")
@@ -212,7 +213,7 @@ def plot_y_vs_yhat_vs_median(
     y_hat: NamedTensor,
     save_path: Path,
     title: str = "",
-    species: str = "O3",
+    species: SpeciesNames = "O3",
     lead_time: int = 15,
     level: int = 0,
 ) -> None:
@@ -300,11 +301,13 @@ def plot_y_vs_yhat_vs_median(
     ax.text(0.1, 0.8, f"MSE AI = {mse(prediction, ground_truth):.2f}", size=14)
     ax.text(0.1, 0.75, f"MSE Median = {mse(median, ground_truth):.2f}", size=14)
     f1 = BinaryF1Score()
-    pred_bin = prediction >= SPECIES_THRESHOLDS[species]
-    target_bin = ground_truth >= SPECIES_THRESHOLDS[species]
-    median_bin = median >= SPECIES_THRESHOLDS[species]
-    ax.text(0.1, 0.6, f"F1 AI = {f1(pred_bin, target_bin):.2f}", size=14)
-    ax.text(0.1, 0.55, f"F1 Median = {f1(median_bin, target_bin):.2f}", size=14)
+    threshold = SPECIES_THRESHOLDS[species]
+    if threshold:
+        pred_bin = prediction >= threshold
+        target_bin = ground_truth >= threshold
+        median_bin = median >= threshold
+        ax.text(0.1, 0.6, f"F1 AI = {f1(pred_bin, target_bin):.2f}", size=14)
+        ax.text(0.1, 0.55, f"F1 Median = {f1(median_bin, target_bin):.2f}", size=14)
 
     fig.suptitle(title, size=18)
     plt.savefig(save_path)

@@ -56,6 +56,44 @@ def test_models_builders_exist() -> None:
     assert set(MODELS) == expected
 
 
+def test_measure_vram_full_training_step(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``measure_vram`` runs a full step and returns the recorded peak VRAM."""
+    model = nn.Sequential(
+        nn.Flatten(),
+        nn.Linear(4 * 16 * 16, 2 * 16 * 16),
+        nn.Unflatten(1, (2, 16, 16)),
+    )
+    monkeypatch.setattr(model, "cuda", lambda *args: model)
+    monkeypatch.setattr(model, "cpu", lambda *args: model)
+
+    monkeypatch.setattr(vup.torch, "randn", lambda *a, **k: torch.zeros(*a))
+    reset_stats = Mock()
+    synchronize = Mock()
+    empty_cache = Mock()
+    monkeypatch.setattr(vup.torch.cuda, "reset_peak_memory_stats", reset_stats)
+    monkeypatch.setattr(vup.torch.cuda, "synchronize", synchronize)
+    monkeypatch.setattr(vup.torch.cuda, "max_memory_allocated", lambda: 42)
+    monkeypatch.setattr(vup.torch.cuda, "empty_cache", empty_cache)
+
+    builder: SettingsBuilder = lambda ic, oc, shape: model  # noqa: E731
+
+    peak = vup.measure_vram(
+        builder,
+        in_channels=4,
+        out_channels=2,
+        batch_size=1,
+        height=16,
+        width=16,
+    )
+
+    assert peak == 42
+    reset_stats.assert_called_once()
+    synchronize.assert_called_once()
+    empty_cache.assert_called_once()
+
+
 def test_measure_vram_curve_stops_on_out_of_memory(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

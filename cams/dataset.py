@@ -98,7 +98,8 @@ class CAMSDataset(Dataset):
         x_ds = ds.drop_vars("TARGET")
         y_ds = ds[["TARGET"]]
         x_ds, y_ds = self.transform_sequence((x_ds, y_ds))
-        x, y = Sample.convert_data_to_nt(x_ds), Sample.convert_data_to_nt(y_ds)
+        x = Sample.convert_data_to_nt(x_ds)
+        y = Sample.convert_data_to_nt(y_ds)
         return x, y, sample.date_run
 
 

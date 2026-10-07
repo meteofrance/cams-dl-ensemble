@@ -226,7 +226,7 @@ def _plot_calendar(
         dates_sorted = sorted(date_to_value.keys())
         for patch, date in zip(patches, dates_sorted):
             rgba = scalar_mappable.to_rgba(np.ndarray([date_to_value[date]]))
-            patch.set_facecolor(rgba)
+            patch.set_facecolor(rgba)  # type: ignore[reportArgumentType]
 
         ax.text(s=year, x=-4, y=3.5, size=30, rotation=90, color="#aaa", va="center")
 

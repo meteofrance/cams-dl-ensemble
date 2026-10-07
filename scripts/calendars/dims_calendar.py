@@ -31,7 +31,7 @@ class DimsInspector(InspectorABC):
 
         Args:
             date: Date for wich to return paths.
-        
+
         Yields:
             Path: Paths to the different files associated to the given date.
         """
@@ -48,7 +48,7 @@ class DimsInspector(InspectorABC):
 
         Args:
             date: Date for wich to return dimension informations.
-        
+
         Returns:
             dict[str, set[str]]: {coordinates: set of model names}
             dict[str, set[str]]: {variables: set of model names}

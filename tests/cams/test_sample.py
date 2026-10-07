@@ -230,6 +230,7 @@ def test_sample_data_overlapping_two_months(tmp_dataset_dir: Path):
         np.datetime64("2022-08-01T12:00:00"),
     ]
     assert target["O3"].values.shape == (3, 1, 420, 700)
+    assert sample.is_valid
 
 
 def test_sample_is_valid_overlapping_two_months(tmp_dataset_dir: Path):

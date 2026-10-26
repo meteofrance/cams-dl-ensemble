@@ -31,7 +31,7 @@ dependencies = [
   "pytest-cov==7.1.*",
   "dayplot>=0.5.1",
   "ipython==9.15.0",
-  "calendardataviz==0.3.0",
+  "calendardataviz==0.4.1",
 ]
 
 [tool.setuptools.packages.find]
@@ -140,7 +140,7 @@ verboseOutput = true
 reportMissingImports = "error"
 reportMissingTypeStubs = false
 
-pythonVersion = "3.12"
+pythonVersion = "3.11"
 pythonPlatform = "Linux"
 
 useLibraryCodeForTypes = true

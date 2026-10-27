@@ -63,19 +63,21 @@ class Sample:
             f"levels={self.levels})"
         )
 
-    @property
-    def input_filename(self) -> str:
-        """The standard filename for all input files."""
-        date_run_str = self.date_run.strftime("%Y_%m_%d")
-        filename = f"{date_run_str}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-        return filename
+    def _input_filename(self, level: Levels) -> str:
+        """Build the standard input filename for the given level."""
+        return (
+            f"{self.date_run.strftime(r'%Y_%m_%d')}-"
+            f"NH3_CO_HCHO_CHOCHO_NO2_NO_NMVOC_O3_PM25_EC_RES_SIA_EC_TOT_PM25_OM_PM10_DUST_DYNSAL_PM_WF_PANS_SO2-"
+            f"{level}m-0-96h.netcdf"
+        )
 
     @property
     def input_paths(self) -> list[Path]:
         """The path to the netcdf of input ensemble data."""
         return [
-            self.processed_dir / model.lower() / self.input_filename
+            self.processed_dir / model.lower() / self._input_filename(level)
             for model in self.models
+            for level in self.levels
         ]
 
     @property
@@ -85,9 +87,16 @@ class Sample:
         """
         months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
         return [
-            self._target_path(species, month)
+            self.processed_dir
+            / "reanalysis"
+            / (
+                f"{month}-01-{species}-{level}m-ira.netcdf"
+                if "2025" in month
+                else f"{month}-01-{species}-{level}m-vra.netcdf"
+            )
             for month in months_str
             for species in self.species
+            for level in self.levels
         ]
 
     def _target_path(self, species: SpeciesNames, month: str) -> Path:
@@ -105,11 +114,12 @@ class Sample:
             Path to the reanalysis file for the given species and month.
         """
         folder = self.processed_dir / "reanalysis"
-        filename = f"cams.eaq.vra.ENSa.{species.lower()}.l0.{month}.nc"
+        level = self.levels[0]
+        filename = f"{month}-01-{species}-{level}m-vra.netcdf"
         if not (folder / filename).exists():
             # if VRA Reanalysis file does not exist
             # Use Intermediate analysis (IRA) as replacement
-            filename = filename.replace("vra", "ira")
+            filename = filename.replace("-vra.netcdf", "-ira.netcdf")
         return folder / filename
 
     @property
@@ -128,7 +138,9 @@ class Sample:
         Returns:
             A xr.Dataset containing all the input data for this model.
         """
-        model_path = self.processed_dir / model.lower() / self.input_filename
+        model_path = (
+            self.processed_dir / model.lower() / self._input_filename(self.levels[0])
+        )
         data = xr.open_dataset(model_path)
         data = data.sel(level=self.levels, time=self.lead_times)
         data = data.assign_coords(

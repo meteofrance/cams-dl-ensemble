@@ -15,11 +15,11 @@ class FileCountInspector(InspectorABC):
     """
 
     name = "Target file count"
-    root_dir = Path("/scratch/shared/cams-dl-ensemble/all_from_ads")
-    target_nb_files_total = 3 * 365 * 11
-    target_nb_files_per_day = 11
+    root_dir = Path("/scratch/shared/cams-dl-ensemble/median_dataset")
+    target_nb_files_total = 3 * 365 * 200
+    target_nb_files_per_day = 200
 
-    def _files_for_date(self, date: dt.date) -> tuple[Path, ...]:
+    def _files_for_date(self, date: dt.date) -> list[Path]:
         """Return all NetCDF files belonging to *date*.
 
         Uses a glob pattern matching the date prefix (YYYY_MM_DD) anywhere
@@ -31,8 +31,22 @@ class FileCountInspector(InspectorABC):
         Returns:
             tuple[Path, ...]: The NetCDF files matching the date prefix.
         """
-        date_str = date.strftime(r"%Y_%m_%d")
-        return tuple(self.root_dir.glob(f"**/{date_str}*.netcdf"))
+        date_str_reanalysis = date.strftime(r"%Y-%m-01")
+        return list(self.root_dir.glob(f"reanalysis/{date_str_reanalysis}*"))
+
+    def _valid_files(self, date: dt.date) -> list[Path]:
+        return [
+            path
+            for path in self._files_for_date(date)
+            if path.parent.stem == "reanalysis" and path.suffix == ".netcdf"
+        ]
+
+    def _invalid_files(self, date: dt.date) -> list[Path]:
+        return [
+            path
+            for path in self._files_for_date(date)
+            if path.parent.stem == "reanalysis" and path.suffix == ".fail"
+        ]
 
     @override
     def color_for_date(self, date: dt.date) -> RichString:
@@ -45,8 +59,31 @@ class FileCountInspector(InspectorABC):
             RichString: The text and color associated
                 to the given date.
         """
-        pct = len(self._files_for_date(date)) / self.target_nb_files_per_day
-        return color_from_pct(pct, RDYLGN)
+        # █▇▆▅▄▃▂▁
+        char_pcts: dict[float, str] = {
+            8/8: "█",
+            7/8: "▇",
+            6/8: "▆",
+            5/8: "▅",
+            4/8: "▄",
+            3/8: "▃",
+            2/8: "▂",
+            1/8: "▁",
+            0/8: " ",
+        }
+
+        invalid_pct = len(self._invalid_files(date)) / self.target_nb_files_per_day
+        closest_invalid_pct = min(char_pcts.keys(), key=lambda x: abs(x - invalid_pct))
+        char = char_pcts[closest_invalid_pct]
+        
+        valid_pct = len(self._valid_files(date) + self._invalid_files(date)) / self.target_nb_files_per_day
+        color = color_from_pct(valid_pct, RDYLGN)
+
+        return RichString(
+            text=char,
+            fg_color="#C40000",
+            bg_color=color.colorAt(0).bgToRGB(),
+        )
 
     @override
     def as_color_bar(self, size: int) -> list[RichString]:
@@ -81,7 +118,7 @@ class FileCountInspector(InspectorABC):
         """
         files = sorted(self._files_for_date(date))
         content = "\n".join(
-            f"{file.parent.stem:>7} {file.stem.replace('_', ' ')}" for file in files
+            f"{file.parent.stem}/{file.name}" for file in files
         )
         title = (
             f"{date.strftime(r'%Y_%m_%d')} "

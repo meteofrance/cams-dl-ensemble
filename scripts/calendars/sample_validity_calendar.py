@@ -6,7 +6,7 @@ from calendardataviz.colors import RDYLGN, color_from_pct
 from typing_extensions import override
 
 from cams.sample import Sample
-from cams.types import LEADTIMES, MODELS_NAMES
+from cams.types import LEADTIMES, LEVELS, MODELS_NAMES, SPECIES_NAMES
 
 UNDER_0_COLOR = RichString("X", "#77CBFF", "#cb31ff")
 OVER_1_COLOR = RichString("X", "#FF003C", "#e9a7ff")
@@ -16,7 +16,7 @@ class SampleValidityInspector(InspectorABC):
     """Inspector that shows if the sample for each date is valid."""
 
     name = "Sample Validity"
-    root_dir = Path("/scratch/shared/cams-dl-ensemble/all_from_ads")
+    root_dir = Path("/scratch/shared/cams-dl-ensemble/median_dataset")
     target_nb_files_total = 3 * 365 * 11
     target_nb_files_per_day = 11
 
@@ -31,10 +31,34 @@ class SampleValidityInspector(InspectorABC):
         """
         return Sample(
             date_run=date,
-            models=MODELS_NAMES,
+            models=["ensemble"],
             lead_times=LEADTIMES,
-            levels=[0],
-            species=["CO", "NO2", "PM10", "PM2P5", "SO2", "O3"],
+            levels=LEVELS,
+            species=[
+                "NH3",
+                "CO",
+                "HCHO",
+                "CHOCHO",
+                "NO2",
+                "NO",
+                "NMVOC",
+                "O3",
+                "PM25",
+                # "EC",
+                # "RES",
+                "SIA",
+                # "EC",
+                # "TOT",
+                "PM25",
+                # "OM",
+                "PM10",
+                "DUST",
+                "DYNSAL",
+                # "PM",
+                # "WF",
+                "PANS",
+                "SO2",
+            ],
         )
 
     @override
@@ -85,10 +109,26 @@ class SampleValidityInspector(InspectorABC):
             str: The pop-up window title.
             str: The pop-up window content.
         """
-        content = str(self._sample_for_date(date))
-        content = "\n".join(
-            [content[i : i + 40] for i in range(0, len(content) - 41, 40)]
+        sample = self._sample_for_date(date)
+        content = f"{sample.is_valid=}\n\n"
+        nb_exists = 0
+        for path in sorted(sample.input_paths + sample.target_paths):
+            nb_exists += 1 if path.exists() else 0
+            content += f"{path.exists()} {path.parent.name}/{path.name}\n"
+            if not path.exists():
+                zip_path = path.with_suffix('.zip')
+                content += f"    {zip_path.exists()} {zip_path.name}\n"
+        content += "\n"
+
+        content += f"{nb_exists}/{len(sample.input_paths + sample.target_paths)}\n"
+
+        content += "\n"
+        str_sample = str(sample)
+        content += "\n".join(
+            [str_sample[i : i + 40] for i in range(0, len(str_sample) - 41, 40)]
         )
+
+
 
         return date.strftime(r"%Y %m %d"), content
 

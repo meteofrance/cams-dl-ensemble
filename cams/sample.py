@@ -64,18 +64,16 @@ class Sample:
         )
 
     @property
-    def input_filename(self) -> str:
-        """The standard filename for all input files."""
-        date_run_str = self.date_run.strftime("%Y_%m_%d")
-        filename = f"{date_run_str}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-        return filename
-
-    @property
     def input_paths(self) -> list[Path]:
         """The path to the netcdf of input ensemble data."""
         return [
-            self.processed_dir / model.lower() / self.input_filename
+            self.processed_dir / model.lower() / (
+                f"{self.date_run.strftime(r'%Y_%m_%d')}-"
+                f"NH3_CO_HCHO_CHOCHO_NO2_NO_NMVOC_O3_PM25_EC_RES_SIA_EC_TOT_PM25_OM_PM10_DUST_DYNSAL_PM_WF_PANS_SO2-"
+                f"{level}m-0-96h.netcdf"
+            )
             for model in self.models
+            for level in self.levels
         ]
 
     @property
@@ -85,9 +83,18 @@ class Sample:
         """
         months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
         return [
-            self._target_path(species, month)
+            self.processed_dir / "reanalysis" / (
+                f"{month}-01-"
+                f"{species}-"
+                f"{level}m-ira.netcdf"
+                if "2025" in month else 
+                f"{month}-01-"
+                f"{species}-"
+                f"{level}m-vra.netcdf"
+            )
             for month in months_str
             for species in self.species
+            for level in self.levels
         ]
 
     def _target_path(self, species: SpeciesNames, month: str) -> Path:

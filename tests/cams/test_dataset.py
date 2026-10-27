@@ -4,7 +4,11 @@ from pathlib import Path
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.dataset import CAMSDataset, get_run_dates
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+from tests.conftest import (
+    INPUT_SPECIES,
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
 
 
 def test_cams_dataset_creation(tmp_dataset_dir: Path):
@@ -12,11 +16,10 @@ def test_cams_dataset_creation(tmp_dataset_dir: Path):
     # Create dummy files
     for i in range(1, 32):
         create_dummy_input_netcdf(
-            tmp_dataset_dir
-            / f"mocage/2022_07_{i:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+            tmp_dataset_dir / f"mocage/2022_07_{i:02}-{INPUT_SPECIES}-0m-0-96h.netcdf"
         )
     create_dummy_target_netcdf(
-        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+        tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf"
     )
 
     dates = [dt.date(2022, 7, i) for i in range(1, 32)]
@@ -55,8 +58,7 @@ def test_cams_dataset_no_valid_samples(tmp_dataset_dir: Path):
     # Create input files but no corresponding target files
     for i in range(1, 32):
         create_dummy_input_netcdf(
-            tmp_dataset_dir
-            / f"mocage/2022_07_{i:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+            tmp_dataset_dir / f"mocage/2022_07_{i:02}-{INPUT_SPECIES}-0m-0-96h.netcdf"
         )
 
     # Add
@@ -82,8 +84,7 @@ def test_cams_dataset_no_valid_samples(tmp_dataset_dir: Path):
 def test_get_run_dates(tmp_dataset_dir: Path):
     for i in range(1, 32):
         create_dummy_input_netcdf(
-            tmp_dataset_dir
-            / f"mocage/2022_07_{i:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+            tmp_dataset_dir / f"mocage/2022_07_{i:02}-{INPUT_SPECIES}-0m-0-96h.netcdf"
         )
 
     # Add file without valid name

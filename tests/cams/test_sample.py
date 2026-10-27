@@ -4,12 +4,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 import xarray as xr
+from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.sample import Sample
 from cams.types import Leadtimes
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
-from mfai.pytorch.namedtensor import NamedTensor
-import numpy as np
+from tests.conftest import (
+    INPUT_SPECIES,
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
 
 
 @pytest.mark.parametrize(
@@ -62,11 +65,9 @@ def test_sample_paths():
         processed_dir=Path("."),
     )
     assert sample.input_paths == [
-        Path("mocage/2022_07_22-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf")
+        Path(f"mocage/2022_07_22-{INPUT_SPECIES}-0m-0-96h.netcdf")
     ]
-    assert sample.target_paths == [
-        Path("reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc")
-    ]
+    assert sample.target_paths == [Path("reanalysis/2022-07-01-O3-0m-vra.netcdf")]
 
 
 def test_sample_is_valid_false():
@@ -82,10 +83,8 @@ def test_sample_is_valid_false():
 
 def test_sample_is_valid_true(tmp_dataset_dir: Path):
     # Create dummy files in directories
-    input_path = (
-        tmp_dataset_dir / "mocage/2022_07_22-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-    )
-    target_path = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+    input_path = tmp_dataset_dir / f"mocage/2022_07_22-{INPUT_SPECIES}-0m-0-96h.netcdf"
+    target_path = tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf"
 
     create_dummy_input_netcdf(input_path)
     create_dummy_target_netcdf(target_path)
@@ -102,11 +101,9 @@ def test_sample_is_valid_true(tmp_dataset_dir: Path):
 
 
 def test_sample_data(tmp_dataset_dir: Path):
-    input_path = (
-        tmp_dataset_dir / "mocage/2022_07_22-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-    )
+    input_path = tmp_dataset_dir / f"mocage/2022_07_22-{INPUT_SPECIES}-0m-0-96h.netcdf"
     create_dummy_input_netcdf(input_path)
-    target_path = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+    target_path = tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf"
     create_dummy_target_netcdf(target_path)
 
     sample = Sample(
@@ -128,8 +125,14 @@ def testdataset_to_namedtensor_single_channel():
     """Test conversion of a statistically reduced dataset (spatial dims only)."""
     ds = xr.Dataset(
         {
-            "median": (["species", "time", "level", "latitude", "longitude"], np.ones((2, 2, 2, 2, 2))),
-            "mean": (["species", "time", "level", "latitude", "longitude"], np.full((2, 2, 2, 2, 2), 2.0)),
+            "median": (
+                ["species", "time", "level", "latitude", "longitude"],
+                np.ones((2, 2, 2, 2, 2)),
+            ),
+            "mean": (
+                ["species", "time", "level", "latitude", "longitude"],
+                np.full((2, 2, 2, 2, 2), 2.0),
+            ),
         }
     )
     nt = Sample.convert_data_to_nt(ds)
@@ -175,10 +178,7 @@ def _create_input_netcdf_with_leadtimes(
 
 
 def test_load_input_data_overlapping_two_months(tmp_dataset_dir: Path):
-    input_path = (
-        tmp_dataset_dir
-        / "mocage/2022_07_31-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-    )
+    input_path = tmp_dataset_dir / f"mocage/2022_07_31-{INPUT_SPECIES}-0m-0-96h.netcdf"
     _create_input_netcdf_with_leadtimes(input_path, [12, 36])
 
     sample = Sample(
@@ -199,10 +199,8 @@ def test_load_input_data_overlapping_two_months(tmp_dataset_dir: Path):
 
 
 def test_sample_data_overlapping_two_months(tmp_dataset_dir: Path):
-    target_path_july = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
-    target_path_august = (
-        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-08.nc"
-    )
+    target_path_july = tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf"
+    target_path_august = tmp_dataset_dir / "reanalysis/2022-08-01-O3-0m-vra.netcdf"
     _create_cross_month_target_netcdf(
         target_path_july,
         [dt.datetime(2022, 7, 31, 12), dt.datetime(2022, 7, 31, 15)],
@@ -210,6 +208,9 @@ def test_sample_data_overlapping_two_months(tmp_dataset_dir: Path):
     _create_cross_month_target_netcdf(
         target_path_august,
         [dt.datetime(2022, 8, 1, 12)],
+    )
+    create_dummy_input_netcdf(
+        tmp_dataset_dir / f"mocage/2022_07_31-{INPUT_SPECIES}-0m-0-96h.netcdf"
     )
 
     sample = Sample(
@@ -234,17 +235,15 @@ def test_sample_data_overlapping_two_months(tmp_dataset_dir: Path):
 
 
 def test_sample_is_valid_overlapping_two_months(tmp_dataset_dir: Path):
-    input_path = (
-        tmp_dataset_dir
-        / "mocage/2022_07_31-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+    create_dummy_input_netcdf(
+        tmp_dataset_dir / f"mocage/2022_07_31-{INPUT_SPECIES}-0m-0-96h.netcdf"
     )
-    create_dummy_input_netcdf(input_path)
     _create_cross_month_target_netcdf(
-        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc",
+        tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf",
         [dt.datetime(2022, 7, 31, 12)],
     )
     _create_cross_month_target_netcdf(
-        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-08.nc",
+        tmp_dataset_dir / "reanalysis/2022-08-01-O3-0m-vra.netcdf",
         [dt.datetime(2022, 8, 1, 12)],
     )
 
@@ -407,9 +406,5 @@ def test_load_weighted_ensemble(monkeypatch: pytest.MonkeyPatch, tmp_dataset_dir
         ),
     )
     # O3 values are 3.0, NO2 values are 2.0
-    np.testing.assert_allclose(
-        data["WEIGHTED_ENSEMBLE"].sel(species="O3").values, 3.0
-    )
-    np.testing.assert_allclose(
-        data["WEIGHTED_ENSEMBLE"].sel(species="NO2").values, 2.0
-    )
+    np.testing.assert_allclose(data["WEIGHTED_ENSEMBLE"].sel(species="O3").values, 3.0)
+    np.testing.assert_allclose(data["WEIGHTED_ENSEMBLE"].sel(species="NO2").values, 2.0)

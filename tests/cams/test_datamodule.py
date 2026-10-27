@@ -5,7 +5,11 @@ import pytest
 from mfai.pytorch.namedtensor import NamedTensor
 
 from cams.datamodule import CAMSDataModule
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+from tests.conftest import (
+    INPUT_SPECIES,
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
 
 
 def test_CAMSDatamodule(tmp_dataset_dir: Path):
@@ -13,11 +17,10 @@ def test_CAMSDatamodule(tmp_dataset_dir: Path):
     # Create some dummy files to simulate a real dataset
     for day in range(1, 32):
         create_dummy_input_netcdf(
-            tmp_dataset_dir
-            / f"mocage/2022_07_{day:02}-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
+            tmp_dataset_dir / f"mocage/2022_07_{day:02}-{INPUT_SPECIES}-0m-0-96h.netcdf"
         )
     create_dummy_target_netcdf(
-        tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+        tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf"
     )
 
     dates = [dt.date(2022, 7, day) for day in range(1, 32)]

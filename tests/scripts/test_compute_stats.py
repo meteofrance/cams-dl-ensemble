@@ -5,7 +5,12 @@ import pytest
 
 from cams.dataset import CAMSDataset
 from scripts.data.compute_stats import compute_stats, WelfordVariance
-from tests.conftest import create_dummy_input_netcdf, create_dummy_target_netcdf
+from tests.conftest import (
+    INPUT_SPECIES,
+    create_dummy_input_netcdf,
+    create_dummy_target_netcdf,
+)
+
 
 def test_welford_var():
     welford_algo = WelfordVariance()
@@ -17,15 +22,12 @@ def test_welford_var():
     assert pytest.approx(mean) == np.mean(np.concat([a, b]))
     assert pytest.approx(var) == np.var(np.concat([a, b]))
 
+
 def test_compute_stats(tmp_dataset_dir: Path):
     # Create dummy files
-    input_path1 = (
-        tmp_dataset_dir / "mocage/2022_07_01-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-    )
-    input_path2 = (
-        tmp_dataset_dir / "mocage/2022_07_02-CO_NO2_PM10_PM25_SO2_O3-0m-0-96h.netcdf"
-    )
-    target_path1 = tmp_dataset_dir / "reanalysis/cams.eaq.ira.ENSa.o3.l0.2022-07.nc"
+    input_path1 = tmp_dataset_dir / f"mocage/2022_07_01-{INPUT_SPECIES}-0m-0-96h.netcdf"
+    input_path2 = tmp_dataset_dir / f"mocage/2022_07_02-{INPUT_SPECIES}-0m-0-96h.netcdf"
+    target_path1 = tmp_dataset_dir / "reanalysis/2022-07-01-O3-0m-vra.netcdf"
     create_dummy_input_netcdf(input_path1)
     create_dummy_input_netcdf(input_path2)
     create_dummy_target_netcdf(target_path1)

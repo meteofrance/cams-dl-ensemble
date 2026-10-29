@@ -67,7 +67,7 @@ class Sample:
         """Build the standard input filename for the given level."""
         return (
             f"{self.date_run.strftime(r'%Y_%m_%d')}-"
-            f"NH3_CO_HCHO_CHOCHO_NO2_NO_NMVOC_O3_PM25_EC_RES_SIA_EC_TOT_PM25_OM_PM10_DUST_DYNSAL_PM_WF_PANS_SO2-"
+            "NH3_CO_HCHO_CHOCHO_NO2_NO_NMVOC_O3_PM25_EC_RES_SIA_EC_TOT_PM25_OM_PM10_DUST_DYNSAL_PM_WF_PANS_SO2-"
             f"{level}m-0-96h.netcdf"
         )
 

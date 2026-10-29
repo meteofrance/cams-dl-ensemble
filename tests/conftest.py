@@ -9,6 +9,16 @@ import pytest
 import xarray as xr
 from cams.settings import SIZE_LAT, SIZE_LON
 
+INPUT_SPECIES = (
+    "NH3_CO_HCHO_CHOCHO_NO2_NO_NMVOC_O3_PM25_EC_RES_SIA_EC_TOT_PM25_OM_PM10_"
+    "DUST_DYNSAL_PM_WF_PANS_SO2"
+)
+
+
+def dummy_input_name(day: str | int) -> str:
+    """Build the input NetCDF filename for the given run day."""
+    return f"2022_07_{day:02}-{INPUT_SPECIES}-0m-0-96h.netcdf"
+
 
 @pytest.fixture(scope="module")
 def temp_dir() -> Iterator[Path]:
@@ -28,7 +38,9 @@ def tmp_dataset_dir(temp_dir: Path) -> Iterator[Path]:
     yield temp_dir
 
 
-def create_dummy_input_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: int = SIZE_LON):
+def create_dummy_input_netcdf(
+    path: Path, size_lat: int = SIZE_LAT, size_lon: int = SIZE_LON
+):
     """Create a dummy NetCDF file filled with zeros."""
     # Data shape = (level, leadtime, latitude, longitude)
     data_shape = (1, 1, size_lat, size_lon)
@@ -63,7 +75,9 @@ def create_dummy_input_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: in
             f.write(buffer.getvalue())
 
 
-def create_dummy_target_netcdf(path: Path, size_lat: int = SIZE_LAT, size_lon: int = SIZE_LON):
+def create_dummy_target_netcdf(
+    path: Path, size_lat: int = SIZE_LAT, size_lon: int = SIZE_LON
+):
     """Create a dummy NetCDF file filled with zeros."""
     data_shape = (31, size_lat, size_lon)  # (time, latitude, longitude)
     lats = np.linspace(71.95, 30.05, data_shape[-2])

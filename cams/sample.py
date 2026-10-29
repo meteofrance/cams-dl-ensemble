@@ -86,23 +86,19 @@ class Sample:
         Files are grouped by months and species.
         """
         year_month_reanalysis_type: set[tuple[int, int, Literal["ira", "vra"]]] = {
-            (
-                date.year,
-                date.month,
-                "ira" if date.year in IRA_YEARS else "vra"
-            )
+            (date.year, date.month, "ira" if date.year in IRA_YEARS else "vra")
             for date in self.valid_times
         }
-        return [
-            self.processed_dir
-            / "reanalysis"
-            / (
-                f"{year}-{month}-01-{species}-{level}m-{reanalysis_type}.netcdf"
-            )
-            for year, month, reanalysis_type in year_month_reanalysis_type
-            for species in self.species
-            for level in self.levels
-        ]
+        return sorted(
+            [
+                self.processed_dir
+                / "reanalysis"
+                / (f"{year}-{month:0>2}-01-{species}-{level}m-{reanalysis_type}.netcdf")
+                for year, month, reanalysis_type in year_month_reanalysis_type
+                for species in self.species
+                for level in self.levels
+            ]
+        )
 
     def _target_path(self, species: SpeciesNames, month: str) -> Path:
         """Return the reanalysis file path for a species and month.

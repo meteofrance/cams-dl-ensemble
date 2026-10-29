@@ -40,6 +40,10 @@ ECMWF_MF_PARAMETER_NAME_MAPPING: dict[str, str] = {
     # "": "SO4_DRY",
 }
 
+# Data specific constants
+IRA_YEARS = [2025]  # Interim reanalysis
+VRA_YEARS = [2022, 2023, 2024]  # Validated reanalysis
+
 # Physics constants
 KILOGRAM_TO_MICROGRAM = 10**9
 

@@ -1,6 +1,6 @@
 import datetime as dt
 from pathlib import Path
-from typing import Hashable
+from typing import Hashable, Literal
 
 import numpy as np
 import torch
@@ -8,7 +8,7 @@ import xarray as xr
 from mfai.pytorch.namedtensor import NamedTensor
 from typing_extensions import override
 
-from cams.settings import PROCESSED_DATA_DIR
+from cams.settings import IRA_YEARS, PROCESSED_DATA_DIR
 from cams.types import Leadtimes, Levels, ModelsNames, SpeciesNames
 
 
@@ -85,16 +85,21 @@ class Sample:
         """The paths to the netcdf of targets reanalysis data.
         Files are grouped by months and species.
         """
-        months_str = sorted({date.strftime("%Y-%m") for date in self.valid_times})
+        year_month_reanalysis_type: set[tuple[int, int, Literal["ira", "vra"]]] = {
+            (
+                date.year,
+                date.month,
+                "ira" if date.year in IRA_YEARS else "vra"
+            )
+            for date in self.valid_times
+        }
         return [
             self.processed_dir
             / "reanalysis"
             / (
-                f"{month}-01-{species}-{level}m-ira.netcdf"
-                if "2025" in month
-                else f"{month}-01-{species}-{level}m-vra.netcdf"
+                f"{year}-{month}-01-{species}-{level}m-{reanalysis_type}.netcdf"
             )
-            for month in months_str
+            for year, month, reanalysis_type in year_month_reanalysis_type
             for species in self.species
             for level in self.levels
         ]

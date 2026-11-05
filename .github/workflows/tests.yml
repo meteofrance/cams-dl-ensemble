@@ -70,14 +70,6 @@ jobs:
     - name: Install the project
       run: uv sync --locked --all-extras --dev
 
-    - name: Gather Python changed files
-      id: changed-py-files
-      uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
-      with:
-        files: |
-          *.py
-          **/*.py
-
     - name: Type hinting with pyright on changed files
       if: github.event_name != 'pull_request' || steps.changed-py-files.outputs.any_changed == 'true'
       run: |
